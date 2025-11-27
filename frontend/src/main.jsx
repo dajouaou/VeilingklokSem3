@@ -1,6 +1,12 @@
-namespace DefaultNamespace;
+import React from "react";
+import ReactDOM from "react-dom/client";
 
-public class main_jsx
-{
-    
-}
+import App from "./App.jsx";
+import "./index.css"; // Tailwind styles
+
+// Mount React app
+ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
+        <App />
+    </React.StrictMode>
+);

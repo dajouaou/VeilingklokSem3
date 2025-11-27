@@ -1,6 +1,25 @@
-namespace DefaultNamespace;
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-public class vite_config_js
-{
-    
-}
+export default defineConfig({
+    plugins: [react()],
+
+    server: {
+        port: 5173,
+        strictPort: true,
+        open: true,
+        proxy: {
+            "/api": {
+                target: "http://localhost:5242",
+                changeOrigin: true,
+                secure: false,
+            },
+            "/hubs": {
+                target: "http://localhost:5242",
+                ws: true,
+                changeOrigin: true,
+                secure: false,
+            }
+        }
+    }
+});

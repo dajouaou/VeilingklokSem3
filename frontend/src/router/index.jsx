@@ -1,6 +1,12 @@
-namespace DefaultNamespace;
+import React from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-public class index_jsx
-{
-    
+export default function AppRouter() {
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route path="/" element={<div>Home werkt!</div>} />
+            </Routes>
+        </BrowserRouter>
+    );
 }
