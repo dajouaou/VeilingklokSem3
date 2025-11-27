@@ -10,4 +10,40 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Core\Enums\" />
+    <Folder Include="Core\Exceptions\" />
+    <Folder Include="Core\Interfaces\" />
+    <Folder Include="Core\Shared\" />
+    <Folder Include="Features\AanvoerderDashboard\Controllers\" />
+    <Folder Include="Features\AanvoerderDashboard\Dtos\" />
+    <Folder Include="Features\AanvoerderDashboard\Mapping\" />
+    <Folder Include="Features\AanvoerderDashboard\Models\" />
+    <Folder Include="Features\AanvoerderDashboard\Services\" />
+    <Folder Include="Features\Auth\Controllers\" />
+    <Folder Include="Features\Auth\Dtos\" />
+    <Folder Include="Features\Auth\Mapping\" />
+    <Folder Include="Features\Auth\Services\" />
+    <Folder Include="Features\Auth\Validators\" />
+    <Folder Include="Features\Home\Controllers\" />
+    <Folder Include="Features\Home\Dtos\" />
+    <Folder Include="Features\Home\Services\" />
+    <Folder Include="Features\VeilingmeesterDashboard\Commands\" />
+    <Folder Include="Features\VeilingmeesterDashboard\Controllers\" />
+    <Folder Include="Features\VeilingmeesterDashboard\Dtos\" />
+    <Folder Include="Features\VeilingmeesterDashboard\Mapping\" />
+    <Folder Include="Features\VeilingmeesterDashboard\Models\" />
+    <Folder Include="Features\VeilingmeesterDashboard\Services\" />
+    <Folder Include="Features\Veiling\Controllers\" />
+    <Folder Include="Features\Veiling\Dtos\" />
+    <Folder Include="Features\Veiling\Mapping\" />
+    <Folder Include="Features\Veiling\Queries\" />
+    <Folder Include="Features\Veiling\Services\" />
+    <Folder Include="Infrastructure\Database\Configurations\" />
+    <Folder Include="Infrastructure\Database\Migrations\" />
+    <Folder Include="Infrastructure\Database\MyContext.cs\" />
+    <Folder Include="Infrastructure\Database\Seed\" />
+    <Folder Include="Infrastructure\Repositories\SignalR\Events\" />
+  </ItemGroup>
+
 </Project>
