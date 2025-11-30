@@ -1,6 +1,8 @@
-namespace Veilingklok.Infrastructure.Repositories.SignalR.Hubs;
+using Microsoft.AspNetCore.SignalR;
 
-public class AuctionHub
+namespace Veilingklok.Infrastructure.Repositories.SignalR.Hubs
 {
-    
+    public class AuctionHub : Hub
+    {
+    }
 }
