@@ -1,91 +1,113 @@
 using AutoMapper;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+using Scrutor;
 using Veilingklok.Hubs;
 using Veilingklok.Infrastructure.Database;
-using Scrutor;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-// ======================================================
-// 1. DATABASE (EF Core 8)
-// ======================================================
+// ----------------------------------------------------
+// Logging
+// ----------------------------------------------------
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
+// ----------------------------------------------------
+// Controllers + JSON (camelCase)
+// ----------------------------------------------------
+builder.Services
+    .AddControllers()
+    .AddNewtonsoftJson(o =>
+    {
+        o.SerializerSettings.ContractResolver =
+            new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
+    });
+
+
+
+// ----------------------------------------------------
+// Database (EF Core 8 + SQL Server)
+// ----------------------------------------------------
 builder.Services.AddDbContext<MyContext>(options =>
     options.UseSqlServer(config.GetConnectionString("DefaultConnection"))
 );
 
-// ======================================================
-// 2. CONTROLLERS + JSON + VALIDATION
-// ======================================================
-builder.Services
-    .AddControllers()
-    .AddNewtonsoftJson()
-    .AddFluentValidation();
+// ----------------------------------------------------
+// AutoMapper
+// ----------------------------------------------------
+builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-// Registreer ALLE validators automatisch
-builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
-
-// ======================================================
-// 3. AUTOMAPPER (12.0.1 — matching DI extensie)
-// ======================================================
-builder.Services.AddAutoMapper(typeof(Program));
-
-// ======================================================
-// 4. SIGNALR (Realtime met JSON protocol)
-// ======================================================
+// ----------------------------------------------------
+// SignalR
+// ----------------------------------------------------
 builder.Services.AddSignalR()
     .AddJsonProtocol();
 
-// ======================================================
-// 5. DEPENDENCY INJECTION (SCRUTOR AUTO-SCANNER)
-// ======================================================
-//
-// Registreert automatisch ALLE services:
-// - IProductService → ProductService
-// - IAuctionService → AuctionService
-// enzovoort.
-//
-// Dit werkt perfect met jouw Features/… structuur.
-//
+// ----------------------------------------------------
+// Health checks
+// ----------------------------------------------------
+builder.Services.AddHealthChecks();
+
+// ----------------------------------------------------
+// DI scanner Scrutor voor  Features en services
+// ----------------------------------------------------
 builder.Services.Scan(scan =>
-    scan.FromAssemblyOf<Program>()
-        .AddClasses()                  // alle classes
-        .AsMatchingInterface()         // interface met zelfde naam
+    scan.FromApplicationDependencies()
+        .AddClasses(c => c.InNamespaces("Veilingklok.Features"))
+        .AsMatchingInterface()
         .WithScopedLifetime()
 );
 
-// ======================================================
-// 6. SWAGGER (OpenAPI 3)
-// ======================================================
+// ----------------------------------------------------
+// Swagger / OpenAPI Swashbuckle 10
+// ----------------------------------------------------
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// ======================================================
-// 7. CORS (voor Vite React localhost:5173)
-// ======================================================
-builder.Services.AddCors(options =>
+builder.Services.AddSwaggerGen(o =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
-        policy
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-            .WithOrigins(
-                "http://localhost:5173"   // Vite dev
-            )
-    );
+    o.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Veilingklok API",
+        Version = "v1"
+    });
 });
 
-// ======================================================
-// BUILD APPLICATION
-// ======================================================
+// ----------------------------------------------------
+// CORS voor Vite localhost:5173
+// ----------------------------------------------------
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", p =>
+        p.WithOrigins("http://localhost:5173")
+         .AllowAnyHeader()
+         .AllowAnyMethod()
+         .AllowCredentials());
+});
+
 var app = builder.Build();
 
-// ======================================================
-// 8. MIDDLEWARE PIPELINE
-// ======================================================
+// ----------------------------------------------------
+// Global error handling
+// ----------------------------------------------------
+app.UseExceptionHandler(err =>
+{
+    err.Run(async context =>
+    {
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            status = 500,
+            message = "Er ging iets mis op de server."
+        });
+    });
+});
+
+// ----------------------------------------------------
+// Development tools
+// ----------------------------------------------------
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -93,18 +115,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors("AllowFrontend");
-
 app.UseAuthorization();
 
-// ======================================================
-// 9. ROUTING
-// ======================================================
+// Health endpoint
+app.MapHealthChecks("/health");
+
+// Controllers & SignalR hub
 app.MapControllers();
 app.MapHub<AuctionHub>("/hubs/auction");
 
-// ======================================================
-// 10. START APP
-// ======================================================
 app.Run();
