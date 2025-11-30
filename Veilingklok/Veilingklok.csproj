@@ -28,9 +28,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Core\" />
         <Folder Include="Features\" />
+        <Folder Include="Features\VeilingmeesterDashboard\Commands\" />
+        <Folder Include="Features\VeilingmeesterDashboard\Models\" />
         <Folder Include="Infrastructure\" />
+        <Folder Include="Infrastructure\Repositories\" />
     </ItemGroup>
 
 </Project>

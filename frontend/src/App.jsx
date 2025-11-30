@@ -1,10 +1,6 @@
-import React from "react";
-import Router from "./router";
+import AppRouter from "./router/AppRouter";
+import "./styles/dashboard.css";
 
 export default function App() {
-    return (
-        <div className="min-h-screen bg-gray-50 text-gray-900">
-            <Router />
-        </div>
-    );
+    return <AppRouter />;
 }

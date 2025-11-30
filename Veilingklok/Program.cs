@@ -1,50 +1,53 @@
+using System.Text.Json;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Veilingklok.Features.VeilingmeesterDashboard.Mapping;
 using Veilingklok.Infrastructure.Database;
-using Veilingklok.Infrastructure.Repositories.SignalR.Hubs;
+using Veilingklok.Infrastructure.Database.Seed; // Seeder
+using Veilingklok.Infrastructure.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-// Logging (console + debug)
+// logging basic
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-builder.Logging.AddDebug();
 
-// Controllers + JSON (camelCase)
+// controllers (camelCase json)
 builder.Services.AddControllers()
-    .AddNewtonsoftJson(o =>
-        o.SerializerSettings.ContractResolver =
-            new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver());
+    .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
-// EF Core (SQL Server)
+// DbContextOptions<MyContext> object aanmaken in program cs
 builder.Services.AddDbContext<MyContext>(opt =>
     opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 
-// AutoMapper (scant huidige assembly)
-builder.Services.AddAutoMapper(typeof(Program).Assembly);
+// automapper
+builder.Services.AddAutoMapper(typeof(VeilingDashboardMappingProfile).Assembly);
 
-// SignalR (realtime)
-builder.Services.AddSignalR().AddJsonProtocol();
+// signalr (camelCase payloads)
+builder.Services.AddSignalR()
+    .AddJsonProtocol(o =>
+        o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
-// Health checks (/health)
+// health
 builder.Services.AddHealthChecks();
 
-// DI scan (services in Veilingklok.Features)
+// DI: jouw feature services
 builder.Services.Scan(scan => scan.FromApplicationDependencies()
     .AddClasses(c => c.InNamespaces("Veilingklok.Features"))
     .AsMatchingInterface()
     .WithScopedLifetime());
 
-// Swagger
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(o =>
-{
-    o.SwaggerDoc("v1", new OpenApiInfo { Title = "Veilingklok API", Version = "v1" });
-});
-builder.Services.AddSwaggerGenNewtonsoftSupport(); // nodig i.c.m. NewtonsoftJson
+// DI: dispatcher (realtime centraal)
+builder.Services.AddScoped<IAuctionEventDispatcher, AuctionEventDispatcher>();
 
-// CORS (Vite)
+// swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Veilingklok API", Version = "v1" }));
+
+// cors voor Vite + SignalR
 builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", p => p
     .WithOrigins("http://localhost:5173")
     .AllowAnyHeader()
@@ -53,14 +56,36 @@ builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", p => p
 
 var app = builder.Build();
 
-// Global error handler (1 plek voor 500)
-app.UseExceptionHandler(a => a.Run(async ctx =>
+//  migrate + seed (MOET vóór app.Run)
+using (var scope = app.Services.CreateScope())
 {
-    ctx.Response.ContentType = "application/json";
-    await ctx.Response.WriteAsJsonAsync(new { status = 500, message = "Er ging iets mis op de server." });
-}));
+    var db = scope.ServiceProvider.GetRequiredService<MyContext>();
+    await db.Database.MigrateAsync();   //maakt/upgrade db
+    await DbSeeder.SeedAsync(db);       // seed alleen als leeg
+}
 
-// Swagger UI alleen in Development
+// errors: ArgumentException => 400, rest => 500
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async ctx =>
+    {
+        ctx.Response.ContentType = "application/json";
+        var feature = ctx.Features.Get<IExceptionHandlerFeature>();
+        var ex = feature?.Error;
+
+        if (ex is ArgumentException)
+        {
+            ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await ctx.Response.WriteAsJsonAsync(new { status = 400, message = ex.Message });
+            return;
+        }
+
+        ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        await ctx.Response.WriteAsJsonAsync(new { status = 500, message = "Server error." });
+    });
+});
+
+// swagger only dev
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -68,12 +93,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowFrontend");
+
+app.UseStaticFiles(); // serve wwwroot (bv /img/products/...)
+
+app.UseRouting();
+app.UseCors("AllowFrontend"); // credentials
 app.UseAuthorization();
 
-// Routes
-app.MapHealthChecks("/health");
+// endpoints
 app.MapControllers();
+app.MapHealthChecks("/health");
 app.MapHub<AuctionHub>("/hubs/auction");
 
 app.Run();
