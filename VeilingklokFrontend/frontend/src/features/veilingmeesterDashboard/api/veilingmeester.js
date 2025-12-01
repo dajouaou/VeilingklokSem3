@@ -1,5 +1,5 @@
 // src/api/veilingmeester.js
-import { apiGet, apiPost, apiPut } from "./api";
+import { apiGet, apiPost, apiPut } from "./veilingmeesterApi";
 
 export const VeilingApi = {
     // READ

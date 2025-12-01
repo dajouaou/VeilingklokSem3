@@ -1,13 +1,12 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import VeilingmeesterDashboard from "../features/veilingmeesterDashboard/pages/VeilingmeesterDashboard.jsx";
-import Login from "../features/auth/api/Login.jsx";
-import Register from "../features/auth/api/Register.jsx";
+import Login from "../features/auth/Login.jsx";
+import Register from "../features/auth/Register.jsx";
 
 export default function AppRouter() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<VeilingmeesterDashboard />} />
+                <Route path="/" element={<Login />} />   {/* Default route */}
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
             </Routes>

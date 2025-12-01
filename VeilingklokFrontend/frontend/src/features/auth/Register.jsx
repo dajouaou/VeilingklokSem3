@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { registerApi } from "./api/authApi"; // LET OP: pad moet overeenkomen
+import { registerApi } from "./api/authApi.js";
 import { Link } from "react-router-dom";
 
 export default function Register() {
@@ -20,10 +20,10 @@ export default function Register() {
         e.preventDefault();
 
         try {
-            const result = await registerApi(data);
+            await registerApi(data);
             setMessage("Registratie succesvol! Je kunt nu inloggen.");
         } catch (err) {
-            setMessage(err.message);
+            setMessage("Fout: " + err.message);
         }
     }
 

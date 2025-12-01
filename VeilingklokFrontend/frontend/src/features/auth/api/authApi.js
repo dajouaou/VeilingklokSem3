@@ -1,5 +1,4 @@
 const API_URL = "https://localhost:5001/api/Auth";
-// Zorg dat dit klopt met jouw backend URL
 
 export async function loginApi(email, password) {
     const res = await fetch(`${API_URL}/login`, {
@@ -8,8 +7,12 @@ export async function loginApi(email, password) {
         body: JSON.stringify({ email, password })
     });
 
-    if (!res.ok) throw new Error("Login mislukt.");
-    return await res.json(); // { token: "...", role: "..." }
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Login mislukt.");
+    }
+
+    return await res.json();
 }
 
 export async function registerApi(data) {
@@ -20,9 +23,9 @@ export async function registerApi(data) {
     });
 
     if (!res.ok) {
-        const text = await res.text();
-        throw new Error("Registratie mislukt: " + text);
+        const error = await res.json();
+        throw new Error(error.message || "Registratie mislukt.");
     }
 
-    return await res.json(); // { token: "..." }
+    return await res.json();
 }

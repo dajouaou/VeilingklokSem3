@@ -1,7 +1,7 @@
 // src/hooks/useVeilingmeesterDashboard.js
 import { useEffect, useState } from "react";
 import { VeilingApi } from "../api/veilingmeester";
-import { createAuctionHub } from "../signalr/auctionHub";
+import { createAuctionHub } from "../../../signalr/auctionHub";
 
 export function useVeilingmeesterDashboard(veilingId) {
     const [details, setDetails] = useState(null);

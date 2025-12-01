@@ -1,10 +1,10 @@
 import { useVeilingmeesterDashboard } from "../hooks/useVeilingmeesterDashboard";
-import VeilingInfo from "../components/dashboard/VeilingInfo";
-import ProductCard from "../components/dashboard/ProductCard";
-import QueueList from "../components/dashboard/QueueList";
-import BidList from "../components/dashboard/BidList";
-import AuditList from "../components/dashboard/AuditList";
-import ControlPanel from "../components/dashboard/ControlPanel";
+import VeilingInfo from "../components/VeilingInfo.jsx";
+import ProductCard from "../components/ProductCard.jsx";
+import QueueList from "../components/QueueList.jsx";
+import BidList from "../components/BidList";
+import AuditList from "../components/AuditList";
+import ControlPanel from "../components/ControlPanel";
 
 export default function VeilingmeesterDashboard() {
     const veilingId = 1; // of via URL param
