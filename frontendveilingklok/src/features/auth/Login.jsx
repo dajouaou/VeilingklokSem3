@@ -1,70 +1,85 @@
-import { useState } from "react";
-import { loginApi } from "./api/authApi.js";
-import { Link } from "react-router-dom";
+import { useState, useContext } from "react";
+import { loginApi } from "./api/authApi";
+import { AuthContext } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
+    const { login, role } = useContext(AuthContext);
+    const navigate = useNavigate();
+
     async function handleSubmit(e) {
         e.preventDefault();
+        setError("");
 
         try {
-            const result = await loginApi(email, password);
-            alert("Inloggen succesvol! Token: " + result.token);
+            const { token } = await loginApi({ email, password });
+
+            // ?? JWT opslaan (rol komt nog uit backend later)
+            login(token, "Koper"); // placeholder ? jij krijgt straks echte rol uit backend
+
+            // Redirect op basis van rol
+            navigate("/koper");
         } catch (err) {
-            setError("Login mislukt: " + err.message);
+            setError(err.message);
         }
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col">
-            <header className="bg-white shadow sticky top-0 p-4 flex justify-between">
-                <h1 className="text-green-600 font-bold">Veilingklok</h1>
-                <Link to="/register" className="text-green-600 font-semibold">
-                    Registreren
-                </Link>
-            </header>
+        <div className="bg-light">
+            <div className="container py-5">
+                <div className="row justify-content-center">
+                    <div className="col-md-6 col-lg-4">
+                        <div className="card shadow-sm border-0 rounded-4 p-4">
 
-            <div className="flex justify-center items-center flex-1">
-                <div className="bg-white shadow-lg p-6 rounded-xl w-full max-w-md">
-                    <h2 className="text-green-600 text-center text-3xl font-bold mb-2">
-                        Inloggen
-                    </h2>
+                            <h2 className="fw-bold mb-3 text-success text-center">
+                                Inloggen
+                            </h2>
 
-                    {error && (
-                        <p className="text-red-500 text-sm mb-3 text-center">
-                            {error}
-                        </p>
-                    )}
+                            {error && (
+                                <div className="alert alert-danger">{error}</div>
+                            )}
 
-                    <form onSubmit={handleSubmit}>
-                        <input
-                            type="text"
-                            placeholder="E-mailadres"
-                            className="w-full border p-2 rounded mb-3"
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
+                            <form onSubmit={handleSubmit}>
+                                <div className="mb-3">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="E-mailadres"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
-                        <input
-                            type="password"
-                            placeholder="Wachtwoord"
-                            className="w-full border p-2 rounded mb-3"
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+                                <div className="mb-3">
+                                    <input
+                                        type="password"
+                                        className="form-control"
+                                        placeholder="Wachtwoord"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        required
+                                    />
+                                </div>
 
-                        <button className="bg-green-600 text-white w-full py-2 rounded mt-2">
-                            Log in
-                        </button>
-                    </form>
+                                <button className="btn btn-success w-100 rounded-pill">
+                                    Log in
+                                </button>
+                            </form>
 
-                    <p className="mt-4 text-center text-sm">
-                        Nog geen account?{" "}
-                        <Link to="/register" className="text-green-600 font-medium">
-                            Registreer hier
-                        </Link>
-                    </p>
+                            <p className="text-center mt-4">
+                                Nog geen account?{" "}
+                                <a href="/register" className="text-success fw-semibold">
+                                    Registreer
+                                </a>
+                            </p>
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

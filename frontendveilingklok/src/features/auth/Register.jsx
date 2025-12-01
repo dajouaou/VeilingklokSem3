@@ -1,95 +1,116 @@
-import { useState } from "react";
-import { registerApi } from "./api/authApi.js";
-import { Link } from "react-router-dom";
+import { useState, useContext } from "react";
+import { registerApi } from "./api/authApi";
+import { AuthContext } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
-    const [data, setData] = useState({
-        username: "",
+    const [form, setForm] = useState({
         email: "",
+        voornaam: "",
+        achternaam: "",
         password: "",
-        role: "Koper"
+        rol: 0, // 0 = Koper, 1 = Aanvoerder
     });
 
-    const [message, setMessage] = useState("");
-
-    function handleChange(e) {
-        setData({ ...data, [e.target.name]: e.target.value });
-    }
+    const [error, setError] = useState("");
+    const { login } = useContext(AuthContext);
+    const navigate = useNavigate();
 
     async function handleSubmit(e) {
         e.preventDefault();
+        setError("");
 
         try {
-            await registerApi(data);
-            setMessage("Registratie succesvol! Je kunt nu inloggen.");
+            const { token } = await registerApi(form);
+
+            login(token, form.rol === 0 ? "Koper" : "Aanvoerder");
+
+            navigate(form.rol === 0 ? "/koper" : "/aanvoerder");
         } catch (err) {
-            setMessage("Fout: " + err.message);
+            setError(err.message);
         }
     }
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col">
-            <header className="bg-white shadow p-4 flex justify-between">
-                <h1 className="text-green-600 text-xl font-bold">Veilingklok</h1>
-                <Link to="/login" className="text-green-600">
-                    Inloggen
-                </Link>
-            </header>
+        <div className="bg-light">
+            <div className="container py-5">
+                <div className="row justify-content-center">
+                    <div className="col-md-6 col-lg-4">
+                        <div className="card shadow-sm border-0 rounded-4 p-4">
 
-            <div className="flex justify-center items-center flex-1">
-                <div className="bg-white shadow-lg p-6 rounded-xl w-full max-w-md">
-                    <h2 className="text-green-600 text-center text-3xl font-bold mb-4">
-                        Registreren
-                    </h2>
+                            <h2 className="fw-bold mb-3 text-success text-center">
+                                Registreren
+                            </h2>
 
-                    {message && (
-                        <p className="text-center text-blue-600 mb-3">{message}</p>
-                    )}
+                            {error && <div className="alert alert-danger">{error}</div>}
 
-                    <form onSubmit={handleSubmit}>
-                        <input
-                            name="username"
-                            placeholder="Gebruikersnaam"
-                            className="w-full border p-2 rounded mb-3"
-                            onChange={handleChange}
-                        />
+                            <form onSubmit={handleSubmit}>
 
-                        <input
-                            name="email"
-                            type="email"
-                            placeholder="E-mailadres"
-                            className="w-full border p-2 rounded mb-3"
-                            onChange={handleChange}
-                        />
+                                <div className="mb-3">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Voornaam"
+                                        onChange={(e) => setForm({ ...form, voornaam: e.target.value })}
+                                        required
+                                    />
+                                </div>
 
-                        <input
-                            name="password"
-                            type="password"
-                            placeholder="Wachtwoord"
-                            className="w-full border p-2 rounded mb-3"
-                            onChange={handleChange}
-                        />
+                                <div className="mb-3">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Achternaam"
+                                        onChange={(e) => setForm({ ...form, achternaam: e.target.value })}
+                                        required
+                                    />
+                                </div>
 
-                        <select
-                            name="role"
-                            className="border p-2 w-full rounded mb-3"
-                            onChange={handleChange}
-                        >
-                            <option value="Koper">Koper</option>
-                            <option value="Aanvoerder">Aanvoerder</option>
-                        </select>
+                                <div className="mb-3">
+                                    <input
+                                        type="email"
+                                        className="form-control"
+                                        placeholder="E-mailadres"
+                                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                                        required
+                                    />
+                                </div>
 
-                        <button className="bg-green-600 text-white w-full py-2 rounded mt-2">
-                            Account aanmaken
-                        </button>
-                    </form>
+                                <div className="mb-3">
+                                    <input
+                                        type="password"
+                                        className="form-control"
+                                        placeholder="Wachtwoord"
+                                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                        required
+                                    />
+                                </div>
 
-                    <p className="mt-4 text-center text-sm">
-                        Al een account?{" "}
-                        <Link to="/login" className="text-green-600 font-medium">
-                            Log in
-                        </Link>
-                    </p>
+                                {/* Rol keuze */}
+                                <div className="mb-3">
+                                    <select
+                                        className="form-control"
+                                        onChange={(e) => setForm({ ...form, rol: Number(e.target.value) })}
+                                    >
+                                        <option value="0">Koper</option>
+                                        <option value="1">Aanvoerder</option>
+                                    </select>
+                                </div>
+
+                                <button className="btn btn-success w-100 rounded-pill">
+                                    Account aanmaken
+                                </button>
+                            </form>
+
+                            <p className="text-center mt-4">
+                                Al een account?{" "}
+                                <a href="/login" className="text-success fw-semibold">
+                                    Log in
+                                </a>
+                            </p>
+
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

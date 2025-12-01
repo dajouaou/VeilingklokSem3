@@ -1,31 +1,31 @@
-const API_URL = "https://localhost:7043/api/Auth";
+const API_URL = "https://localhost:56418/api/Auth";
 
-export async function loginApi(email, password) {
+export async function loginApi({ email, password }) {
     const res = await fetch(`${API_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password }),
     });
 
     if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Login mislukt.");
+        const err = await res.json();
+        throw new Error(err?.message || "Login mislukt");
     }
 
-    return await res.json();
+    return res.json(); // { token }
 }
 
-export async function registerApi(data) {
+export async function registerApi({ email, password, voornaam, achternaam, rol }) {
     const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
+        body: JSON.stringify({ email, password, voornaam, achternaam, rol }),
     });
 
     if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Registratie mislukt.");
+        const err = await res.json();
+        throw new Error(err?.message || "Registratie mislukt");
     }
 
-    return await res.json();
+    return res.json(); // { token }
 }
