@@ -1,13 +1,71 @@
-# Default ignored files
-/shelf/
-/workspace.xml
-# Rider ignored files
-/modules.xml
-/projectSettingsUpdater.xml
-/.idea.Veilingklok.iml
-/contentModel.xml
-# Editor-based HTTP Client requests
-/httpRequests/
-# Datasource local storage ignored files
-/dataSources/
-/dataSources.local.xml
+# ================================
+# OS (macOS)
+# ================================
+.DS_Store
+*/.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# ================================
+# Rider / IntelliJ / JetBrains
+# ================================
+.idea/
+*.iml
+shelf/
+workspace.xml
+modules.xml
+projectSettingsUpdater.xml
+contentModel.xml
+httpRequests/
+dataSources/
+dataSources.local.xml
+
+# ================================
+# Build output (ASP.NET Core)
+# ================================
+bin/
+obj/
+out/
+
+# ================================
+# Logs
+# ================================
+*.log
+logs/
+
+# ================================
+# User secrets / config
+# ================================
+appsettings.Local.json
+appsettings.Development.local.json
+
+# ================================
+# Node / React (Vite)
+# ================================
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
+
+# ================================
+# Environment files
+# ================================
+.env
+.env.*
+!.env.example
+
+# ================================
+# SQL backups
+# ================================
+*.bak
+*.mdf
+*.ldf
+
+# ================================
+# Custom project-specific
+# ================================
+wwwroot/img/*.tmp
+wwwroot/*.DS_Store
