@@ -6,7 +6,7 @@
 Icon?
 ._*
 
-# Rider / IntelliJ / JetBrains
+# Rider / IntelliJ
 .idea/
 *.iml
 shelf/
@@ -14,7 +14,6 @@ workspace.xml
 modules.xml
 projectSettingsUpdater.xml
 contentModel.xml
-httpRequests/
 dataSources/
 dataSources.local.xml
 
@@ -23,27 +22,28 @@ bin/
 obj/
 out/
 
-# Logs
-*.log
-logs/
-
-# Node / Vite (frontend)
+# Node / Vite
 node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 *.tsbuildinfo
 
-# Environment files
+# Logs
+*.log
+logs/
+
+# Environment
 .env
 .env.*
 !.env.example
 
-# SQL backups
-*.bak
-*.mdf
-*.ldf
+xx# SQL backups
+*.bakxxxxxxxxxxxx
+*.mxxdf
+*.xldf
 
-# Custom project-specific
-wwwroot/img/*.tmp
-wwwroot/*.DS_Store
+xxxxxxxx
+xxxxxxx
+xxxxx
+xx
