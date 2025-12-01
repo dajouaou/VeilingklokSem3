@@ -1,6 +1,0 @@
-@VeilingklokFrontend_HostAddress = http://localhost:5218
-
-GET {{VeilingklokFrontend_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

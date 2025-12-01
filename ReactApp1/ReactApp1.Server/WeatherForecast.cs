@@ -1,4 +1,4 @@
-namespace VeilingklokFrontend
+namespace ReactApp1.Server
 {
     public class WeatherForecast
     {
