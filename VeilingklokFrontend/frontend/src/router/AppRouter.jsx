@@ -1,16 +1,18 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import VeilingmeesterDashboard from "../pages/VeilingmeesterDashboard";
+import VeilingmeesterDashboard from "frontend/features/veilingmeesterDashboard/pages/VeilingmeesterDashboard";
+import Login from "../features/auth/Login";
+import Register from "../features/auth/Register";
 
 export default function AppRouter() {
     return (
         <BrowserRouter>
             <Routes>
-                {/* Default route */}
+                {/* Homepage (tijdelijk dashboard) */}
                 <Route path="/" element={<VeilingmeesterDashboard />} />
 
-                {/* Add more pages later */}
-                {/* <Route path="/login" element={<LoginPage />} /> */}
-                {/* <Route path="/veiling/:id" element={<VeilingPage />} /> */}
+                {/* Auth routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
             </Routes>
         </BrowserRouter>
     );
