@@ -4,36 +4,37 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace Veilingklok.Features.Auth.Services;
-
-public class JwtService
+namespace Veilingklok.Features.Auth.Services
 {
-    private readonly string _key;
-
-    public JwtService(IConfiguration configuration)
+    public class JwtService
     {
-        _key = configuration["Jwt:Key"];
-        if (string.IsNullOrEmpty(_key))
-            throw new Exception("JWT Key is niet ingesteld in appsettings.json!");
-    }
+        private readonly string _key;
 
-    public string GenerateToken(Gebruiker gebruiker)
-    {
-        var claims = new[]
+        public JwtService(IConfiguration configuration)
         {
-            new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
-            new Claim(ClaimTypes.Email, gebruiker.Email)
-        };
+            _key = configuration["Jwt:Key"];
+            if (string.IsNullOrEmpty(_key))
+                throw new Exception("JWT Key is niet ingesteld in appsettings.json!");
+        }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        public string GenerateToken(Gebruiker gebruiker)
+        {
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
+                new Claim(ClaimTypes.Email, gebruiker.Email)
+            };
 
-        var token = new JwtSecurityToken(
-            claims: claims,
-            expires: DateTime.UtcNow.AddHours(12),
-            signingCredentials: creds
-        );
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(12),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
     }
 }
