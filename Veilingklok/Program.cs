@@ -16,54 +16,58 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-// logging basic
+// Logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-// controllers (camelCase json)
+// Controllers (camelCase JSON)
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
-// DbContextOptions<MyContext> object aanmaken in program cs
+// DbContext
 builder.Services.AddDbContext<MyContext>(opt =>
     opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 
-// automapper
+// AutoMapper
 builder.Services.AddAutoMapper(typeof(VeilingDashboardMappingProfile).Assembly);
 
-// signalr (camelCase payloads)
+// SignalR (camelCase payloads)
 builder.Services.AddSignalR()
-    .AddJsonProtocol(o =>
-        o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
+    .AddJsonProtocol(o => o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
-// health
+// Health Checks
 builder.Services.AddHealthChecks();
 
-// DI: jouw feature services
+// Dependency Injection: feature services
 builder.Services.Scan(scan => scan.FromApplicationDependencies()
     .AddClasses(c => c.InNamespaces("Veilingklok.Features"))
     .AsMatchingInterface()
     .WithScopedLifetime());
 
-// DI: dispatcher (realtime centraal)
+// Dispatcher
 builder.Services.AddScoped<IAuctionEventDispatcher, AuctionEventDispatcher>();
 
-// swagger
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Veilingklok API", Version = "v1" }));
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Veilingklok API", Version = "v1" });
+});
 
-// cors voor Vite + SignalR
+// CORS voor Vite + SignalR
 builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", p => p
     .WithOrigins("http://localhost:5173")
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()));
-//DI geconfigureerd 
+
+// DI services
 builder.Services.AddScoped<IGebruikerRepository, GebruikerRepository>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
+
+// JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -78,15 +82,15 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-//  migrate + seed (MOET vóór app.Run)
+// Migrate + Seed (vóór app.Run)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<MyContext>();
-    await db.Database.MigrateAsync();   //maakt/upgrade db
+    await db.Database.MigrateAsync();   // maakt/upgrade db
     await DbSeeder.SeedAsync(db);       // seed alleen als leeg
 }
 
-// errors: ArgumentException => 400, rest => 500
+// Global error handling
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async ctx =>
@@ -107,26 +111,28 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-// swagger only dev
+// Swagger (development only)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Veilingklok API v1");
+        c.RoutePrefix = string.Empty; // Swagger op root: http://localhost:5000/
+    });
 }
 
+// Middleware
 app.UseHttpsRedirection();
-
-app.UseStaticFiles(); // serve wwwroot (bv /img/products/...)
-
+app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowFrontend"); // credentials
-app.UseAuthorization();
-// authenticatie
+app.UseCors("AllowFrontend");
+
+// Authentication + Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
-
-// endpoints
+// Endpoints
 app.MapControllers();
 app.MapHealthChecks("/health");
 app.MapHub<AuctionHub>("/hubs/auction");

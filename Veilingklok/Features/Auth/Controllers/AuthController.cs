@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Veilingklok.Features.Auth.Services;
+using Veilingklok.Core.Enums;
 using Veilingklok.Features.Auth.Dtos;
+using Veilingklok.Features.Auth.Services;
 
 namespace Veilingklok.Features.Auth.Controllers
 {
@@ -16,16 +17,20 @@ namespace Veilingklok.Features.Auth.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterRequest request)
+        public async Task<IActionResult> Register(RegisterRequest dto)
         {
             try
             {
-                // Gebruik 'request', niet 'dto'
+                // Beperk rol tot Koper of Aanvoerder
+                if (dto.Rol != UserRole.Koper && dto.Rol != UserRole.Aanvoerder)
+                    return BadRequest(new { message = "Ongeldige rol." });
+
                 string token = await _authService.RegisterAsync(
-                    request.Email,
-                    request.Password,
-                    request.Voornaam,
-                    request.Achternaam
+                    dto.Email,
+                    dto.Password,
+                    dto.Voornaam,
+                    dto.Achternaam,
+                    dto.Rol
                 );
 
                 return Ok(new { token });
@@ -35,6 +40,7 @@ namespace Veilingklok.Features.Auth.Controllers
                 return BadRequest(new { message = e.Message });
             }
         }
+
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginRequest request)

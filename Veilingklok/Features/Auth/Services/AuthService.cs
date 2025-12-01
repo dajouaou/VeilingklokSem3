@@ -1,6 +1,8 @@
 ﻿using Veilingklok.Core.Entities;
+using Veilingklok.Core.Enums;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Auth.Dtos;
+using Veilingklok.Infrastructure.Repositories;
 
 namespace Veilingklok.Features.Auth.Services;
 
@@ -20,27 +22,36 @@ public class AuthService
         _jwtService = jwtService;
     }
 
-    public async Task<string> RegisterAsync(string email, string password, string voornaam, string achternaam)
+    public async Task<string> RegisterAsync(
+     string email,
+     string password,
+     string voornaam,
+     string achternaam,
+     UserRole rol)
     {
-        // Controleer of email al bestaat
-        var bestaandeGebruiker = await _gebruikerRepo.GetByEmailAsync(email);
-        if (bestaandeGebruiker != null)
-            throw new Exception("Email bestaat al.");
+        var existingUser = await _gebruikerRepo.GetByEmailAsync(email);
+        if (existingUser != null)
+            throw new Exception("Email is al in gebruik.");
 
-        // Nieuwe gebruiker aanmaken
-        var gebruiker = new Gebruiker
+        var hashed = _passwordService.HashPassword(password);
+
+        var user = new Gebruiker
         {
             Email = email,
             Voornaam = voornaam,
             Achternaam = achternaam,
-            PasswordHash = _passwordService.HashPassword(password)
+            Rol = rol,                    // gebruik de enum
+            PasswordHash = hashed,
+            CreatedAtUtc = DateTime.UtcNow
         };
 
-        await _gebruikerRepo.AddAsync(gebruiker);
+        await _gebruikerRepo.AddAsync(user);
 
-        // JWT genereren
-        return _jwtService.GenerateToken(gebruiker);
+        var token = _jwtService.GenerateToken(user);
+
+        return token;
     }
+
 
     public async Task<string> LoginAsync(string email, string password)
     {
