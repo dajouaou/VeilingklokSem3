@@ -26,7 +26,7 @@ builder.Services.AddControllers()
 
 // DbContext
 builder.Services.AddDbContext<MyContext>(opt =>
-    opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+    opt.UseSqlite("Data Source=veilingklok.db"));
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(VeilingDashboardMappingProfile).Assembly);
