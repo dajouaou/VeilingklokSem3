@@ -12,9 +12,15 @@ using Veilingklok.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+{
+    Console.WriteLine("UNHANDLED EXCEPTION:");
+    Console.WriteLine(e.ExceptionObject.ToString());
+};
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
+
 
 // Logging
 builder.Logging.ClearProviders();
@@ -85,10 +91,19 @@ var app = builder.Build();
 // Migrate + Seed (vóór app.Run)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<MyContext>();
-    await db.Database.MigrateAsync();   // maakt/upgrade db
-    await DbSeeder.SeedAsync(db);       // seed alleen als leeg
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<MyContext>();
+        await db.Database.MigrateAsync();
+        await DbSeeder.SeedAsync(db);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("MIGRATION/SEED ERROR:");
+        Console.WriteLine(ex.ToString());
+    }
 }
+
 
 // Global error handling
 app.UseExceptionHandler(errorApp =>
@@ -118,7 +133,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Veilingklok API v1");
-        c.RoutePrefix = string.Empty; // Swagger op root: http://localhost:5000/
+        c.RoutePrefix = "swagger";
     });
 }
 
