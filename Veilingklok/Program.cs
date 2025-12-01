@@ -1,11 +1,17 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
+using Veilingklok.Core.Interfaces;
+using Veilingklok.Features.Auth.Services;
 using Veilingklok.Features.VeilingmeesterDashboard.Mapping;
 using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.Database.Seed; // Seeder
+using Veilingklok.Infrastructure.Repositories;
 using Veilingklok.Infrastructure.SignalR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
@@ -53,6 +59,22 @@ builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", p => p
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()));
+//DI geconfigureerd 
+builder.Services.AddScoped<IGebruikerRepository, GebruikerRepository>();
+builder.Services.AddScoped<PasswordService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<JwtService>();
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
 
 var app = builder.Build();
 
@@ -99,6 +121,10 @@ app.UseStaticFiles(); // serve wwwroot (bv /img/products/...)
 app.UseRouting();
 app.UseCors("AllowFrontend"); // credentials
 app.UseAuthorization();
+// authenticatie
+app.UseAuthentication();
+app.UseAuthorization();
+
 
 // endpoints
 app.MapControllers();

@@ -11,6 +11,8 @@
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
         <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
         <PackageReference Include="FluentValidation" Version="12.1.0" />
+        <PackageReference Include="JWT" Version="11.0.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.22" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.Json" Version="8.0.0" />
         <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.3" />
@@ -28,11 +30,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Features\" />
         <Folder Include="Features\VeilingmeesterDashboard\Commands\" />
         <Folder Include="Features\VeilingmeesterDashboard\Models\" />
-        <Folder Include="Infrastructure\" />
-        <Folder Include="Infrastructure\Repositories\" />
     </ItemGroup>
 
 </Project>
