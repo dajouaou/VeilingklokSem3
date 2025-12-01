@@ -1,6 +1,4 @@
-# ================================
-# OS (macOS)
-# ================================
+# macOS
 .DS_Store
 */.DS_Store
 .AppleDouble
@@ -8,9 +6,7 @@
 Icon?
 ._*
 
-# ================================
 # Rider / IntelliJ / JetBrains
-# ================================
 .idea/
 *.iml
 shelf/
@@ -22,50 +18,32 @@ httpRequests/
 dataSources/
 dataSources.local.xml
 
-# ================================
-# Build output (ASP.NET Core)
-# ================================
+# ASP.NET Core
 bin/
 obj/
 out/
 
-# ================================
 # Logs
-# ================================
 *.log
 logs/
 
-# ================================
-# User secrets / config
-# ================================
-appsettings.Local.json
-appsettings.Development.local.json
-
-# ================================
-# Node / React (Vite)
-# ================================
+# Node / Vite (frontend)
 node_modules/
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
 *.tsbuildinfo
 
-# ================================
 # Environment files
-# ================================
 .env
 .env.*
 !.env.example
 
-# ================================
 # SQL backups
-# ================================
 *.bak
 *.mdf
 *.ldf
 
-# ================================
 # Custom project-specific
-# ================================
 wwwroot/img/*.tmp
 wwwroot/*.DS_Store
