@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Veilingklok", "Veilingklok\
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "frontendveilingklok", "FrontendVeilingklok\frontendveilingklok.esproj", "{F8D71D13-84A0-B5E9-C6F3-0A991DD21F85}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VeilingklokUnitTest", "VeilingklokUnitTest\VeilingklokUnitTest.csproj", "{E5EC5105-491F-4A58-AD15-29F874D90103}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +25,10 @@ Global
 		{F8D71D13-84A0-B5E9-C6F3-0A991DD21F85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8D71D13-84A0-B5E9-C6F3-0A991DD21F85}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F8D71D13-84A0-B5E9-C6F3-0A991DD21F85}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{E5EC5105-491F-4A58-AD15-29F874D90103}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5EC5105-491F-4A58-AD15-29F874D90103}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5EC5105-491F-4A58-AD15-29F874D90103}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5EC5105-491F-4A58-AD15-29F874D90103}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
