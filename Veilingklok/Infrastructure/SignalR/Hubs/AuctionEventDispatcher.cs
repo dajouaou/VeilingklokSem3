@@ -3,14 +3,6 @@ using Veilingklok.Infrastructure.SignalR.Events;
 
 namespace Veilingklok.Infrastructure.SignalR;
 
-public interface IAuctionEventDispatcher
-{
-    Task Publish(AuctionStatusChangedEvent e);
-    Task Publish(CurrentLotChangedEvent e);
-    Task Publish(QueueUpdatedEvent e);
-    Task Publish(BidPlacedEvent e);
-}
-
 public sealed class AuctionEventDispatcher : IAuctionEventDispatcher
 {
     private readonly IHubContext<AuctionHub, IAuctionClient> _hub;
@@ -18,7 +10,7 @@ public sealed class AuctionEventDispatcher : IAuctionEventDispatcher
     public AuctionEventDispatcher(IHubContext<AuctionHub, IAuctionClient> hub)
         => _hub = hub;
 
-    private static string Group(int veilingId) => AuctionHub.GroupName(veilingId); // 1 bron
+    private static string Group(int veilingId) => AuctionHub.GroupName(veilingId);
 
     public Task Publish(AuctionStatusChangedEvent e)
         => _hub.Clients.Group(Group(e.VeilingId))

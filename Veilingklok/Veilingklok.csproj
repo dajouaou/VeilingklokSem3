@@ -35,17 +35,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Features\Aanvoerder\Controller\" />
-        <Folder Include="Features\Aanvoerder\Services\" />
-        <Folder Include="Features\Bod\Controllers\" />
-        <Folder Include="Features\Bod\Services\" />
-        <Folder Include="Features\Kopers\Controllers\" />
-        <Folder Include="Features\Kopers\Services\" />
-        <Folder Include="Features\Product\Controllers\" />
-        <Folder Include="Features\Product\Services\" />
         <Folder Include="Features\VeilingmeesterDashboard\Commands\" />
         <Folder Include="Features\VeilingmeesterDashboard\Models\" />
-        <Folder Include="Infrastructure\" />
         <Folder Include="Infrastructure\Repositories\" />
     </ItemGroup>
 

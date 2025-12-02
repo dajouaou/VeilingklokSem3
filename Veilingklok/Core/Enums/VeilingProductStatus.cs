@@ -1,9 +1,9 @@
-namespace Veilingklok.Core.Enums;
-
 public enum VeilingProductStatus
 {
-    Queued = 0,
-    Active = 1,
-    Sold = 2,
-    Skipped = 3
-} 
+    Draft = 0,
+    InQueue = 1,
+    Running = 2,
+    Sold = 3,
+    Unsold = 4,
+    Cancelled = 5
+}

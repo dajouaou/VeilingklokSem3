@@ -1,27 +1,16 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿namespace Veilingklok.Features.Producten.Dtos;
 
-namespace Veilingklok.Features.Product.Dtos
+public sealed class ProductDto
 {
-    public record ProductReadDto(
-         int Id,
-         string Naam,
-         int Hoeveelheid,
-         int AanvoerderId,
-         string? AanvoerderNaam,
-         string? AfbeeldingUrl // <-- nieuw
-     );
+    public int Id { get; set; }
+    public int AanvoerderId { get; set; }
 
-    public class ProductCreateDto
-    {
-        [Required, StringLength(100)] public string Naam { get; set; } = string.Empty;
-        [Range(0, int.MaxValue)] public int Hoeveelheid { get; set; }
-        [Required] public int AanvoerderId { get; set; }
+    public string Naam { get; set; } = string.Empty;
+    public string? Categorie { get; set; }
+    public string? Beschrijving { get; set; }
+    public string? FotoUrl { get; set; }
 
-        public string? AfbeeldingUrl { get; set; }  // <-- nieuw
-    }
-
-    public class ProductUpdateDto : ProductCreateDto
-    {
-        [Required] public int Id { get; set; }
-    }
+    public string? Kleur { get; set; }
+    public string? Hoogte { get; set; }
+    public int? AantalPerBos { get; set; }
 }

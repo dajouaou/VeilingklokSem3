@@ -1,10 +1,12 @@
-﻿namespace Veilingklok.Features.Kopers.Dtos
+﻿using Veilingklok.Features.Veiling.Dtos;
+
+namespace Veilingklok.Features.Koper.Dtos;
+
+public sealed class KoperDto
 {
-    public class KoperDTO
-    {
-        public int Id { get; set; }
-        public string GebruikerUsername { get; set; } = string.Empty;
-        public decimal Saldo { get; set; }
-        public int BiedingenCount { get; set; }
-    }
+    public int Id { get; set; }
+    public int GebruikerId { get; set; }
+    public string Naam { get; set; } = string.Empty;
+    public decimal Saldo { get; set; }
+    public List<BidDto> Bids { get; set; } = new();
 }
