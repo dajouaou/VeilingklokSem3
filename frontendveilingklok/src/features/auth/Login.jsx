@@ -16,16 +16,19 @@ export default function Login() {
         setError("");
 
         try {
-            const { token } = await loginApi({ email, password });
+            const { token, role } = await loginApi({ email, password });
 
-            // ?? JWT opslaan (rol komt nog uit backend later)
-            login(token, "Koper"); // placeholder ? jij krijgt straks echte rol uit backend
+            login(token, role);
 
-            // Redirect op basis van rol
-            navigate("/koper");
+            alert("Succesvol ingelogd!");
+
+            if (role === "Koper") navigate("/koper");
+            if (role === "Aanvoerder") navigate("/aanvoerder");
+
         } catch (err) {
             setError(err.message);
         }
+
     }
 
     return (
@@ -66,10 +69,14 @@ export default function Login() {
                                     />
                                 </div>
 
-                                <button className="btn btn-success w-100 rounded-pill">
+                                <button
+                                    type="submit"   // BELANGRIJK! ZONDER DIT WERKT HET NIET
+                                    className="btn btn-success w-100 rounded-pill"
+                                >
                                     Log in
                                 </button>
                             </form>
+
 
                             <p className="text-center mt-4">
                                 Nog geen account?{" "}

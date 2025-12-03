@@ -62,10 +62,10 @@ builder.Services.AddSwaggerGen(c =>
 
 // CORS voor Vite + SignalR
 builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", p => p
-    .WithOrigins("http://localhost:5173")
+    .AllowAnyOrigin()
     .AllowAnyHeader()
-    .AllowAnyMethod()
-    .AllowCredentials()));
+    .AllowAnyMethod()));
+
 
 // DI services
 builder.Services.AddScoped<IGebruikerRepository, GebruikerRepository>();

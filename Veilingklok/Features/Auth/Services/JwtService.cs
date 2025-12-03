@@ -21,9 +21,10 @@ namespace Veilingklok.Features.Auth.Services
         {
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
-                new Claim(ClaimTypes.Email, gebruiker.Email)
-            };
+        new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
+        new Claim(ClaimTypes.Email, gebruiker.Email),
+        new Claim(ClaimTypes.Role, gebruiker.Rol.ToString())  // ⭐ BELANGRIJK
+    };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -36,5 +37,6 @@ namespace Veilingklok.Features.Auth.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
     }
 }

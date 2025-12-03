@@ -1,5 +1,6 @@
 const API_URL = "https://localhost:56418/api/Auth";
 
+
 export async function loginApi({ email, password }) {
     const res = await fetch(`${API_URL}/login`, {
         method: "POST",
@@ -27,5 +28,5 @@ export async function registerApi({ email, password, voornaam, achternaam, rol }
         throw new Error(err?.message || "Registratie mislukt");
     }
 
-    return res.json(); // { token }
+    return res.json(); // token 
 }
