@@ -13,7 +13,7 @@ export async function loginApi({ email, password }) {
         throw new Error(err?.message || "Login mislukt");
     }
 
-    return res.json(); // { token }
+    return res.json(); //  token 
 }
 
 export async function registerApi({ email, password, voornaam, achternaam, rol }) {
