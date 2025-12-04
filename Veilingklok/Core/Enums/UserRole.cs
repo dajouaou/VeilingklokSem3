@@ -7,4 +7,4 @@ public enum UserRole
     Veilingmeester = 3,
     Admin = 9,
     Gebruiker = 10
-} 
+}

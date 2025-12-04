@@ -15,5 +15,7 @@ public class Gebruiker
     // Navigatie-eigenschappen
     public Koper? Koper { get; set; }
     public Aanvoerder? Aanvoerder { get; set; }
+    public Veilingmeester? Veilingmeester { get; set; }
+
 
 }

@@ -22,8 +22,10 @@ export default function Login() {
 
             alert("Succesvol ingelogd!");
 
-            if (role === "Koper") navigate("/koper");
+            if (role === "Koper") navigate("/");
             if (role === "Aanvoerder") navigate("/aanvoerder");
+            if (role === "Veilingmeester") navigate("/veilingmeester");
+
 
         } catch (err) {
             setError(err.message);

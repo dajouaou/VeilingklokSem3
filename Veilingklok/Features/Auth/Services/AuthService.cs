@@ -46,6 +46,30 @@ public class AuthService
         };
 
         await _gebruikerRepo.AddAsync(user);
+        // Maak gekoppelde rol-entiteit aan
+        switch (rol)
+        {
+            case UserRole.Koper:
+                await _gebruikerRepo.CreateKoperAsync(new Koper
+                {
+                    GebruikerId = user.Id,
+                    Naam = $"{voornaam} {achternaam}"
+                });
+                break;
+
+            case UserRole.Aanvoerder:
+                await _gebruikerRepo.CreateAanvoerderAsync(new Aanvoerder
+                {
+                    GebruikerId = user.Id,
+                    Naam = $"{voornaam} {achternaam}"
+                });
+                break;
+
+            case UserRole.Veilingmeester:
+                // later eventueel extra data
+                break;
+        }
+
 
         var token = _jwtService.GenerateToken(user);
 

@@ -25,9 +25,13 @@ namespace Veilingklok.Features.Auth.Controllers
         {
             try
             {
-                // Beperk rol tot Koper of Aanvoerder
-                if (dto.Rol != UserRole.Koper && dto.Rol != UserRole.Aanvoerder)
+                if (dto.Rol != UserRole.Koper &&
+                     dto.Rol != UserRole.Aanvoerder &&
+                     dto.Rol != UserRole.Veilingmeester)
+                {
                     return BadRequest(new { message = "Ongeldige rol." });
+                }
+
 
                 string token = await _authService.RegisterAsync(
                     dto.Email,

@@ -12,6 +12,9 @@ using Veilingklok.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
+
+
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 {
     Console.WriteLine("UNHANDLED EXCEPTION:");
@@ -28,7 +31,13 @@ builder.Logging.AddConsole();
 
 // Controllers (camelCase JSON)
 builder.Services.AddControllers()
-    .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
+    .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
+    .AddJsonOptions(o =>
+ {
+     o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+     o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+ });
+
 
 // DbContext
 builder.Services.AddDbContext<MyContext>(opt =>

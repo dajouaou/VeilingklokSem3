@@ -1,12 +1,13 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import AppRouter from "./AppRouter";
+import { AuthProvider } from "./AuthContext";
 
-export default function AppRouter() {
-    return (
+ReactDOM.createRoot(document.getElementById("root")).render(
+    <AuthProvider>
         <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<div>Home werkt!</div>} />
-            </Routes>
+            <AppRouter />
         </BrowserRouter>
-    );
-}
+    </AuthProvider>
+);

@@ -1,31 +1,30 @@
-import { useState, useContext } from "react";
-import { registerApi } from "./api/authApi";
-import { AuthContext } from "./AuthContext";
+import { useState } from "react";
+import { registerApi } from "../auth/api/authApi";
 import { useNavigate } from "react-router-dom";
 
 export default function Register() {
+    const navigate = useNavigate();
+
     const [form, setForm] = useState({
         email: "",
         voornaam: "",
         achternaam: "",
         password: "",
-        rol: 0, // 0 = Koper, 1 = Aanvoerder
+        rol: "",
     });
 
     const [error, setError] = useState("");
-    const { login } = useContext(AuthContext);
-    const navigate = useNavigate();
 
     async function handleSubmit(e) {
         e.preventDefault();
         setError("");
 
         try {
-            const { token } = await registerApi(form);
+            await registerApi(form);
 
-            login(token, form.rol === 0 ? "Koper" : "Aanvoerder");
+            alert("Succesvol geregistreerd! Je kunt nu inloggen.");
+            navigate("/login");
 
-            navigate(form.rol === 0 ? "/koper" : "/aanvoerder");
         } catch (err) {
             setError(err.message);
         }
@@ -45,13 +44,15 @@ export default function Register() {
                             {error && <div className="alert alert-danger">{error}</div>}
 
                             <form onSubmit={handleSubmit}>
-
                                 <div className="mb-3">
                                     <input
                                         type="text"
                                         className="form-control"
                                         placeholder="Voornaam"
-                                        onChange={(e) => setForm({ ...form, voornaam: e.target.value })}
+                                        value={form.voornaam}
+                                        onChange={(e) =>
+                                            setForm({ ...form, voornaam: e.target.value })
+                                        }
                                         required
                                     />
                                 </div>
@@ -61,7 +62,10 @@ export default function Register() {
                                         type="text"
                                         className="form-control"
                                         placeholder="Achternaam"
-                                        onChange={(e) => setForm({ ...form, achternaam: e.target.value })}
+                                        value={form.achternaam}
+                                        onChange={(e) =>
+                                            setForm({ ...form, achternaam: e.target.value })
+                                        }
                                         required
                                     />
                                 </div>
@@ -71,7 +75,10 @@ export default function Register() {
                                         type="email"
                                         className="form-control"
                                         placeholder="E-mailadres"
-                                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                                        value={form.email}
+                                        onChange={(e) =>
+                                            setForm({ ...form, email: e.target.value })
+                                        }
                                         required
                                     />
                                 </div>
@@ -81,19 +88,27 @@ export default function Register() {
                                         type="password"
                                         className="form-control"
                                         placeholder="Wachtwoord"
-                                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                                        value={form.password}
+                                        onChange={(e) =>
+                                            setForm({ ...form, password: e.target.value })
+                                        }
                                         required
                                     />
                                 </div>
 
-                                {/* Rol keuze */}
                                 <div className="mb-3">
                                     <select
                                         className="form-control"
-                                        onChange={(e) => setForm({ ...form, rol: Number(e.target.value) })}
+                                        value={form.rol}
+                                        onChange={(e) =>
+                                            setForm({ ...form, rol: e.target.value })
+                                        }
+                                        required
                                     >
-                                        <option value="0">Koper</option>
-                                        <option value="1">Aanvoerder</option>
+                                        <option value="">Kies een rol…</option>
+                                        <option value="Koper">Koper</option>
+                                        <option value="Aanvoerder">Aanvoerder</option>
+                                        <option value="Veilingmeester">Veilingmeester</option>
                                     </select>
                                 </div>
 

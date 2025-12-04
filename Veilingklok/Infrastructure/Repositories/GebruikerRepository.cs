@@ -24,5 +24,24 @@ public class GebruikerRepository : IGebruikerRepository
         await _context.Gebruikers.AddAsync(gebruiker);
         await _context.SaveChangesAsync();
     }
-}
+
+    public async Task CreateKoperAsync(Koper koper)
+        {
+            _context.Kopers.Add(koper);
+            await _context.SaveChangesAsync();
+        }
+
+    public async Task CreateAanvoerderAsync(Aanvoerder aanvoerder)
+        {
+            _context.Aanvoerders.Add(aanvoerder);
+            await _context.SaveChangesAsync();
+        }
+
+    public async Task CreateVeilingmeesterAsync(Veilingmeester meester)
+        {
+            _context.Veilingmeesters.Add(meester);
+            await _context.SaveChangesAsync();
+        }
+
+    }
 }
