@@ -2,12 +2,9 @@ namespace Veilingklok.Core.Entities;
 
 public class Aanvoerder
 {
-    public int Id { get; set; }                 // PK 
-    public int GebruikerId { get; set; }        // FK
+    public int Id { get; set; }
     public string Naam { get; set; } = "";
+    public string Email { get; set; } = "";
 
-    public Gebruiker? Gebruiker { get; set; }
-
-    public List<Product> Producten { get; set; } = new();
-    public List<VeilingProduct> VeilingProducten { get; set; } = new();
-} 
+    public ICollection<Aanmelding> Aanmeldingen { get; set; } = new List<Aanmelding>();
+}

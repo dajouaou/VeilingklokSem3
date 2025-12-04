@@ -22,12 +22,7 @@ public class AuthService
         _jwtService = jwtService;
     }
 
-    public async Task<string> RegisterAsync(
-     string email,
-     string password,
-     string voornaam,
-     string achternaam,
-     UserRole rol)
+    public async Task<string> RegisterAsync(string email, string password, string voornaam, string achternaam, UserRole rol)
     {
         var existingUser = await _gebruikerRepo.GetByEmailAsync(email);
         if (existingUser != null)
@@ -40,17 +35,26 @@ public class AuthService
             Email = email,
             Voornaam = voornaam,
             Achternaam = achternaam,
-            Rol = rol,                    // gebruik de enum
+            Rol = rol,
             PasswordHash = hashed,
             CreatedAtUtc = DateTime.UtcNow
         };
 
+        if (rol == UserRole.Aanvoerder)
+        {
+            user.Aanvoerder = new Aanvoerder
+            {
+                Naam = $"{voornaam} {achternaam}",
+                Email = email
+            };
+        }
+
         await _gebruikerRepo.AddAsync(user);
 
         var token = _jwtService.GenerateToken(user);
-
         return token;
     }
+
 
 
     public async Task<string> LoginAsync(string email, string password)

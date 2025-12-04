@@ -4,6 +4,7 @@ public class Koper
 {
     public int Id { get; set; }                 // PK
     public int GebruikerId { get; set; }        // FK
+    public string Email { get; set; } = "";
     public string Naam { get; set; } = "";
 
     public Gebruiker? Gebruiker { get; set; }

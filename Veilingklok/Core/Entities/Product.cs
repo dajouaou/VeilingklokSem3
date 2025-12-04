@@ -12,5 +12,4 @@ public class Product
 
     public Aanvoerder? Aanvoerder { get; set; }
 
-    public List<VeilingProduct> VeilingProducten { get; set; } = new();
-}
+ }

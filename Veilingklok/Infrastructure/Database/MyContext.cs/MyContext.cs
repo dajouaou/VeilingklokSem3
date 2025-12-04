@@ -15,6 +15,8 @@ public class MyContext : DbContext
     public DbSet<VeilingProduct> VeilingProducten => Set<VeilingProduct>();
     public DbSet<Bid> Biedingen => Set<Bid>();
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
+    public DbSet<Aanmelding> Aanmeldingen => Set<Aanmelding>();
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
