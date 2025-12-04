@@ -11,7 +11,7 @@ export default function NextBids() {
         async function loadNext() {
             try {
                 // 1. Actieve veiling
-                const r1 = await fetch(`${API_BASE}/api/veiling?status=Actief`);
+                const r1 = await fetch(`${API_BASE}/api/veiling?status=Running`);
                 const veilingen = await r1.json();
 
                 if (!veilingen.length) {

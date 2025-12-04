@@ -1,6 +1,9 @@
 using AutoMapper;
+using Veiling = Veilingklok.Core.Entities.Veiling;
 using Veilingklok.Core.Entities;
 using Veilingklok.Features.VeilingmeesterDashboard.Dtos;
+
+
 
 namespace Veilingklok.Features.VeilingmeesterDashboard.Mapping;
 
@@ -8,8 +11,8 @@ public sealed class VeilingDashboardMappingProfile : Profile
 {
     public VeilingDashboardMappingProfile()
     {
-        CreateMap<Veiling, VeilingDetailsDto>()
-            .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.ToString()));
+        CreateMap<Veilingklok.Core.Entities.Veiling, VeilingDetailsDto>()
+             .ForMember(d => d.Status, o => o.MapFrom(s => s.Status.ToString()));
 
         CreateMap<VeilingProduct, CurrentLotDto>()
             .ForMember(d => d.VeilingProductId, o => o.MapFrom(s => s.Id))

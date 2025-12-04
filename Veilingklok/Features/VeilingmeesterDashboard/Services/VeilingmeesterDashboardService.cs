@@ -137,7 +137,7 @@ public sealed class VeilingmeesterDashboardService : IVeilingmeesterDashboardSer
         if (dto.ProductIds is null || dto.ProductIds.Count == 0)
             throw new ArgumentException("ProductIds mag niet leeg zijn.", nameof(dto.ProductIds));
 
-        var v = new Veiling
+        var v = new Veilingklok.Core.Entities.Veiling
         {
             Status = VeilingStatus.Scheduled,
             StartTijdUtc = dto.StartTijdUtc,

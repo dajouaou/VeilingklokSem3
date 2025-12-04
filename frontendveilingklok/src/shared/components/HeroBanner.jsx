@@ -14,7 +14,7 @@ export default function HeroBanner() {
         async function loadBanner() {
             try {
                 // 1. Actieve veilingen ophalen
-                const r1 = await fetch(`${API_BASE}/api/veiling?status=Actief`);
+                const r1 = await fetch(`${API_BASE}/api/veiling?status=Running`);
                 const veilingen = await r1.json();
 
                 if (!veilingen.length) return;
