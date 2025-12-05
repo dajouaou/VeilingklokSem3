@@ -7,4 +7,4 @@ public enum UserRole
     VM = 3,
     Admin = 9,
     Gebruiker = 10
-} 
+}
