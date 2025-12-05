@@ -23,7 +23,7 @@ namespace Veilingklok.Features.Auth.Services
             {
         new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
         new Claim(ClaimTypes.Email, gebruiker.Email),
-        new Claim(ClaimTypes.Role, gebruiker.Rol.ToString())  // ⭐ BELANGRIJK
+        new Claim(ClaimTypes.Role, gebruiker.Role.ToString())  // 
     };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));

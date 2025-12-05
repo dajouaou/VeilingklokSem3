@@ -30,8 +30,10 @@
 	</ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Features\VeilingmeesterDashboard\Commands\" />
-        <Folder Include="Features\VeilingmeesterDashboard\Models\" />
+        <Folder Include="Features\VM-Dashboard\Mapping\" />
+        <Folder Include="Infrastructure\Database\Seed\" />
+        <Folder Include="Infrastructure\SignalR\Events\" />
+        <Folder Include="Infrastructure\SignalR\Hubs\" />
     </ItemGroup>
 
 </Project>

@@ -34,7 +34,7 @@ namespace Veilingklok.Features.Auth.Controllers
             {
                 if (dto.Rol != UserRole.Koper &&
                     dto.Rol != UserRole.Aanvoerder &&
-                    dto.Rol != UserRole.Veilingmeester)
+                    dto.Rol != UserRole.VM)
                 {
                     return BadRequest(new { message = "Ongeldige rol." });
                 }
@@ -68,7 +68,7 @@ namespace Veilingklok.Features.Auth.Controllers
 
                 string token = await _authService.LoginAsync(request.Email, request.Password);
 
-                return Ok(new { token, role = gebruiker.Rol.ToString() });  // ⭐ TOEGEVOEGD
+                return Ok(new { token, role = gebruiker.Role.ToString() });  
             }
             catch (Exception e)
             {
