@@ -36,6 +36,7 @@
         <Folder Include="Features\VM-Dashboard\Services\" />
         <Folder Include="Infrastructure\Database\Configurations\" />
         <Folder Include="Infrastructure\Database\Seed\" />
+        <Folder Include="Infrastructure\SignalR\Hubs\" />
     </ItemGroup>
 
 </Project>
