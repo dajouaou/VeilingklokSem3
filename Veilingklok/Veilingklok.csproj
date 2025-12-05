@@ -35,6 +35,7 @@
         <Folder Include="Features\VM-Dashboard\Models\" />
         <Folder Include="Features\VM-Dashboard\Services\" />
         <Folder Include="Infrastructure\Database\Configurations\" />
+        <Folder Include="Infrastructure\Database\Seed\" />
     </ItemGroup>
 
 </Project>

@@ -23,7 +23,8 @@ public class AuthService
     }
 
     public async Task<string> RegisterAsync(
-     string email,
+        string username, 
+        string email,
      string password,
      string voornaam,
      string achternaam,
@@ -37,6 +38,7 @@ public class AuthService
 
         var user = new Gebruiker
         {
+            
             Email = email,
             Voornaam = voornaam,
             Achternaam = achternaam,
@@ -57,7 +59,7 @@ public class AuthService
     {
         var gebruiker = await _gebruikerRepo.GetByEmailAsync(email);
         if (gebruiker == null)
-            throw new Exception("Ongeldige login.");
+            throw new Exception("Onge-ldige login.");
 
         bool wachtwoordCorrect = _passwordService.VerifyPassword(password, gebruiker.PasswordHash);
         if (!wachtwoordCorrect)
