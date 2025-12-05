@@ -40,7 +40,7 @@ public class AuthService
             Email = email,
             Voornaam = voornaam,
             Achternaam = achternaam,
-            Rol = rol,                    // gebruik de enum
+            Role = rol,                    // gebruik de enum
             PasswordHash = hashed,
             CreatedAtUtc = DateTime.UtcNow
         };
