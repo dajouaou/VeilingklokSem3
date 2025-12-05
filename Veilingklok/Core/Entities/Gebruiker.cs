@@ -19,6 +19,6 @@ public class Gebruiker
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
     public Aanvoerder? Aanvoerder { get; set; }
-    public Koper? Koper { get; set; }
-    public Veilingmeester? Veilingmeester { get; set; }
+    public Koper? Koper { get;  set; }
+    public VM? VM { get; set; }
 }

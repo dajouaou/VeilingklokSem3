@@ -23,3 +23,4 @@ public class Bid
 
     public DateTime PlacedAtUtc { get; set; } = DateTime.UtcNow;
 }
+ 

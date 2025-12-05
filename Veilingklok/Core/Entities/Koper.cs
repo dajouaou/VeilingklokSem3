@@ -15,3 +15,4 @@ public class Koper
 
     public List<VeilingProduct> GekochteVeilingProducten { get; set; } = new();
 }
+  

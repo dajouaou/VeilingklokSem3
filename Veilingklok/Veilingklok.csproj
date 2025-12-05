@@ -30,8 +30,11 @@
 	</ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Features\VeilingmeesterDashboard\Commands\" />
-        <Folder Include="Features\VeilingmeesterDashboard\Models\" />
+        <Folder Include="Features\VM-Dashboard\Commands\" />
+        <Folder Include="Features\VM-Dashboard\Mapping\" />
+        <Folder Include="Features\VM-Dashboard\Models\" />
+        <Folder Include="Features\VM-Dashboard\Services\" />
+        <Folder Include="Infrastructure\Database\Configurations\" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,6 @@
 namespace Veilingklok.Core.Entities;
 
-public class Veilingmeester
+public class VM
 {
     public int Id { get; set; }
 

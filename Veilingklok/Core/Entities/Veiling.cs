@@ -6,8 +6,8 @@ public class Veiling
 {
     public int Id { get; set; }
 
-    public int VeilingmeesterId { get; set; }
-    public Veilingmeester? Veilingmeester { get; set; }
+    public int VMId { get; set; }
+    public VM? VM { get; set; }
 
     public VeilingStatus Status { get; set; } = VeilingStatus.Draft;
 

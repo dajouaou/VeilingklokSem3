@@ -31,3 +31,4 @@ public class VeilingProduct
 
     public List<Bid> Bids { get; set; } = new();
 }
+ 
