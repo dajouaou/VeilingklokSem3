@@ -12,7 +12,6 @@
     <Folder Include="src\features\veilingmeesterDashboard\api\" />
     <Folder Include="src\features\veilingmeesterDashboard\components\" />
     <Folder Include="src\features\veilingmeesterDashboard\hooks\" />
-    <Folder Include="src\features\veiling\api\" />
     <Folder Include="src\shared\layout\" />
   </ItemGroup>
 </Project>

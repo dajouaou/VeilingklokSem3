@@ -7,8 +7,9 @@ import {
     pauseVeiling,
     resumeVeiling,
     stopVeiling,
-    placeBid
-} from "./api/veilingApi";
+    placeBid,
+    fetchVeilingDagen
+} from "../veiling/api/veilingApi.js";
 
 import useLiveVeiling from "./hooks/useLiveVeiling";
 import LiveKlok from "./components/LiveKlok";
@@ -16,39 +17,61 @@ import QueueList from "./components/QueueList";
 import VeilingControls from "./components/VeilingControls";
 
 export default function VeilingmeesterDashboard() {
-    const { token } = useContext(AuthContext);
+    const { token, role } = useContext(AuthContext);
 
     const [veiling, setVeiling] = useState(null);
+    const [veildagen, setVeildagen] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
-        loadActiveVeiling();
-    }, []);
+        if (!token || role !== "Veilingmeester") return;
 
-    async function loadActiveVeiling() {
-        try {
-            const v = await getActiveVeiling(token);
-            setVeiling(v);
-        } catch {
-            setVeiling(null);
+        async function loadInit() {
+            try {
+                setLoading(true);
+
+                const [actief, dagen] = await Promise.all([
+                    getActiveVeiling(token).catch(() => null),
+                    fetchVeilingDagen(token)
+                ]);
+
+                setVeiling(actief);
+                setVeildagen(dagen);
+            } catch (err) {
+                console.error(err);
+                setError("Kon gegevens niet laden.");
+            } finally {
+                setLoading(false);
+            }
         }
-    }
 
-    async function handleStart() {
-        const date = prompt("Welke veildatum wil je starten? (YYYY-MM-DD)");
-        if (!date) return;
+        loadInit();
+    }, [token, role]);
 
-        const v = await startVeiling(token, date);
-        setVeiling(v);
+    async function handleStart(selectedDate) {
+        if (!selectedDate) {
+            alert("Kies eerst een veildatum.");
+            return;
+        }
+
+        try {
+            const v = await startVeiling(token, selectedDate);
+            setVeiling(v);
+            setError("");
+        } catch (err) {
+            setError("Kon veiling niet starten: " + err.message);
+        }
     }
 
     async function handlePause() {
         await pauseVeiling(token, veiling.id);
-        loadActiveVeiling();
+        setVeiling(await getActiveVeiling(token));
     }
 
     async function handleResume() {
         await resumeVeiling(token, veiling.id);
-        loadActiveVeiling();
+        setVeiling(await getActiveVeiling(token));
     }
 
     async function handleStop() {
@@ -56,12 +79,33 @@ export default function VeilingmeesterDashboard() {
         setVeiling(null);
     }
 
-    // Live updates via SignalR
-    const { lot, queue, loading } = useLiveVeiling(token, veiling?.id);
+    const { lot, queue, loading: liveLoading } = useLiveVeiling(token, veiling?.id);
 
     return (
         <main className="container py-4">
             <h1 className="h3 mb-4">Veilingmeester Dashboard</h1>
+
+            {error && <div className="alert alert-danger">{error}</div>}
+
+            {!veiling && (
+                <div className="card p-3 mb-4 shadow-sm">
+                    <h4 className="h5">Start een veiling</h4>
+
+                    <div className="d-flex gap-2 align-items-center">
+                        <select
+                            id="veildatum-select"
+                            className="form-select"
+                            defaultValue=""
+                            onChange={(e) => handleStart(e.target.value)}
+                        >
+                            <option value="">Kies veildatum...</option>
+                            {veildagen.map(d => (
+                                <option key={d} value={d}>{d}</option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+            )}
 
             <VeilingControls
                 veiling={veiling}
@@ -71,7 +115,7 @@ export default function VeilingmeesterDashboard() {
                 onStop={handleStop}
             />
 
-            {loading && <p>Laden...</p>}
+            {loading || liveLoading ? <p>Laden...</p> : null}
 
             {veiling && (
                 <>
@@ -88,7 +132,11 @@ export default function VeilingmeesterDashboard() {
                 </>
             )}
 
-            {!veiling && <p>Er is momenteel geen actieve veiling.</p>}
+            {!veiling && !loading && (
+                <p className="text-muted">
+                    Er is momenteel geen actieve veiling.
+                </p>
+            )}
         </main>
     );
 }

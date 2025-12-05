@@ -30,6 +30,15 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
         {
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
 
+            // ⛔️ Belangrijk: controleer of deze veildatum bestaat
+            var bestaat = await _db.Veilingen
+                .AnyAsync(v => v.StartTijd.Date == dto.Veildatum.Date);
+
+            if (!bestaat)
+                throw new ArgumentException(
+                    "Deze veildatum bestaat niet of is niet gestart door de veilingmeester."
+                );
+
             var entity = new Aanmelding
             {
                 AanvoerderId = aanvoerder.Id,

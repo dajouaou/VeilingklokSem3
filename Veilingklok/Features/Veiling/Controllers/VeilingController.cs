@@ -54,11 +54,18 @@ namespace Veilingklok.Features.Veiling.Controllers
         [HttpPost("{id}/bod")]
         public async Task<IActionResult> PlaatsBod(int id, [FromBody] BodPlaatsenDto dto)
         {
-            // TODO: koperId uit JWT halen
-            int koperId = 999; // tijdelijk mock
+            // TODO: koperId uit token halen
+            int koperId = 999;
 
             var bod = await _service.PlaatsBodAsync(id, dto, koperId);
             return Ok(bod);
+        }
+
+        [HttpGet("dagen")]
+        public async Task<ActionResult<List<string>>> GetVeilingDagen()
+        {
+            var dagen = await _service.GetVeilingDagenAsync();
+            return Ok(dagen);
         }
     }
 }

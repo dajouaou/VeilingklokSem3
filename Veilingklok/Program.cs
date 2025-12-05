@@ -1,16 +1,17 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Auth.Services;
+using Veilingklok.Features.VeilingPublic.Services;
 using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.Database.Seed; // Seeder
 using Veilingklok.Infrastructure.Repositories;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.Text.Json.Serialization;
 using Veilingklok.Infrastructure.SignalR.Hubs;
 
 
@@ -38,7 +39,7 @@ builder.Services.AddControllers()
      o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
  });
 
-
+builder.Services.AddScoped<IVeilingPublicService, VeilingPublicService>();
 
 // DbContext
 builder.Services.AddDbContext<MyContext>(opt =>

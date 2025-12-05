@@ -192,5 +192,17 @@ namespace Veilingklok.Features.Veiling.Services
                 Tijdstip = bod.Tijdstip
             };
         }
+        public async Task<List<string>> GetVeilingDagenAsync()
+        {
+            var dates = await _db.Veilingen
+                .Select(v => v.StartTijd.Date)
+                .Distinct()
+                .OrderBy(d => d)
+                .ToListAsync();
+
+            return dates.Select(d => d.ToString("yyyy-MM-dd")).ToList();
+        }
+
+
     }
 }
