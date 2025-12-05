@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Text.Json.Serialization;
+using Veilingklok.Infrastructure.SignalR.Hubs;
 
 
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
@@ -29,12 +30,14 @@ builder.Logging.AddConsole();
 
 // Controllers (camelCase JSON)
 builder.Services.AddControllers()
+   
     .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase)
     .AddJsonOptions(o =>
  {
      o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
      o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
  });
+
 
 
 // DbContext
@@ -153,5 +156,6 @@ app.UseAuthorization();
 // Endpoints
 app.MapControllers();
 app.MapHealthChecks("/health");
+app.MapHub<AuctionHub>("/hubs/auction");
 
 app.Run();

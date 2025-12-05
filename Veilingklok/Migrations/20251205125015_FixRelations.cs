@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Veilingklok.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class FixRelations : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -71,47 +71,49 @@ namespace Veilingklok.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Producten",
+                name: "Veilingmeesters",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    GebruikerId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Naam = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Veilingmeesters", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Veilingmeesters_Gebruikers_GebruikerId",
+                        column: x => x.GebruikerId,
+                        principalTable: "Gebruikers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Aanmeldingen",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     AanvoerderId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Naam = table.Column<string>(type: "TEXT", maxLength: 128, nullable: false),
-                    Categorie = table.Column<string>(type: "TEXT", maxLength: 64, nullable: true),
-                    Beschrijving = table.Column<string>(type: "TEXT", maxLength: 512, nullable: true),
-                    FotoUrl = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true)
+                    Soort = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    PotmaatOfSteellengte = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
+                    Hoeveelheid = table.Column<int>(type: "INTEGER", nullable: false),
+                    MinimumPrijs = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
+                    KlokLocatie = table.Column<int>(type: "INTEGER", nullable: false),
+                    Veildatum = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    FotoUrl = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    VeilingProductId = table.Column<int>(type: "INTEGER", nullable: true),
+                    VeilingProductId1 = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Producten", x => x.Id);
+                    table.PrimaryKey("PK_Aanmeldingen", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Producten_Aanvoerders_AanvoerderId",
+                        name: "FK_Aanmeldingen_Aanvoerders_AanvoerderId",
                         column: x => x.AanvoerderId,
                         principalTable: "Aanvoerders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AuditEntries",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VeilingId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ActorGebruikerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Action = table.Column<string>(type: "TEXT", nullable: false),
-                    Details = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AuditEntries", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AuditEntries_Gebruikers_ActorGebruikerId",
-                        column: x => x.ActorGebruikerId,
-                        principalTable: "Gebruikers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -124,27 +126,19 @@ namespace Veilingklok.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     VeilingId = table.Column<int>(type: "INTEGER", nullable: false),
                     VeilingProductId = table.Column<int>(type: "INTEGER", nullable: false),
-                    PlacedByGebruikerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    KoperId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Amount = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    Source = table.Column<int>(type: "INTEGER", nullable: false),
-                    PlacedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    KoperId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Prijs = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Tijdstip = table.Column<DateTime>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Biedingen", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Biedingen_Gebruikers_PlacedByGebruikerId",
-                        column: x => x.PlacedByGebruikerId,
-                        principalTable: "Gebruikers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
                         name: "FK_Biedingen_Kopers_KoperId",
                         column: x => x.KoperId,
                         principalTable: "Kopers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -153,11 +147,12 @@ namespace Veilingklok.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    StartTijdUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    EindTijdUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    CurrentVeilingProductId = table.Column<int>(type: "INTEGER", nullable: true)
+                    StartTijd = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    EindTijd = table.Column<DateTime>(type: "TEXT", nullable: true),
+                    IsGestart = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsPauze = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsAfgesloten = table.Column<bool>(type: "INTEGER", nullable: false),
+                    HuidigProductId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -171,38 +166,28 @@ namespace Veilingklok.Migrations
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     VeilingId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
-                    AanvoerderId = table.Column<int>(type: "INTEGER", nullable: true),
+                    AanmeldingId = table.Column<int>(type: "INTEGER", nullable: false),
+                    StartPrijs = table.Column<decimal>(type: "TEXT", nullable: false),
+                    HuidigePrijs = table.Column<decimal>(type: "TEXT", nullable: false),
+                    IsActief = table.Column<bool>(type: "INTEGER", nullable: false),
+                    IsVerkocht = table.Column<bool>(type: "INTEGER", nullable: false),
                     Volgorde = table.Column<int>(type: "INTEGER", nullable: false),
-                    Hoeveelheid = table.Column<int>(type: "INTEGER", nullable: false),
-                    StartPrijs = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    HuidigePrijs = table.Column<decimal>(type: "TEXT", precision: 18, scale: 2, nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    SoldToKoperId = table.Column<int>(type: "INTEGER", nullable: true),
-                    ActivatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ClosedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    KoperId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_VeilingProducten", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_VeilingProducten_Aanvoerders_AanvoerderId",
-                        column: x => x.AanvoerderId,
-                        principalTable: "Aanvoerders",
+                        name: "FK_VeilingProducten_Aanmeldingen_AanmeldingId",
+                        column: x => x.AanmeldingId,
+                        principalTable: "Aanmeldingen",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_VeilingProducten_Kopers_SoldToKoperId",
-                        column: x => x.SoldToKoperId,
+                        name: "FK_VeilingProducten_Kopers_KoperId",
+                        column: x => x.KoperId,
                         principalTable: "Kopers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
-                    table.ForeignKey(
-                        name: "FK_VeilingProducten_Producten_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Producten",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_VeilingProducten_Veilingen_VeilingId",
                         column: x => x.VeilingId,
@@ -212,30 +197,25 @@ namespace Veilingklok.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Aanmeldingen_AanvoerderId",
+                table: "Aanmeldingen",
+                column: "AanvoerderId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Aanmeldingen_VeilingProductId1",
+                table: "Aanmeldingen",
+                column: "VeilingProductId1");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Aanvoerders_GebruikerId",
                 table: "Aanvoerders",
                 column: "GebruikerId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuditEntries_ActorGebruikerId",
-                table: "AuditEntries",
-                column: "ActorGebruikerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AuditEntries_VeilingId",
-                table: "AuditEntries",
-                column: "VeilingId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Biedingen_KoperId",
                 table: "Biedingen",
                 column: "KoperId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Biedingen_PlacedByGebruikerId",
-                table: "Biedingen",
-                column: "PlacedByGebruikerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Biedingen_VeilingId",
@@ -254,43 +234,37 @@ namespace Veilingklok.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Producten_AanvoerderId",
-                table: "Producten",
-                column: "AanvoerderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Veilingen_CurrentVeilingProductId",
+                name: "IX_Veilingen_HuidigProductId",
                 table: "Veilingen",
-                column: "CurrentVeilingProductId");
+                column: "HuidigProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_VeilingProducten_AanvoerderId",
-                table: "VeilingProducten",
-                column: "AanvoerderId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VeilingProducten_ProductId",
-                table: "VeilingProducten",
-                column: "ProductId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VeilingProducten_SoldToKoperId",
-                table: "VeilingProducten",
-                column: "SoldToKoperId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VeilingProducten_VeilingId_Volgorde",
-                table: "VeilingProducten",
-                columns: new[] { "VeilingId", "Volgorde" },
+                name: "IX_Veilingmeesters_GebruikerId",
+                table: "Veilingmeesters",
+                column: "GebruikerId",
                 unique: true);
 
+            migrationBuilder.CreateIndex(
+                name: "IX_VeilingProducten_AanmeldingId",
+                table: "VeilingProducten",
+                column: "AanmeldingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VeilingProducten_KoperId",
+                table: "VeilingProducten",
+                column: "KoperId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VeilingProducten_VeilingId",
+                table: "VeilingProducten",
+                column: "VeilingId");
+
             migrationBuilder.AddForeignKey(
-                name: "FK_AuditEntries_Veilingen_VeilingId",
-                table: "AuditEntries",
-                column: "VeilingId",
-                principalTable: "Veilingen",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                name: "FK_Aanmeldingen_VeilingProducten_VeilingProductId1",
+                table: "Aanmeldingen",
+                column: "VeilingProductId1",
+                principalTable: "VeilingProducten",
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Biedingen_VeilingProducten_VeilingProductId",
@@ -305,54 +279,56 @@ namespace Veilingklok.Migrations
                 table: "Biedingen",
                 column: "VeilingId",
                 principalTable: "Veilingen",
-                principalColumn: "Id");
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_Veilingen_VeilingProducten_CurrentVeilingProductId",
+                name: "FK_Veilingen_VeilingProducten_HuidigProductId",
                 table: "Veilingen",
-                column: "CurrentVeilingProductId",
+                column: "HuidigProductId",
                 principalTable: "VeilingProducten",
-                principalColumn: "Id");
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_Aanvoerders_Gebruikers_GebruikerId",
-                table: "Aanvoerders");
+                name: "FK_Aanmeldingen_Aanvoerders_AanvoerderId",
+                table: "Aanmeldingen");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_Kopers_Gebruikers_GebruikerId",
-                table: "Kopers");
+                name: "FK_Aanmeldingen_VeilingProducten_VeilingProductId1",
+                table: "Aanmeldingen");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_VeilingProducten_Veilingen_VeilingId",
-                table: "VeilingProducten");
-
-            migrationBuilder.DropTable(
-                name: "AuditEntries");
+                name: "FK_Veilingen_VeilingProducten_HuidigProductId",
+                table: "Veilingen");
 
             migrationBuilder.DropTable(
                 name: "Biedingen");
 
             migrationBuilder.DropTable(
-                name: "Gebruikers");
+                name: "Veilingmeesters");
 
             migrationBuilder.DropTable(
-                name: "Veilingen");
+                name: "Aanvoerders");
 
             migrationBuilder.DropTable(
                 name: "VeilingProducten");
 
             migrationBuilder.DropTable(
+                name: "Aanmeldingen");
+
+            migrationBuilder.DropTable(
                 name: "Kopers");
 
             migrationBuilder.DropTable(
-                name: "Producten");
+                name: "Veilingen");
 
             migrationBuilder.DropTable(
-                name: "Aanvoerders");
+                name: "Gebruikers");
         }
     }
 }

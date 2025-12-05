@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veilingklok.Infrastructure.Database;
 
@@ -10,9 +11,11 @@ using Veilingklok.Infrastructure.Database;
 namespace Veilingklok.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20251205125015_FixRelations")]
+    partial class FixRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -27,6 +30,7 @@ namespace Veilingklok.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("FotoUrl")
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Hoeveelheid")
@@ -54,9 +58,14 @@ namespace Veilingklok.Migrations
                     b.Property<int?>("VeilingProductId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int?>("VeilingProductId1")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AanvoerderId");
+
+                    b.HasIndex("VeilingProductId1");
 
                     b.ToTable("Aanmeldingen", (string)null);
                 });
@@ -130,14 +139,13 @@ namespace Veilingklok.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AanmeldingId")
-                        .IsUnique();
+                    b.HasIndex("AanmeldingId");
 
                     b.HasIndex("KoperId");
 
                     b.HasIndex("VeilingId");
 
-                    b.ToTable("VeilingProducten");
+                    b.ToTable("VeilingProducten", (string)null);
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Aanvoerder", b =>
@@ -276,14 +284,20 @@ namespace Veilingklok.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("VeilingProduct", "VeilingProduct")
+                        .WithMany()
+                        .HasForeignKey("VeilingProductId1");
+
                     b.Navigation("Aanvoerder");
+
+                    b.Navigation("VeilingProduct");
                 });
 
             modelBuilder.Entity("VeilingProduct", b =>
                 {
                     b.HasOne("Aanmelding", "Aanmelding")
-                        .WithOne("VeilingProduct")
-                        .HasForeignKey("VeilingProduct", "AanmeldingId")
+                        .WithMany()
+                        .HasForeignKey("AanmeldingId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -370,11 +384,6 @@ namespace Veilingklok.Migrations
                         .IsRequired();
 
                     b.Navigation("Gebruiker");
-                });
-
-            modelBuilder.Entity("Aanmelding", b =>
-                {
-                    b.Navigation("VeilingProduct");
                 });
 
             modelBuilder.Entity("Gebruiker", b =>
