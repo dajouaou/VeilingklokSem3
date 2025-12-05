@@ -30,6 +30,7 @@
 	</ItemGroup>
 
     <ItemGroup>
+        <Folder Include="Features\Veiling\Controllers\" />
         <Folder Include="Features\VM-Dashboard\Mapping\" />
         <Folder Include="Infrastructure\Database\Seed\" />
         <Folder Include="Infrastructure\SignalR\Events\" />

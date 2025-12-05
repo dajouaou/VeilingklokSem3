@@ -23,7 +23,8 @@ public class AuthService
     }
 
     public async Task<string> RegisterAsync(
-     string email,
+        string username,
+        string email,
      string password,
      string voornaam,
      string achternaam,

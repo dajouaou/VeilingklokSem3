@@ -9,7 +9,7 @@
         Task AddAsync(Gebruiker gebruiker);
         Task CreateKoperAsync(Koper koper);
         Task CreateAanvoerderAsync(Aanvoerder aanvoerder);
-        Task CreateVeilingmeesterAsync(Veilingmeester meester);
+        Task CreateVeilingmeesterAsync(VM vm);
 
     }
 

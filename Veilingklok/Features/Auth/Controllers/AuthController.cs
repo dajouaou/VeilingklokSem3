@@ -40,6 +40,7 @@ namespace Veilingklok.Features.Auth.Controllers
                 }
 
                 string token = await _authService.RegisterAsync(
+                    dto.Username,
                     dto.Email,
                     dto.Password,
                     dto.Voornaam,
