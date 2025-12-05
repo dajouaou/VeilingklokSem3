@@ -4,11 +4,9 @@ using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Auth.Services;
-using Veilingklok.Features.VeilingmeesterDashboard.Mapping;
 using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.Database.Seed; // Seeder
 using Veilingklok.Infrastructure.Repositories;
-using Veilingklok.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -43,8 +41,6 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<MyContext>(opt =>
     opt.UseSqlite(config.GetConnectionString("DefaultConnection")));
 
-// AutoMapper
-builder.Services.AddAutoMapper(typeof(VeilingDashboardMappingProfile).Assembly);
 
 // SignalR (camelCase payloads)
 builder.Services.AddSignalR()
@@ -59,8 +55,6 @@ builder.Services.Scan(scan => scan.FromApplicationDependencies()
     .AsMatchingInterface()
     .WithScopedLifetime());
 
-// Dispatcher
-builder.Services.AddScoped<IAuctionEventDispatcher, AuctionEventDispatcher>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -159,6 +153,5 @@ app.UseAuthorization();
 // Endpoints
 app.MapControllers();
 app.MapHealthChecks("/health");
-app.MapHub<AuctionHub>("/hubs/auction");
 
 app.Run();

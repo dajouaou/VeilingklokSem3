@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -31,7 +31,13 @@
 
     <ItemGroup>
         <Folder Include="Features\VeilingmeesterDashboard\Commands\" />
+        <Folder Include="Features\VeilingmeesterDashboard\Controllers\" />
+        <Folder Include="Features\VeilingmeesterDashboard\Dtos\" />
+        <Folder Include="Features\VeilingmeesterDashboard\Mapping\" />
         <Folder Include="Features\VeilingmeesterDashboard\Models\" />
+        <Folder Include="Features\VeilingmeesterDashboard\Services\" />
+        <Folder Include="Infrastructure\SignalR\Events\" />
+        <Folder Include="Infrastructure\SignalR\Hubs\" />
     </ItemGroup>
 
 </Project>

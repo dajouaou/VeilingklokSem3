@@ -8,6 +8,5 @@ public class Aanvoerder
 
     public Gebruiker? Gebruiker { get; set; }
 
-    public List<Product> Producten { get; set; } = new();
-    public List<VeilingProduct> VeilingProducten { get; set; } = new();
+ 
 } 

@@ -8,6 +8,4 @@ public class Koper
 
     public Gebruiker? Gebruiker { get; set; }
 
-    public List<Bid> Bids { get; set; } = new();
-    public List<VeilingProduct> GekochteVeilingProducten { get; set; } = new();
 }

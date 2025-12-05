@@ -9,7 +9,5 @@
         // Navigatie
         public Gebruiker? Gebruiker { get; set; }
 
-        // Veilingen die deze veilingmeester start of beheert
-        public List<Veiling> Veilingen { get; set; } = new();
     }
 }
