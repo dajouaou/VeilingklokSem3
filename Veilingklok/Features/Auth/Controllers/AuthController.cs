@@ -21,7 +21,8 @@ namespace Veilingklok.Features.Auth.Controllers
 
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterRequest dto)
+        public async Task<IActionResult> Register(Veilingklok.Features.Auth.Dtos.RegisterRequest dto)
+
         {
             try
             {
@@ -59,7 +60,7 @@ namespace Veilingklok.Features.Auth.Controllers
 
                 string token = await _authService.LoginAsync(request.Email, request.Password);
 
-                return Ok(new { token, role = gebruiker.Rol.ToString() });  // ⭐ TOEGEVOEGD
+                return Ok(new { token, role = gebruiker.Role.ToString() });  
             }
             catch (Exception e)
             {
