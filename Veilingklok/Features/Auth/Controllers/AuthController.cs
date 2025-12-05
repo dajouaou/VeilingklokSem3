@@ -23,11 +23,21 @@ namespace Veilingklok.Features.Auth.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterRequest dto)
         {
+            var existingUser = await _gebruikerRepo.GetByEmailAsync(dto.Email);
+
+            if (existingUser != null)
+            {
+                return BadRequest(new { message = "Gebruiker bestaat al" });
+            }
+
             try
             {
-                // Beperk rol tot Koper of Aanvoerder
-                if (dto.Rol != UserRole.Koper && dto.Rol != UserRole.Aanvoerder)
+                if (dto.Rol != UserRole.Koper &&
+                    dto.Rol != UserRole.Aanvoerder &&
+                    dto.Rol != UserRole.Veilingmeester)
+                {
                     return BadRequest(new { message = "Ongeldige rol." });
+                }
 
                 string token = await _authService.RegisterAsync(
                     dto.Email,
@@ -38,14 +48,13 @@ namespace Veilingklok.Features.Auth.Controllers
                 );
 
                 return Ok(new { token, role = dto.Rol.ToString() });
-
-
             }
             catch (Exception e)
             {
                 return BadRequest(new { message = e.Message });
             }
         }
+
 
 
         [HttpPost("login")]

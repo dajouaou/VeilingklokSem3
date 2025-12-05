@@ -10,7 +10,14 @@ public class Product
     public string? Beschrijving { get; set; }
     public string? FotoUrl { get; set; }
 
+
+    public string Soort { get; set; } = string.Empty;           
+    public string? PotmaatOfSteellengte { get; set; }            
+    public int HoeveelheidStuks { get; set; }                    
+    public decimal MinimumPrijs { get; set; }                    
+    public string KlokLocatie { get; set; } = string.Empty;      
+    public DateTime VeilDatum { get; set; }                      
+
     public Aanvoerder? Aanvoerder { get; set; }
 
-    public List<VeilingProduct> VeilingProducten { get; set; } = new();
 }
