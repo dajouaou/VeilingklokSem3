@@ -9,10 +9,9 @@ public class Gebruiker
     public string PasswordHash { get; set; } = string.Empty;
     public string Voornaam { get; set; } = string.Empty;
     public string Achternaam { get; set; } = string.Empty;
-    public UserRole Rol { get; set; }          // Koper of Aanvoerder
+    public UserRole Rol { get; set; }  
     public DateTime CreatedAtUtc { get; set; }
 
-    // Navigatie-eigenschappen
     public Koper? Koper { get; set; }
     public Aanvoerder? Aanvoerder { get; set; }
     public Veilingmeester? Veilingmeester { get; set; }
