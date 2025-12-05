@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Entities;
 using Veilingklok.Core.Enums;
 using Veilingklok.Infrastructure.Database;
+using Veilingklok.Core.Entities;
+
 
 namespace Veilingklok.Infrastructure.Database.Seed;
 
@@ -17,15 +19,14 @@ public static class DbSeeder
         string Img(string file) => $"/img/products/{file}";
         string Hash(string pw) => BCrypt.Net.BCrypt.HashPassword(pw);
 
-        // ------------------
         // 1) Gebruikers (10)
-        // ------------------
+
         var sofiaMeester = new Gebruiker
         {
             Username = "sofia.veilingmeester",
             Email = "sofia.veilingmeester@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Veilingmeester,
+            Rol = UserRole.Veilingmeester,
             CreatedAtUtc = now
         };
 
@@ -34,7 +35,7 @@ public static class DbSeeder
             Username = "sofia.admin",
             Email = "sofia.admin@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Admin,
+            Rol = UserRole.Admin,
             CreatedAtUtc = now
         };
 
@@ -43,7 +44,7 @@ public static class DbSeeder
             Username = "sara.aanvoerder",
             Email = "sara@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Aanvoerder,
+            Rol = UserRole.Aanvoerder,
             CreatedAtUtc = now
         };
 
@@ -52,7 +53,7 @@ public static class DbSeeder
             Username = "sonia.aanvoerder",
             Email = "sonia@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Aanvoerder,
+            Rol = UserRole.Aanvoerder,
             CreatedAtUtc = now
         };
 
@@ -61,7 +62,7 @@ public static class DbSeeder
             Username = "sia.aanvoerder",
             Email = "sia@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Aanvoerder,
+            Rol = UserRole.Aanvoerder,
             CreatedAtUtc = now
         };
 
@@ -70,7 +71,7 @@ public static class DbSeeder
             Username = "sasha.koper",
             Email = "sasha@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Koper,
+            Rol = UserRole.Koper,
             CreatedAtUtc = now
         };
 
@@ -79,7 +80,7 @@ public static class DbSeeder
             Username = "sayna.koper",
             Email = "sayna@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Koper,
+            Rol = UserRole.Koper,
             CreatedAtUtc = now
         };
 
@@ -88,7 +89,7 @@ public static class DbSeeder
             Username = "chris.koper",
             Email = "chris@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Koper,
+            Rol = UserRole.Koper,
             CreatedAtUtc = now
         };
 
@@ -97,7 +98,7 @@ public static class DbSeeder
             Username = "tristan.koper",
             Email = "tristan@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Koper,
+            Rol = UserRole.Koper,
             CreatedAtUtc = now
         };
 
@@ -106,7 +107,7 @@ public static class DbSeeder
             Username = "miriam.koper",
             Email = "miriam@veilingklok.local",
             PasswordHash = Hash("Pass123!"),
-            Role = UserRole.Koper,
+            Rol = UserRole.Koper,
             CreatedAtUtc = now
         };
 

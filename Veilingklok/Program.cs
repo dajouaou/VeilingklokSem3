@@ -1,70 +1,111 @@
-using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
+using Veilingklok.Core.Interfaces;
+using Veilingklok.Features.Auth.Services;
 using Veilingklok.Features.VeilingmeesterDashboard.Mapping;
 using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.Database.Seed; // Seeder
+using Veilingklok.Infrastructure.Repositories;
 using Veilingklok.Infrastructure.SignalR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+{
+    Console.WriteLine("UNHANDLED EXCEPTION:");
+    Console.WriteLine(e.ExceptionObject.ToString());
+};
 
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-// logging basic
+
+// Logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
-// controllers (camelCase json)
+// Controllers (camelCase JSON)
 builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
-// DbContextOptions<MyContext> object aanmaken in program cs
+// DbContext
 builder.Services.AddDbContext<MyContext>(opt =>
-    opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+    opt.UseSqlite(config.GetConnectionString("DefaultConnection")));
 
-// automapper
+// AutoMapper
 builder.Services.AddAutoMapper(typeof(VeilingDashboardMappingProfile).Assembly);
 
-// signalr (camelCase payloads)
+// SignalR (camelCase payloads)
 builder.Services.AddSignalR()
-    .AddJsonProtocol(o =>
-        o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
+    .AddJsonProtocol(o => o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
-// health
+// Health Checks
 builder.Services.AddHealthChecks();
 
-// DI: jouw feature services
+// Dependency Injection: feature services
 builder.Services.Scan(scan => scan.FromApplicationDependencies()
     .AddClasses(c => c.InNamespaces("Veilingklok.Features"))
     .AsMatchingInterface()
     .WithScopedLifetime());
 
-// DI: dispatcher (realtime centraal)
+// Dispatcher
 builder.Services.AddScoped<IAuctionEventDispatcher, AuctionEventDispatcher>();
 
-// swagger
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Veilingklok API", Version = "v1" }));
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Veilingklok API", Version = "v1" });
+});
 
-// cors voor Vite + SignalR
+// CORS voor Vite + SignalR
 builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", p => p
-    .WithOrigins("http://localhost:5173")
+    .AllowAnyOrigin()
     .AllowAnyHeader()
-    .AllowAnyMethod()
-    .AllowCredentials()));
+    .AllowAnyMethod()));
+
+
+// DI services
+builder.Services.AddScoped<IGebruikerRepository, GebruikerRepository>();
+builder.Services.AddScoped<PasswordService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<JwtService>();
+
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
 
 var app = builder.Build();
 
-//  migrate + seed (MOET vóór app.Run)
+// Migrate + Seed (vóór app.Run)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<MyContext>();
-    await db.Database.MigrateAsync();   //maakt/upgrade db
-    await DbSeeder.SeedAsync(db);       // seed alleen als leeg
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<MyContext>();
+        await db.Database.MigrateAsync();
+        await DbSeeder.SeedAsync(db);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("MIGRATION/SEED ERROR:");
+        Console.WriteLine(ex.ToString());
+    }
 }
 
-// errors: ArgumentException => 400, rest => 500
+
+// Global error handling
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async ctx =>
@@ -85,22 +126,28 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-// swagger only dev
+// Swagger (development only)
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Veilingklok API v1");
+        c.RoutePrefix = "swagger";
+    });
 }
 
+// Middleware
 app.UseHttpsRedirection();
-
-app.UseStaticFiles(); // serve wwwroot (bv /img/products/...)
-
+app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowFrontend"); // credentials
+app.UseCors("AllowFrontend");
+
+// Authentication + Authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
-// endpoints
+// Endpoints
 app.MapControllers();
 app.MapHealthChecks("/health");
 app.MapHub<AuctionHub>("/hubs/auction");
