@@ -11,6 +11,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Veilingklok.Features.Veiling.Services;
 using Veilingklok.Features.VM.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.SqlServer;
+
 
 
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
@@ -33,7 +36,9 @@ builder.Services.AddControllers()
 
 
 builder.Services.AddDbContext<MyContext>(opt =>
-    opt.UseSqlite(config.GetConnectionString("DefaultConnection")));
+    opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+
+
 
 
 builder.Services.AddSignalR()

@@ -1,27 +1,41 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "https://localhost:7140";
+const API_BASE = import.meta.env.VITE_API_BASE;
 
-export async function getDashboard(veilingId) {
-    const res = await fetch(`${API_BASE}/api/veilingen/${veilingId}/vm/dashboard`);
-    return await res.json();
+// veilige fetch
+async function safeFetch(url, options = {}) {
+    const res = await fetch(url, options);
+    const text = await res.text();
+
+    try {
+        return JSON.parse(text);
+    } catch {
+        console.error("Geen geldige JSON van server:");
+        console.error(text);
+        throw new Error("Server gaf geen JSON terug");
+    }
 }
 
-export async function startVeiling(veilingId) {
-    const res = await fetch(`${API_BASE}/api/veilingen/${veilingId}/vm/start`, {
-        method: "POST",
-    });
-    return await res.json();
+// Dashboard ophalen
+export async function getDashboard(id) {
+    return safeFetch(`${API_BASE}/api/veilingen/${id}/vm/dashboard`);
 }
 
-export async function nextProduct(veilingId) {
-    const res = await fetch(`${API_BASE}/api/veilingen/${veilingId}/vm/next`, {
+// Start veiling
+export async function startVeiling(id) {
+    return safeFetch(`${API_BASE}/api/veilingen/${id}/vm/start`, {
         method: "POST",
     });
-    return await res.json();
 }
 
-export async function closeCurrent(veilingId) {
-    const res = await fetch(`${API_BASE}/api/veilingen/${veilingId}/vm/close-current`, {
+// Volgend product
+export async function nextProduct(id) {
+    return safeFetch(`${API_BASE}/api/veilingen/${id}/vm/next`, {
         method: "POST",
     });
-    return await res.json();
+}
+
+// Sluit product
+export async function closeCurrent(id) {
+    return safeFetch(`${API_BASE}/api/veilingen/${id}/vm/close-current`, {
+        method: "POST",
+    });
 }

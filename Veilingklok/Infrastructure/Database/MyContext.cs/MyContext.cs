@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Entities;
+using Veilingklok.Infrastructure.Database.Seed;
 
 namespace Veilingklok.Infrastructure.Database;
 
@@ -7,18 +8,18 @@ public class MyContext : DbContext
 {
     public MyContext(DbContextOptions<MyContext> options) : base(options) { }
 
-   
+    // ---------------------------
+    // DbSets
+    // ---------------------------
     public DbSet<Gebruiker> Gebruikers => Set<Gebruiker>();
     public DbSet<Koper> Kopers => Set<Koper>();
     public DbSet<Aanvoerder> Aanvoerders => Set<Aanvoerder>();
     public DbSet<VM> VMs => Set<VM>();
 
-    
     public DbSet<Product> Producten => Set<Product>();
     public DbSet<Veiling> Veilingen => Set<Veiling>();
     public DbSet<VeilingProduct> VeilingProducten => Set<VeilingProduct>();
 
-   
     public DbSet<Bid> Biedingen => Set<Bid>();
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
@@ -27,7 +28,10 @@ public class MyContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        
+        // ============================================================
+        // 1. RELATIES — Gebruiker → Koper / Aanvoerder / VM
+        // ============================================================
+
         modelBuilder.Entity<Gebruiker>()
             .HasOne(g => g.Koper)
             .WithOne(k => k.Gebruiker)
@@ -47,63 +51,27 @@ public class MyContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
 
-   
-        
+        // ============================================================
+        // 2. VERDER RELATIES
+        // ============================================================
+
         modelBuilder.Entity<VM>()
             .HasMany(vm => vm.Veilingen)
             .WithOne(v => v.VM)
             .HasForeignKey(v => v.VMId)
             .OnDelete(DeleteBehavior.Restrict);
 
-
-        
         modelBuilder.Entity<Aanvoerder>()
             .HasMany(a => a.Producten)
             .WithOne(p => p.Aanvoerder)
             .HasForeignKey(p => p.AanvoerderId)
             .OnDelete(DeleteBehavior.Restrict);
 
-
-       
         modelBuilder.Entity<Veiling>()
             .HasMany(v => v.VeilingProducten)
             .WithOne(vp => vp.Veiling)
             .HasForeignKey(vp => vp.VeilingId)
             .OnDelete(DeleteBehavior.Cascade);
-
-
-    
-        modelBuilder.Entity<VeilingProduct>()
-            .HasOne(vp => vp.Product)
-            .WithMany()
-            .HasForeignKey(vp => vp.ProductId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-
-   
-        modelBuilder.Entity<VeilingProduct>()
-            .HasOne(vp => vp.Aanvoerder)
-            .WithMany(a => a.VeilingProducten)
-            .HasForeignKey(vp => vp.AanvoerderId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-
-  
-        modelBuilder.Entity<Bid>()
-            .HasOne(b => b.VeilingProduct)
-            .WithMany(vp => vp.Bids)
-            .HasForeignKey(b => b.VeilingProductId)
-            .OnDelete(DeleteBehavior.Restrict);
-
-
-       
-        modelBuilder.Entity<Bid>()
-            .HasOne(b => b.Koper)
-            .WithMany(k => k.Bids)
-            .HasForeignKey(b => b.KoperId)
-            .OnDelete(DeleteBehavior.SetNull);
-
-
 
         modelBuilder.Entity<Veiling>()
             .HasMany(v => v.Bids)
@@ -111,35 +79,85 @@ public class MyContext : DbContext
             .HasForeignKey(b => b.VeilingId)
             .OnDelete(DeleteBehavior.Cascade);
 
-
-    
         modelBuilder.Entity<AuditEntry>()
             .HasOne(a => a.Veiling)
             .WithMany(v => v.AuditEntries)
             .HasForeignKey(a => a.VeilingId)
             .OnDelete(DeleteBehavior.Cascade);
 
-
-    
         modelBuilder.Entity<AuditEntry>()
             .HasOne(a => a.ActorGebruiker)
             .WithMany()
             .HasForeignKey(a => a.ActorGebruikerId)
             .OnDelete(DeleteBehavior.Restrict);
-        
-        
+
+
+        // ============================================================
+        // 3. RELATIES — VeilingProduct
+        // ============================================================
+
+        modelBuilder.Entity<VeilingProduct>()
+            .HasOne(vp => vp.Product)
+            .WithMany(p => p.VeilingProducten)
+            .HasForeignKey(vp => vp.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<VeilingProduct>()
+            .HasOne(vp => vp.Aanvoerder)
+            .WithMany(a => a.VeilingProducten)
+            .HasForeignKey(vp => vp.AanvoerderId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+
+        //  GEEN CASCADE, GEEN SET NULL, MAAR RESTRICT
         modelBuilder.Entity<Veiling>()
             .HasOne(v => v.CurrentVeilingProduct)
             .WithOne()
             .HasForeignKey<Veiling>(v => v.CurrentVeilingProductId)
-            .OnDelete(DeleteBehavior.SetNull);
-        
-        modelBuilder.Entity<Product>()
-            .HasMany(p => p.VeilingProducten)
-            .WithOne(vp => vp.Product)
-            .HasForeignKey(vp => vp.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
 
 
+        // ============================================================
+        // 4. RELATIES — Bid
+        // ============================================================
+
+        modelBuilder.Entity<Bid>()
+            .HasOne(b => b.VeilingProduct)
+            .WithMany(vp => vp.Bids)
+            .HasForeignKey(b => b.VeilingProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Bid>()
+            .HasOne(b => b.Koper)
+            .WithMany(k => k.Bids)
+            .HasForeignKey(b => b.KoperId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+
+        // ============================================================
+        // 5. DECIMAL PRECISION — SQL Server
+        // ============================================================
+
+        modelBuilder.Entity<Bid>().Property(b => b.Amount).HasPrecision(18, 2);
+        modelBuilder.Entity<Koper>().Property(k => k.Saldo).HasPrecision(18, 2);
+        modelBuilder.Entity<Product>().Property(p => p.MinimumPrijs).HasPrecision(18, 2);
+        modelBuilder.Entity<VeilingProduct>().Property(vp => vp.StartPrijs).HasPrecision(18, 2);
+        modelBuilder.Entity<VeilingProduct>().Property(vp => vp.HuidigePrijs).HasPrecision(18, 2);
+
+
+        // ============================================================
+        // 6. ROWVERSION — SQL SERVER
+        // ============================================================
+
+        modelBuilder.Entity<Veiling>()
+            .Property(v => v.RowVersion)
+            .IsRowVersion();
+
+
+        // ============================================================
+        // 7. SEED DATA
+        // ============================================================
+
+        DatabaseSeeder.Seed(modelBuilder);
     }
 }

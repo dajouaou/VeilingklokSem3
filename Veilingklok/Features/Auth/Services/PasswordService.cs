@@ -23,8 +23,15 @@
 
         public bool VerifyPassword(string password, string hashedPasswordWithSalt)
         {
+            if (string.IsNullOrWhiteSpace(hashedPasswordWithSalt))
+                return false;
+
             var parts = hashedPasswordWithSalt.Split('.');
-            var salt  = Convert.FromBase64String(parts[0]);
+
+            if (parts.Length != 2)
+                return false; // voorkomt de array-crash
+
+            var salt = Convert.FromBase64String(parts[0]);
             var hash = parts[1];
 
             string hashedInput = Convert.ToBase64String(
@@ -38,5 +45,4 @@
             return hash == hashedInput;
         }
     }
-
 }

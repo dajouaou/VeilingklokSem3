@@ -1,14 +1,21 @@
 export default function BidList({ bids }) {
+    if (!bids || bids.length === 0) {
+        return (
+            <div className="card">
+                <h2>Biedingen</h2>
+                <p>Geen biedingen geplaatst.</p>
+            </div>
+        );
+    }
+
     return (
         <div className="card">
             <h2>Biedingen</h2>
 
-            {bids.length === 0 && <p>Geen biedingen geplaatst.</p>}
-
             <ul>
                 {bids.map(bid => (
                     <li key={bid.id}>
-                        €{bid.bedrag} — door {bid.koper?.gebruiker?.naam ?? "Onbekend"}
+                        €{bid.amount} — door {bid.koperNaam}
                     </li>
                 ))}
             </ul>

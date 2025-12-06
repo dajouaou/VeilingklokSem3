@@ -3,10 +3,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace Veilingklok.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialSqlServer : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,15 +17,15 @@ namespace Veilingklok.Migrations
                 name: "Gebruikers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    Username = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
-                    Voornaam = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
-                    Achternaam = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
-                    Role = table.Column<int>(type: "INTEGER", nullable: false),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Username = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    PasswordHash = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Voornaam = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    Achternaam = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    Role = table.Column<int>(type: "int", nullable: false),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -34,11 +36,11 @@ namespace Veilingklok.Migrations
                 name: "Aanvoerders",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    GebruikerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Naam = table.Column<string>(type: "TEXT", nullable: false),
-                    ContactInfo = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GebruikerId = table.Column<int>(type: "int", nullable: false),
+                    Naam = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ContactInfo = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -55,11 +57,11 @@ namespace Veilingklok.Migrations
                 name: "Kopers",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    GebruikerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Naam = table.Column<string>(type: "TEXT", nullable: false),
-                    Saldo = table.Column<decimal>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GebruikerId = table.Column<int>(type: "int", nullable: false),
+                    Naam = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Saldo = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -76,10 +78,10 @@ namespace Veilingklok.Migrations
                 name: "VMs",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    GebruikerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Naam = table.Column<string>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    GebruikerId = table.Column<int>(type: "int", nullable: false),
+                    Naam = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -96,19 +98,19 @@ namespace Veilingklok.Migrations
                 name: "Producten",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    AanvoerderId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Naam = table.Column<string>(type: "TEXT", nullable: false),
-                    Categorie = table.Column<string>(type: "TEXT", nullable: true),
-                    Beschrijving = table.Column<string>(type: "TEXT", nullable: true),
-                    FotoUrl = table.Column<string>(type: "TEXT", nullable: true),
-                    Soort = table.Column<string>(type: "TEXT", nullable: false),
-                    PotmaatOfSteellengte = table.Column<string>(type: "TEXT", nullable: true),
-                    HoeveelheidStuks = table.Column<int>(type: "INTEGER", nullable: false),
-                    MinimumPrijs = table.Column<decimal>(type: "TEXT", nullable: false),
-                    KlokLocatie = table.Column<string>(type: "TEXT", nullable: false),
-                    VeilDatum = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AanvoerderId = table.Column<int>(type: "int", nullable: false),
+                    Naam = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Categorie = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Beschrijving = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FotoUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Soort = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PotmaatOfSteellengte = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    HoeveelheidStuks = table.Column<int>(type: "int", nullable: false),
+                    MinimumPrijs = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    KlokLocatie = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    VeilDatum = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -125,13 +127,13 @@ namespace Veilingklok.Migrations
                 name: "AuditEntries",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VeilingId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ActorGebruikerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Action = table.Column<string>(type: "TEXT", nullable: false),
-                    Details = table.Column<string>(type: "TEXT", nullable: true),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VeilingId = table.Column<int>(type: "int", nullable: false),
+                    ActorGebruikerId = table.Column<int>(type: "int", nullable: false),
+                    Action = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Details = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -148,15 +150,15 @@ namespace Veilingklok.Migrations
                 name: "Biedingen",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VeilingId = table.Column<int>(type: "INTEGER", nullable: false),
-                    VeilingProductId = table.Column<int>(type: "INTEGER", nullable: false),
-                    PlacedByGebruikerId = table.Column<int>(type: "INTEGER", nullable: false),
-                    KoperId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Amount = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Source = table.Column<int>(type: "INTEGER", nullable: false),
-                    PlacedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VeilingId = table.Column<int>(type: "int", nullable: false),
+                    VeilingProductId = table.Column<int>(type: "int", nullable: false),
+                    PlacedByGebruikerId = table.Column<int>(type: "int", nullable: false),
+                    KoperId = table.Column<int>(type: "int", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Source = table.Column<int>(type: "int", nullable: false),
+                    PlacedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -179,16 +181,16 @@ namespace Veilingklok.Migrations
                 name: "Veilingen",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VMId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    StartTijdUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    EindTijdUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    CreatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Locatie = table.Column<string>(type: "TEXT", nullable: true),
-                    CurrentVeilingProductId = table.Column<int>(type: "INTEGER", nullable: true),
-                    RowVersion = table.Column<byte[]>(type: "BLOB", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VMId = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    StartTijdUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    EindTijdUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    CreatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Locatie = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CurrentVeilingProductId = table.Column<int>(type: "int", nullable: true),
+                    RowVersion = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -205,19 +207,19 @@ namespace Veilingklok.Migrations
                 name: "VeilingProducten",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    VeilingId = table.Column<int>(type: "INTEGER", nullable: false),
-                    ProductId = table.Column<int>(type: "INTEGER", nullable: false),
-                    AanvoerderId = table.Column<int>(type: "INTEGER", nullable: true),
-                    Volgorde = table.Column<int>(type: "INTEGER", nullable: false),
-                    Hoeveelheid = table.Column<int>(type: "INTEGER", nullable: false),
-                    StartPrijs = table.Column<decimal>(type: "TEXT", nullable: false),
-                    HuidigePrijs = table.Column<decimal>(type: "TEXT", nullable: false),
-                    Status = table.Column<int>(type: "INTEGER", nullable: false),
-                    ActivatedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    ClosedAtUtc = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    SoldToKoperId = table.Column<int>(type: "INTEGER", nullable: true)
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VeilingId = table.Column<int>(type: "int", nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    AanvoerderId = table.Column<int>(type: "int", nullable: true),
+                    Volgorde = table.Column<int>(type: "int", nullable: false),
+                    Hoeveelheid = table.Column<int>(type: "int", nullable: false),
+                    StartPrijs = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    HuidigePrijs = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    ActivatedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ClosedAtUtc = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    SoldToKoperId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -245,6 +247,56 @@ namespace Veilingklok.Migrations
                         principalTable: "Veilingen",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Gebruikers",
+                columns: new[] { "Id", "Achternaam", "CreatedAtUtc", "Email", "PasswordHash", "Role", "Username", "Voornaam" },
+                values: new object[,]
+                {
+                    { 1, "Meester", new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8010), "vm1@example.com", "/IBPOKARnfovopqiozKisg==.Ba29lfIDP5hPeHYg7lo9zo1/9jlIz9pVltxHk3Uq+y4=", 3, "vm1", "Veiling" },
+                    { 2, "Aanvoerder", new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8010), "aanvoerder1@example.com", "dYZkwuby1vIXcT7oDqmLUQ==.3ezrXFONS2PtlZtMLu5ZNVb3G+8kcDEO3DgF4vGQ7zA=", 2, "aanvoerder1", "Jan" },
+                    { 3, "Koper", new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8020), "koper1@example.com", "aGHWiJETfe58QNPIYnGGFw==.KeXMSKAtFMUnz3NiwryWdav5SdT0hVXaZLku4uVibI4=", 1, "koper1", "Klaas" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Aanvoerders",
+                columns: new[] { "Id", "ContactInfo", "GebruikerId", "Naam" },
+                values: new object[] { 1, "jan@aanvoerder.com", 2, "Jan Aanvoerder" });
+
+            migrationBuilder.InsertData(
+                table: "Kopers",
+                columns: new[] { "Id", "GebruikerId", "Naam", "Saldo" },
+                values: new object[] { 1, 3, "Klaas Koper", 500m });
+
+            migrationBuilder.InsertData(
+                table: "VMs",
+                columns: new[] { "Id", "GebruikerId", "Naam" },
+                values: new object[] { 1, 1, "Veiling Meester" });
+
+            migrationBuilder.InsertData(
+                table: "Producten",
+                columns: new[] { "Id", "AanvoerderId", "Beschrijving", "Categorie", "FotoUrl", "HoeveelheidStuks", "KlokLocatie", "MinimumPrijs", "Naam", "PotmaatOfSteellengte", "Soort", "VeilDatum" },
+                values: new object[,]
+                {
+                    { 1, 1, "Frisse mix alstroemeria's", "Bloemen", "/images/products/alstroemeria-mix.jpg", 50, "Aalsmeer", 4m, "Alstroemeria Mix", "60cm", "Bloem", new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8230) },
+                    { 2, 1, "Vrolijke mix van gerbera's", "Boeket", "/images/products/boeket-gerbera-mix.jpg", 30, "Aalsmeer", 5m, "Boeket Gerbera Mix", "n.v.t.", "Boeket", new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8230) },
+                    { 3, 1, "Elegante witte orchidee", "Planten", "/images/products/orchidee-phalaenopsis-wit.jpg", 20, "Aalsmeer", 12m, "Orchidee Phalaenopsis Wit", "12cm pot", "Plant", new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8240) }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Veilingen",
+                columns: new[] { "Id", "CreatedAtUtc", "CurrentVeilingProductId", "EindTijdUtc", "Locatie", "StartTijdUtc", "Status", "VMId" },
+                values: new object[] { 1, new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8250), null, new DateTime(2025, 12, 6, 18, 18, 6, 594, DateTimeKind.Utc).AddTicks(8260), "Aalsmeer", new DateTime(2025, 12, 6, 16, 28, 6, 594, DateTimeKind.Utc).AddTicks(8250), 1, 1 });
+
+            migrationBuilder.InsertData(
+                table: "VeilingProducten",
+                columns: new[] { "Id", "AanvoerderId", "ActivatedAtUtc", "ClosedAtUtc", "Hoeveelheid", "HuidigePrijs", "ProductId", "SoldToKoperId", "StartPrijs", "Status", "VeilingId", "Volgorde" },
+                values: new object[,]
+                {
+                    { 1, 1, null, null, 50, 10m, 1, null, 10m, 0, 1, 1 },
+                    { 2, 1, null, null, 30, 12m, 2, null, 12m, 0, 1, 2 },
+                    { 3, 1, null, null, 20, 20m, 3, null, 20m, 0, 1, 3 }
                 });
 
             migrationBuilder.CreateIndex(
@@ -298,7 +350,8 @@ namespace Veilingklok.Migrations
                 name: "IX_Veilingen_CurrentVeilingProductId",
                 table: "Veilingen",
                 column: "CurrentVeilingProductId",
-                unique: true);
+                unique: true,
+                filter: "[CurrentVeilingProductId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Veilingen_VMId",
@@ -361,7 +414,7 @@ namespace Veilingklok.Migrations
                 column: "CurrentVeilingProductId",
                 principalTable: "VeilingProducten",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
+                onDelete: ReferentialAction.Restrict);
         }
 
         /// <inheritdoc />

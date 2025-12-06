@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veilingklok.Infrastructure.Database;
 
@@ -15,23 +16,29 @@ namespace Veilingklok.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Aanvoerder", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ContactInfo")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("GebruikerId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Naam")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -39,29 +46,40 @@ namespace Veilingklok.Migrations
                         .IsUnique();
 
                     b.ToTable("Aanvoerders");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            ContactInfo = "jan@aanvoerder.com",
+                            GebruikerId = 2,
+                            Naam = "Jan Aanvoerder"
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.AuditEntry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ActorGebruikerId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Details")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("VeilingId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -76,28 +94,31 @@ namespace Veilingklok.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("TEXT");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int?>("KoperId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("PlacedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("PlacedByGebruikerId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("Source")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("VeilingId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("VeilingProductId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -116,59 +137,99 @@ namespace Veilingklok.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Achternaam")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(256)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("Role")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("Voornaam")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(64)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Gebruikers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Achternaam = "Meester",
+                            CreatedAtUtc = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8010),
+                            Email = "vm1@example.com",
+                            PasswordHash = "/IBPOKARnfovopqiozKisg==.Ba29lfIDP5hPeHYg7lo9zo1/9jlIz9pVltxHk3Uq+y4=",
+                            Role = 3,
+                            Username = "vm1",
+                            Voornaam = "Veiling"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Achternaam = "Aanvoerder",
+                            CreatedAtUtc = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8010),
+                            Email = "aanvoerder1@example.com",
+                            PasswordHash = "dYZkwuby1vIXcT7oDqmLUQ==.3ezrXFONS2PtlZtMLu5ZNVb3G+8kcDEO3DgF4vGQ7zA=",
+                            Role = 2,
+                            Username = "aanvoerder1",
+                            Voornaam = "Jan"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Achternaam = "Koper",
+                            CreatedAtUtc = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8020),
+                            Email = "koper1@example.com",
+                            PasswordHash = "aGHWiJETfe58QNPIYnGGFw==.KeXMSKAtFMUnz3NiwryWdav5SdT0hVXaZLku4uVibI4=",
+                            Role = 1,
+                            Username = "koper1",
+                            Voornaam = "Klaas"
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Koper", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("GebruikerId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Naam")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Saldo")
-                        .HasColumnType("TEXT");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -176,69 +237,130 @@ namespace Veilingklok.Migrations
                         .IsUnique();
 
                     b.ToTable("Kopers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            GebruikerId = 3,
+                            Naam = "Klaas Koper",
+                            Saldo = 500m
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("AanvoerderId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Beschrijving")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Categorie")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FotoUrl")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("HoeveelheidStuks")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("KlokLocatie")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("MinimumPrijs")
-                        .HasColumnType("TEXT");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Naam")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PotmaatOfSteellengte")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Soort")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("VeilDatum")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AanvoerderId");
 
                     b.ToTable("Producten");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AanvoerderId = 1,
+                            Beschrijving = "Frisse mix alstroemeria's",
+                            Categorie = "Bloemen",
+                            FotoUrl = "/images/products/alstroemeria-mix.jpg",
+                            HoeveelheidStuks = 50,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 4m,
+                            Naam = "Alstroemeria Mix",
+                            PotmaatOfSteellengte = "60cm",
+                            Soort = "Bloem",
+                            VeilDatum = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8230)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AanvoerderId = 1,
+                            Beschrijving = "Vrolijke mix van gerbera's",
+                            Categorie = "Boeket",
+                            FotoUrl = "/images/products/boeket-gerbera-mix.jpg",
+                            HoeveelheidStuks = 30,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 5m,
+                            Naam = "Boeket Gerbera Mix",
+                            PotmaatOfSteellengte = "n.v.t.",
+                            Soort = "Boeket",
+                            VeilDatum = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8230)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AanvoerderId = 1,
+                            Beschrijving = "Elegante witte orchidee",
+                            Categorie = "Planten",
+                            FotoUrl = "/images/products/orchidee-phalaenopsis-wit.jpg",
+                            HoeveelheidStuks = 20,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 12m,
+                            Naam = "Orchidee Phalaenopsis Wit",
+                            PotmaatOfSteellengte = "12cm pot",
+                            Soort = "Plant",
+                            VeilDatum = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8240)
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.VM", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("GebruikerId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<string>("Naam")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -246,86 +368,115 @@ namespace Veilingklok.Migrations
                         .IsUnique();
 
                     b.ToTable("VMs");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            GebruikerId = 1,
+                            Naam = "Veiling Meester"
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Veiling", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("CurrentVeilingProductId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("EindTijdUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Locatie")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("RowVersion")
-                        .HasColumnType("BLOB");
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime?>("StartTijdUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("VMId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CurrentVeilingProductId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[CurrentVeilingProductId] IS NOT NULL");
 
                     b.HasIndex("VMId");
 
                     b.ToTable("Veilingen");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAtUtc = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8250),
+                            EindTijdUtc = new DateTime(2025, 12, 6, 18, 18, 6, 594, DateTimeKind.Utc).AddTicks(8260),
+                            Locatie = "Aalsmeer",
+                            StartTijdUtc = new DateTime(2025, 12, 6, 16, 28, 6, 594, DateTimeKind.Utc).AddTicks(8250),
+                            Status = 1,
+                            VMId = 1
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.VeilingProduct", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int?>("AanvoerderId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("ActivatedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ClosedAtUtc")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Hoeveelheid")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("HuidigePrijs")
-                        .HasColumnType("TEXT");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ProductId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int?>("SoldToKoperId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<decimal>("StartPrijs")
-                        .HasColumnType("TEXT");
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("VeilingId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.Property<int>("Volgorde")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -338,6 +489,44 @@ namespace Veilingklok.Migrations
                     b.HasIndex("VeilingId");
 
                     b.ToTable("VeilingProducten");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 50,
+                            HuidigePrijs = 10m,
+                            ProductId = 1,
+                            StartPrijs = 10m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 30,
+                            HuidigePrijs = 12m,
+                            ProductId = 2,
+                            StartPrijs = 12m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 20,
+                            HuidigePrijs = 20m,
+                            ProductId = 3,
+                            StartPrijs = 20m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 3
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Aanvoerder", b =>
@@ -442,7 +631,7 @@ namespace Veilingklok.Migrations
                     b.HasOne("Veilingklok.Core.Entities.VeilingProduct", "CurrentVeilingProduct")
                         .WithOne()
                         .HasForeignKey("Veilingklok.Core.Entities.Veiling", "CurrentVeilingProductId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Veilingklok.Core.Entities.VM", "VM")
                         .WithMany("Veilingen")
