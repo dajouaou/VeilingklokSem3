@@ -24,7 +24,7 @@
         public bool VerifyPassword(string password, string hashedPasswordWithSalt)
         {
             var parts = hashedPasswordWithSalt.Split('.');
-            var salt = Convert.FromBase64String(parts[0]);
+            var salt  = Convert.FromBase64String(parts[0]);
             var hash = parts[1];
 
             string hashedInput = Convert.ToBase64String(

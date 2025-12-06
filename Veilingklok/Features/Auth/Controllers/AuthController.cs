@@ -29,7 +29,7 @@ namespace Veilingklok.Features.Auth.Controllers
                 // VM toegevoegd
                 if (dto.Rol != UserRole.Koper && dto.Rol != UserRole.Aanvoerder && dto.Rol != UserRole.VM)
                     return BadRequest(new { message = "Ongeldige rol." });
-
+ 
 
                 string token = await _authService.RegisterAsync(
                     dto.Username,

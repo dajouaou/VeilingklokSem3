@@ -30,13 +30,12 @@
 	</ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Features\VM-Dashboard\Commands\" />
+        <Folder Include="Features\Veiling\Controllers\" />
         <Folder Include="Features\VM-Dashboard\Mapping\" />
-        <Folder Include="Features\VM-Dashboard\Models\" />
         <Folder Include="Features\VM-Dashboard\Services\" />
         <Folder Include="Infrastructure\Database\Configurations\" />
         <Folder Include="Infrastructure\Database\Seed\" />
-        <Folder Include="Infrastructure\SignalR\Hubs\" />
+        <Folder Include="Infrastructure\SignalR\" />
     </ItemGroup>
 
 </Project>
