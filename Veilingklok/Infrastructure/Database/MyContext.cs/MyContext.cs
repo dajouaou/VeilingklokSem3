@@ -126,5 +126,20 @@ public class MyContext : DbContext
             .WithMany()
             .HasForeignKey(a => a.ActorGebruikerId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        
+        modelBuilder.Entity<Veiling>()
+            .HasOne(v => v.CurrentVeilingProduct)
+            .WithOne()
+            .HasForeignKey<Veiling>(v => v.CurrentVeilingProductId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        modelBuilder.Entity<Product>()
+            .HasMany(p => p.VeilingProducten)
+            .WithOne(vp => vp.Product)
+            .HasForeignKey(vp => vp.ProductId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+
     }
 }
