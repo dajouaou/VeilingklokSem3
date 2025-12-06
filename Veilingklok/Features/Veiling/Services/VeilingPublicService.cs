@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Infrastructure.Database;
+using BodEntity = Veilingklok.Core.Entities.Bod;
 
 namespace Veilingklok.Features.VeilingPublic.Services
 {

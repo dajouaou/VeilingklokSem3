@@ -4,6 +4,7 @@ using Veilingklok.Infrastructure.Database;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Veiling.Dtos;
 using VeilingEntity = Veilingklok.Core.Entities.Veiling;
+using BodEntity = Veilingklok.Core.Entities.Bod;
 
 
 namespace Veilingklok.Features.Veiling.Services
