@@ -1,30 +1,20 @@
-using Veilingklok.Core.Enums;
-
-namespace Veilingklok.Core.Entities;
-
-public class Veiling
+﻿namespace Veilingklok.Core.Entities
 {
-    public int Id { get; set; } // PK
+    public class Veiling
+    {
+        public int Id { get; set; }
 
-    public VeilingStatus Status { get; set; } = VeilingStatus.Draft;
+        public DateTime StartTijd { get; set; }
+        public DateTime? EindTijd { get; set; }
 
-    public DateTime? StartTijdUtc { get; set; }
-    public DateTime? EindTijdUtc { get; set; }
+        public bool IsGestart { get; set; }
+        public bool IsPauze { get; set; }
+        public bool IsAfgesloten { get; set; }
 
-    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+        public int? HuidigProductId { get; set; }
+        public VeilingProduct? HuidigProduct { get; set; }
 
-    // ------------------------------------------------------------
-    // Dashboard: pointer naar het huidige lot in de veiling
-    // ------------------------------------------------------------
-    public int? CurrentVeilingProductId { get; set; }
-
-    // Navigatie erbij voor dashboard queries
-    public VeilingProduct? CurrentVeilingProduct { get; set; }
-
-    // ------------------------------------------------------------
-    // Relaties
-    // ------------------------------------------------------------
-    public List<VeilingProduct> VeilingProducten { get; set; } = new();
-    public List<Bid> Bids { get; set; } = new();
-    public List<AuditEntry> AuditEntries { get; set; } = new();
+        public List<VeilingProduct> Producten { get; set; } = new();
+        public List<Bod> Biedingen { get; set; } = new();
+    }
 }

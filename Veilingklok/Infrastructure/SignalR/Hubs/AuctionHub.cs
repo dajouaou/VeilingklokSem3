@@ -1,19 +1,26 @@
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Veilingklok.Infrastructure.SignalR;
-
-public sealed class AuctionHub : Hub<IAuctionClient>
+namespace Veilingklok.Infrastructure.SignalR.Hubs
 {
-    private const string GroupPrefix = "auction-";
+    [Authorize] // alleen ingelogde gebruikers
+    public class AuctionHub : Hub
+    {
+        // Optioneel: log wanneer iemand connect
+        public override async Task OnConnectedAsync()
+        {
+            await base.OnConnectedAsync();
+        }
 
-    // 1 plek voor group-naam, zelfde stijl als dispatcher
-    public static string GroupName(int veilingId) => $"{GroupPrefix}{veilingId}";
+        // Veilingmeester kan clients in een "veiling-room" laten joinen
+        public async Task JoinVeilingGroup(int veilingId)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"veiling-{veilingId}");
+        }
 
-    // client moet dit callen na connect
-    public Task JoinAuctionGroup(int veilingId)
-        => Groups.AddToGroupAsync(Context.ConnectionId, GroupName(veilingId));
-
-    // opruimen
-    public Task LeaveAuctionGroup(int veilingId)
-        => Groups.RemoveFromGroupAsync(Context.ConnectionId, GroupName(veilingId));
+        public async Task LeaveVeilingGroup(int veilingId)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"veiling-{veilingId}");
+        }
+    }
 }

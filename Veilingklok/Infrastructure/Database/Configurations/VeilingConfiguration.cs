@@ -1,42 +1,26 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Veilingklok.Core.Entities;
 
-namespace Veilingklok.Infrastructure.Database.Configurations;
-
-public sealed class VeilingConfiguration : IEntityTypeConfiguration<Veiling>
+namespace Veilingklok.Infrastructure.Database.Configurations
 {
-    public void Configure(EntityTypeBuilder<Veiling> builder)
+    public class VeilingConfiguration : IEntityTypeConfiguration<Veiling>
     {
-        builder.ToTable("Veilingen");
-        builder.HasKey(v => v.Id);
+        public void Configure(EntityTypeBuilder<Veiling> builder)
+        {
+            // 1 -op- veel relatie met VeilingProduct
+            builder
+                .HasMany(v => v.Producten)
+                .WithOne(p => p.Veiling)
+                .HasForeignKey(p => p.VeilingId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-        // Current lot pointer (optioneel)
-        builder.Property(v => v.CurrentVeilingProductId)
-            .IsRequired(false);
-
-        builder.HasIndex(v => v.CurrentVeilingProductId);
-
-        builder.HasMany(v => v.VeilingProducten)
-            .WithOne(vp => vp.Veiling)
-            .HasForeignKey(vp => vp.VeilingId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // verbreek multiple cascade paths
-        builder.HasMany(v => v.Bids)
-            .WithOne(b => b.Veiling)
-            .HasForeignKey(b => b.VeilingId)
-            .OnDelete(DeleteBehavior.NoAction);
-
-        builder.HasMany(v => v.AuditEntries)
-            .WithOne(a => a.Veiling)
-            .HasForeignKey(a => a.VeilingId)
-            .OnDelete(DeleteBehavior.Cascade);
-
-        // Current lot pointer: NO ACTION (NIET SetNull)
-        builder.HasOne(v => v.CurrentVeilingProduct)
-            .WithMany()
-            .HasForeignKey(v => v.CurrentVeilingProductId)
-            .OnDelete(DeleteBehavior.NoAction);
+            // 1 -op- 1 relatie met huidig product
+            builder
+                .HasOne(v => v.HuidigProduct)
+                .WithMany() // belangrijk: geen back-reference
+                .HasForeignKey(v => v.HuidigProductId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }
