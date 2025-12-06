@@ -9,6 +9,8 @@ using Veilingklok.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Veilingklok.Features.Veiling.Services;
+using Veilingklok.Features.VM.Services;
 
 
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
@@ -47,6 +49,10 @@ builder.Services.Scan(scan => scan
     .AddClasses(c => c.InNamespaces("Veilingklok.Features"))
     .AsMatchingInterface()
     .WithScopedLifetime());
+
+builder.Services.AddScoped<IVMService, VMService>();
+builder.Services.AddScoped<IVeilingService, VeilingService>();
+
 
 
 builder.Services.AddScoped<IGebruikerRepository, GebruikerRepository>();

@@ -30,7 +30,6 @@
 	</ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Features\Veiling\Controllers\" />
         <Folder Include="Features\VM-Dashboard\Mapping\" />
         <Folder Include="Features\VM-Dashboard\Services\" />
         <Folder Include="Infrastructure\Database\Configurations\" />
