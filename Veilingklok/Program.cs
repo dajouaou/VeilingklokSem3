@@ -42,6 +42,8 @@ builder.Services.AddSignalR()
 
 
 builder.Services.AddHealthChecks();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
 
 builder.Services.Scan(scan => scan
