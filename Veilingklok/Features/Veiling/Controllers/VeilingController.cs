@@ -20,9 +20,10 @@ namespace Veilingklok.Features.Veiling.Controllers
         [HttpPost("start")]
         public async Task<IActionResult> Start([FromBody] StartVeilingDto dto)
         {
-            var overzicht = await _service.StartVeilingAsync(dto.Veildatum);
+            var overzicht = await _service.StartVeilingAsync(dto.Veildatum, dto.StartTijd);
             return Ok(overzicht);
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDetails(int id)

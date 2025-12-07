@@ -9,7 +9,7 @@ export default function VeilingControls({
         <div className="d-flex gap-2 my-3">
 
             {!veiling && (
-                <button className="btn btn-success" onClick={onStart}>
+                <button className="btn btn-success" onClick={() => onStart()}>
                     Veiling starten
                 </button>
             )}

@@ -39,10 +39,24 @@ export async function fetchAanvoerderStats({ token, veildatum }) {
 }
 
 export async function fetchVeilDagenForAanvoerder(token) {
-    const res = await fetch("https://localhost:56418/api/veiling-public/dagen", {
+    const res = await fetch(`${API_BASE}/api/veiling-public/dagen`, {
         headers: { Authorization: `Bearer ${token}` }
     });
 
     if (!res.ok) throw new Error("Kon veildagen niet laden.");
+    return res.json();
+}
+
+export async function createVeildag(token, datum) {
+    const res = await fetch(`${API_BASE}/api/veiling-public/dagen`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ datum })
+    });
+
+    if (!res.ok) throw new Error("Kon veildag niet aanmaken.");
     return res.json();
 }

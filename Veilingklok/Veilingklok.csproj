@@ -31,8 +31,6 @@
 
     <ItemGroup>
         <Folder Include="Features\VeilingmeesterDashboard\Commands\" />
-        <Folder Include="Features\VeilingmeesterDashboard\Controllers\" />
-        <Folder Include="Features\VeilingmeesterDashboard\Dtos\" />
         <Folder Include="Features\VeilingmeesterDashboard\Models\" />
         <Folder Include="Features\VeilingmeesterDashboard\Services\" />
         <Folder Include="Infrastructure\SignalR\Events\" />

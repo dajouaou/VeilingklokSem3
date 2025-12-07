@@ -13,8 +13,11 @@ import {
 
 import useLiveVeiling from "./hooks/useLiveVeiling";
 import LiveKlok from "./components/LiveKlok";
-import QueueList from "./components/QueueList";
+import WachtrijLijst from "./components/WachtrijLijst";
 import VeilingControls from "./components/VeilingControls";
+import BiedingenLijst from "./components/BiedingenLijst";
+import AuditLijst from "./components/AuditLijst";
+import VeilingInformatie from "./components/VeilingInformatie";
 
 export default function VeilingmeesterDashboard() {
     const { token, role } = useContext(AuthContext);
@@ -23,6 +26,18 @@ export default function VeilingmeesterDashboard() {
     const [veildagen, setVeildagen] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    const [gekozenDatum, setGekozenDatum] = useState("");
+    const [startTijd, setStartTijd] = useState("09:00");
+
+    // Live data via SignalR
+    const {
+        lot,
+        queue,
+        bids,
+        audit,
+        loading: liveLoading
+    } = useLiveVeiling(token, veiling?.id);
 
     useEffect(() => {
         if (!token || role !== "Veilingmeester") return;
@@ -49,17 +64,23 @@ export default function VeilingmeesterDashboard() {
         loadInit();
     }, [token, role]);
 
-    async function handleStart(selectedDate) {
-        if (!selectedDate) {
+    async function handleStart() {
+        if (!gekozenDatum) {
             alert("Kies eerst een veildatum.");
             return;
         }
 
+        if (!startTijd) {
+            alert("Kies eerst een starttijd.");
+            return;
+        }
+
         try {
-            const v = await startVeiling(token, selectedDate);
+            const v = await startVeiling(token, gekozenDatum, startTijd);
             setVeiling(v);
             setError("");
         } catch (err) {
+            console.error(err);
             setError("Kon veiling niet starten: " + err.message);
         }
     }
@@ -79,8 +100,6 @@ export default function VeilingmeesterDashboard() {
         setVeiling(null);
     }
 
-    const { lot, queue, loading: liveLoading } = useLiveVeiling(token, veiling?.id);
-
     return (
         <main className="container py-4">
             <h1 className="h3 mb-4">Veilingmeester Dashboard</h1>
@@ -89,20 +108,28 @@ export default function VeilingmeesterDashboard() {
 
             {!veiling && (
                 <div className="card p-3 mb-4 shadow-sm">
-                    <h4 className="h5">Start een veiling</h4>
+                    <h4 className="h5">Veiling aanmaken</h4>
 
-                    <div className="d-flex gap-2 align-items-center">
+                    <div className="d-flex gap-2 align-items-center mt-2">
                         <select
-                            id="veildatum-select"
                             className="form-select"
-                            defaultValue=""
-                            onChange={(e) => handleStart(e.target.value)}
+                            value={gekozenDatum}
+                            onChange={(e) => setGekozenDatum(e.target.value)}
                         >
                             <option value="">Kies veildatum...</option>
-                            {veildagen.map(d => (
-                                <option key={d} value={d}>{d}</option>
+                            {veildagen.map((d) => (
+                                <option key={d} value={d}>
+                                    {d}
+                                </option>
                             ))}
                         </select>
+
+                        <input
+                            type="time"
+                            className="form-control"
+                            value={startTijd}
+                            onChange={(e) => setStartTijd(e.target.value)}
+                        />
                     </div>
                 </div>
             )}
@@ -115,10 +142,12 @@ export default function VeilingmeesterDashboard() {
                 onStop={handleStop}
             />
 
-            {loading || liveLoading ? <p>Laden...</p> : null}
+            {(loading || liveLoading) && <p>Laden...</p>}
 
             {veiling && (
                 <>
+                    <VeilingInformatie gegevens={veiling} />
+
                     <LiveKlok lot={lot} />
 
                     <button
@@ -128,14 +157,21 @@ export default function VeilingmeesterDashboard() {
                         Koop tegen huidige prijs
                     </button>
 
-                    <QueueList queue={queue} />
+                    <WachtrijLijst wachtrij={queue} />
+
+                    <div className="row mt-4">
+                        <div className="col-md-6">
+                            <BiedingenLijst biedingen={bids} />
+                        </div>
+                        <div className="col-md-6">
+                            <AuditLijst audit={audit} />
+                        </div>
+                    </div>
                 </>
             )}
 
             {!veiling && !loading && (
-                <p className="text-muted">
-                    Er is momenteel geen actieve veiling.
-                </p>
+                <p className="text-muted">Er is momenteel geen actieve veiling.</p>
             )}
         </main>
     );
