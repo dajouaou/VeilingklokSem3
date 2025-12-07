@@ -1,9 +1,37 @@
+// src/api/VMApi.js
+
 const API_BASE = import.meta.env.VITE_API_BASE;
 
-// veilige fetch
-async function safeFetch(url, options = {}) {
-    const res = await fetch(url, options);
+
+if (!API_BASE) {
+    console.error(
+        "VITE_API_BASE is niet gezet. " +
+        "Maak in de frontend-map een .env.local met bijvoorbeeld:\n" +
+        "VITE_API_BASE=https://localhost:7140"
+    );
+}
+
+
+async function safeFetch(path, options = {}) {
+    const url = `${API_BASE}${path}`;
+
+    const res = await fetch(url, {
+     
+        ...options,
+    });
+
     const text = await res.text();
+
+ 
+    if (!res.ok) {
+        console.error("Serverfout:", res.status, text);
+        throw new Error(`HTTP ${res.status}`);
+    }
+
+    // Proberen JSON te parsen
+    if (!text) {
+        return null; // lege body
+    }
 
     try {
         return JSON.parse(text);
@@ -14,28 +42,30 @@ async function safeFetch(url, options = {}) {
     }
 }
 
+
+
 // Dashboard ophalen
-export async function getDashboard(id) {
-    return safeFetch(`${API_BASE}/api/veilingen/${id}/vm/dashboard`);
+export function getDashboard(id) {
+    return safeFetch(`/api/veilingen/${id}/vm/dashboard`);
 }
 
 // Start veiling
-export async function startVeiling(id) {
-    return safeFetch(`${API_BASE}/api/veilingen/${id}/vm/start`, {
+export function startVeiling(id) {
+    return safeFetch(`/api/veilingen/${id}/vm/start`, {
         method: "POST",
     });
 }
 
 // Volgend product
-export async function nextProduct(id) {
-    return safeFetch(`${API_BASE}/api/veilingen/${id}/vm/next`, {
+export function nextProduct(id) {
+    return safeFetch(`/api/veilingen/${id}/vm/next`, {
         method: "POST",
     });
 }
 
-// Sluit product
-export async function closeCurrent(id) {
-    return safeFetch(`${API_BASE}/api/veilingen/${id}/vm/close-current`, {
+// Huidig product sluiten
+export function closeCurrent(id) {
+    return safeFetch(`/api/veilingen/${id}/vm/close-current`, {
         method: "POST",
     });
 }
