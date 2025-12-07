@@ -1,38 +1,36 @@
 // src/api/VMApi.js
 
+// 1. Basis URL van je backend (uit .env.local)
 const API_BASE = import.meta.env.VITE_API_BASE;
 
-
+// Kleine check: als je .env.local mist, zie je dit in de console
 if (!API_BASE) {
     console.error(
-        "VITE_API_BASE is niet gezet. " +
-        "Maak in de frontend-map een .env.local met bijvoorbeeld:\n" +
+        "VITE_API_BASE is niet gezet. Maak in frontend/.env.local bijvoorbeeld:\n" +
         "VITE_API_BASE=https://localhost:7140"
     );
 }
 
-
+// 2. Veilige fetch helper
 async function safeFetch(path, options = {}) {
+    // path = "/api/veilingen/1/vm/dashboard"
     const url = `${API_BASE}${path}`;
 
-    const res = await fetch(url, {
-     
-        ...options,
-    });
-
+    const res = await fetch(url, options);
     const text = await res.text();
 
- 
+    // 2a. HTTP-fouten (400, 404, 500, …)
     if (!res.ok) {
-        console.error("Serverfout:", res.status, text);
-        throw new Error(`HTTP ${res.status}`);
+        // hier pakken we de tekst van de server, bv "Geen volgende producten."
+        const message = text || `HTTP ${res.status}`;
+        console.error("Serverfout:", res.status, message);
+        throw new Error(message); // → err.message in je hook
     }
 
-    // Proberen JSON te parsen
-    if (!text) {
-        return null; // lege body
-    }
+    // 2b. Lege body (bijv. 204 No Content)
+    if (!text) return null;
 
+    // 2c. Proberen JSON te parsen
     try {
         return JSON.parse(text);
     } catch {
@@ -42,28 +40,24 @@ async function safeFetch(path, options = {}) {
     }
 }
 
+// 3. API-functies voor veilingmeester
 
-
-// Dashboard ophalen
 export function getDashboard(id) {
     return safeFetch(`/api/veilingen/${id}/vm/dashboard`);
 }
 
-// Start veiling
 export function startVeiling(id) {
     return safeFetch(`/api/veilingen/${id}/vm/start`, {
         method: "POST",
     });
 }
 
-// Volgend product
 export function nextProduct(id) {
     return safeFetch(`/api/veilingen/${id}/vm/next`, {
         method: "POST",
     });
 }
 
-// Huidig product sluiten
 export function closeCurrent(id) {
     return safeFetch(`/api/veilingen/${id}/vm/close-current`, {
         method: "POST",

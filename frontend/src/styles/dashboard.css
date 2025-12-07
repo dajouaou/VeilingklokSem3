@@ -1,170 +1,322 @@
-/* ------------------------------
-   GLOBAL LAYOUT
------------------------------- */
-
-.dashboard-page {
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-    background: #f4f6f8;
-    min-height: 100vh;
-    font-family: Inter, Arial, sans-serif;
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+    background-color: #f5f5f7;
+    color: #111827;
 }
 
-.left-col,
-.right-col {
-    flex: 1;
+.vm-page {
+    min-height: 100vh;
+    padding: 24px;
+    background-color: #f5f5f7;
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 16px;
 }
 
-/* ------------------------------
-   CARD
------------------------------- */
+.vm-page-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 .card {
-    background: white;
-    padding: 16px;
+    background-color: #ffffff;
     border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    padding: 20px 24px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(148, 163, 184, 0.15);
 }
 
-.card h2 {
-    margin-top: 0;
-    color: #003f66;
+.card-title {
+    margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.vm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.vm-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.vm-logo-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #0077ff, #4c9aff);
+}
+
+.vm-logo-text {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.vm-header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+}
+
+.vm-header-title {
     font-size: 20px;
     font-weight: 600;
 }
 
-/* ------------------------------
-   PRODUCT CARD
------------------------------- */
-
-.product-card {
-    text-align: center;
+.vm-header-subtitle {
+    font-size: 14px;
+    color: #6b7280;
 }
 
-.product-card .product-img {
-    width: 100%;
-    max-height: 240px;
-    object-fit: cover;
-    border-radius: 12px;
+.vm-header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.vm-header-user {
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.vm-alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    margin: 0 4px;
+}
+
+.vm-alert-error {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.vm-grid-top {
+    display: grid;
+    grid-template-columns: 1.2fr 1.6fr 1.2fr;
+    gap: 16px;
+}
+
+.vm-col-control {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vm-status-text {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #4b5563;
+}
+
+.vm-col-current {
+}
+
+.vm-col-stats {
+}
+
+.vm-grid-bottom {
+    display: grid;
+    grid-template-columns: 1.4fr 1.6fr;
+    gap: 16px;
+}
+
+.vm-bottom-left {
+}
+
+.vm-bottom-right {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vm-tabs {
+    display: inline-flex;
+    border-radius: 999px;
+    background-color: #f3f4f6;
+    padding: 4px;
     margin-bottom: 12px;
 }
 
-.product-card h3 {
-    margin: 8px 0;
-    font-size: 22px;
-    font-weight: 600;
-}
-
-.product-card p {
-    margin: 4px 0;
-    color: #444;
-}
-
-/* ------------------------------
-   QUEUE
------------------------------- */
-
-.queue-group {
-    margin-bottom: 16px;
-}
-
-.queue-group h3 {
-    font-size: 18px;
-    color: #004c78;
-    margin-bottom: 8px;
-}
-
-.queue-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px;
-    border-radius: 10px;
-    background: #f0f6fa;
-    margin-bottom: 8px;
-}
-
-.queue-item img {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
-    object-fit: cover;
-}
-
-.queue-item span {
-    margin-left: auto;
-    color: #888;
+.vm-tab {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
     font-size: 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    color: #4b5563;
 }
 
-/* ------------------------------
-   BIDS
------------------------------- */
+.vm-tab-active {
+    background-color: #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+    color: #111827;
+    font-weight: 500;
+}
 
-.bid-item {
-    padding: 8px;
-    background: #f8fbff;
-    border-radius: 8px;
-    margin-bottom: 6px;
+.vm-tab-content {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 8px;
+}
+
+.vm-muted {
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+@media (max-width: 1024px) {
+    .vm-grid-top {
+        grid-template-columns: 1fr;
+    }
+
+    .vm-grid-bottom {
+        grid-template-columns: 1fr;
+    }
+
+    .vm-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .vm-header-center {
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .vm-header-right {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .vm-page {
+        padding: 12px;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    .vm-header-title {
+        font-size: 18px;
+    }
+}
+
+.vm-control-buttons {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.bid-item strong {
-    color: #005c99;
-}
-
-/* ------------------------------
-   AUDIT
------------------------------- */
-
-.audit-item {
-    padding: 8px;
-    background: #fdfdfd;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    border-left: 3px solid #00a1d6;
-}
-
-.audit-item strong {
-    color: #004c78;
-}
-
-/* ------------------------------
-   CONTROL PANEL BUTTONS
------------------------------- */
-
-.card button {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 10px;
-    background: #004c78;
-    color: white;
-    font-weight: 600;
-    border-radius: 10px;
+.vm-btn {
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 999px;
     border: none;
     cursor: pointer;
-    transition: 0.2s;
+    text-align: left;
+    transition: background-color 0.15s ease, transform 0.05s ease;
 }
 
-.card button:hover {
-    background: #0069a6;
+.vm-btn-primary {
+    background-color: #0077ff;
+    color: #ffffff;
 }
 
-.card button:nth-child(2) {
-    background: #00a1d6;
-}
-.card button:nth-child(2):hover {
-    background: #00b4f0;
+.vm-btn-secondary {
+    background-color: #e5e7eb;
+    color: #111827;
 }
 
-.card button:nth-child(3) {
-    background: #ff3b30;
+.vm-btn-danger {
+    background-color: #fee2e2;
+    color: #b91c1c;
 }
-.card button:nth-child(3):hover {
-    background: #ff5a4a;
+
+.vm-btn:hover {
+    transform: translateY(-1px);
+}
+
+.vm-queue-list,
+.vm-bid-list,
+.vm-audit-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vm-queue-item,
+.vm-bid-item,
+.vm-audit-item {
+    padding: 6px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.vm-queue-item:last-child,
+.vm-bid-item:last-child,
+.vm-audit-item:last-child {
+    border-bottom: none;
+}
+
+.vm-queue-name,
+.vm-bid-main,
+.vm-audit-action {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.vm-queue-meta,
+.vm-bid-meta,
+.vm-audit-meta {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.vm-current-name {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.vm-current-meta {
+    font-size: 14px;
+    color: #4b5563;
+    display: flex;
+    gap: 4px;
+}
+
+.vm-current-label {
+    font-weight: 500;
+    margin-right: 4px;
+}
+
+.vm-current-prices {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vm-current-price-now {
+    margin-top: 4px;
+}
+
+.vm-current-price-value {
+    font-size: 20px;
+    font-weight: 600;
 }

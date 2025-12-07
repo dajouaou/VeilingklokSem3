@@ -1,24 +1,26 @@
+// src/components/QueueList.jsx
+
 export default function QueueList({ queue }) {
     if (!queue || queue.length === 0) {
-        return (
-            <div className="card">
-                <h2>Queue</h2>
-                <p>Geen producten in queue</p>
-            </div>
-        );
+        // Lege state wordt al in VMDashboard afgehandeld,
+        // maar we kunnen extra veilig nog iets doen:
+        return null;
     }
 
     return (
-        <div className="card">
-            <h2>Queue</h2>
-
-            <ul>
-                {queue.map(item => (
-                    <li key={item.id}>
-                        {item.productNaam} — door {item.aanvoerder} (volgorde {item.volgorde})
-                    </li>
-                ))}
-            </ul>
-        </div>
+        <ul className="vm-queue-list">
+            {queue.map((item) => (
+                <li key={item.id} className="vm-queue-item">
+                    <div className="vm-queue-name">
+                        {item.productNaam}
+                    </div>
+                    <div className="vm-queue-meta">
+                        <span>{item.aanvoerder}</span>
+                        <span>•</span>
+                        <span>Volgorde {item.volgorde}</span>
+                    </div>
+                </li>
+            ))}
+        </ul>
     );
 }

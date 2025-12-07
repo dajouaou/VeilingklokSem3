@@ -1,27 +1,31 @@
+// src/components/ControlPanel.jsx
+
 export default function ControlPanel({ start, next, close }) {
     return (
-        <div className="card" style={{ marginBottom: "20px" }}>
-            <h2>Besturing</h2>
-
-            <button onClick={start} style={btnStyle}>
+        <div className="vm-control-buttons">
+            <button
+                type="button"
+                className="vm-btn vm-btn-primary"
+                onClick={start}
+            >
                 ▶ Start veiling
             </button>
 
-            <button onClick={next} style={btnStyle}>
+            <button
+                type="button"
+                className="vm-btn vm-btn-secondary"
+                onClick={next}
+            >
                 ➜ Volgend product
             </button>
 
-            <button onClick={close} style={btnStyle}>
+            <button
+                type="button"
+                className="vm-btn vm-btn-danger"
+                onClick={close}
+            >
                 ✖ Huidig product sluiten
             </button>
         </div>
     );
 }
-
-const btnStyle = {
-    display: "block",
-    margin: "10px 0",
-    padding: "10px",
-    fontSize: "16px",
-    cursor: "pointer",
-};
