@@ -1,19 +1,14 @@
-using Veilingklok.Core.Entities;
+// Veilingklok/Features/VM/Services/IVMService.cs
+using System.Threading.Tasks;
 using Veilingklok.Core.Shared;
+using Veilingklok.Features.VM.Dtos;
 
 namespace Veilingklok.Features.VM.Services;
 
 public interface IVMService
 {
-    //StartVeilingAsync
-    Task<Result<Core.Entities.Veiling>> StartVeilingAsync(int veilingId);
-    
-    //ActivateNextProductAsync
-    Task<Result<VeilingProduct>> ActivateNextProductAsync(int veilingId);
-    
-    //CloseCurrentProductAsync
-    Task<Result<bool>> CloseCurrentProductAsync(int veilingId);
-    
-    //GetDashboardStateAsync
-    Task<Result<Core.Entities.Veiling>> GetDashboardStateAsync(int veilingId);
+    Task<Result<VMVeilingDashboardDto>> GetDashboardAsync(int veilingId);
+    Task<Result<VMVeilingDashboardDto>> StartVeilingAsync(int veilingId);
+    Task<Result<VMVeilingDashboardDto>> ActivateNextProductAsync(int veilingId);
+    Task<Result<VMVeilingDashboardDto>> CloseCurrentProductAsync(int veilingId);
 }

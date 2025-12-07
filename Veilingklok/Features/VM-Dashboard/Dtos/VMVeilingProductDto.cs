@@ -1,3 +1,4 @@
+// Veilingklok/Features/VM/Dtos/VMVeilingProductDto.cs
 using Veilingklok.Core.Entities;
 using Veilingklok.Core.Enums;
 
@@ -10,6 +11,8 @@ public sealed class VMVeilingProductDto
     public string ProductNaam { get; set; } = string.Empty;
     public string Aanvoerder { get; set; } = string.Empty;
     public VeilingProductStatus Status { get; set; }
+    public decimal HuidigePrijs { get; set; }
+    public int Hoeveelheid { get; set; }
 
     public static VMVeilingProductDto FromEntity(VeilingProduct p)
     {
@@ -17,9 +20,11 @@ public sealed class VMVeilingProductDto
         {
             Id = p.Id,
             Volgorde = p.Volgorde,
-            ProductNaam = p.Product?.Naam ?? "",
-            Aanvoerder = p.Aanvoerder?.Naam ?? "",
-            Status = p.Status
+            ProductNaam = p.Product?.Naam ?? string.Empty,
+            Aanvoerder = p.Aanvoerder?.Naam ?? string.Empty,
+            Status = p.Status,
+            HuidigePrijs = p.HuidigePrijs,
+            Hoeveelheid = p.Hoeveelheid
         };
     }
 }

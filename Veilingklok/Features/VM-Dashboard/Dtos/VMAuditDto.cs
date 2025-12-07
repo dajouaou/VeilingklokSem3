@@ -1,3 +1,5 @@
+// Veilingklok/Features/VM/Dtos/VMAuditDto.cs
+using System;
 using Veilingklok.Core.Entities;
 
 namespace Veilingklok.Features.VM.Dtos;
@@ -13,7 +15,7 @@ public sealed class VMAuditDto
         return new VMAuditDto
         {
             Action = a.Action,
-            Actor = a.ActorGebruiker?.Username ?? "",
+            Actor = a.ActorGebruiker?.Username ?? string.Empty,
             CreatedAtUtc = a.CreatedAtUtc
         };
     }
