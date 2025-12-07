@@ -2,14 +2,13 @@
 
 export default function CurrentProductCard({ product }) {
     if (!product) {
-        // In VMDashboard toon je zelf een boodschap als er geen product is,
-        // maar deze guard is extra bescherming.
+     
         return null;
     }
 
     return (
         <div className="vm-current-product">
-            {/* hier kan later een foto bij als je een fotoUrl hebt */}
+            
             <div className="vm-current-main">
                 <div className="vm-current-name">
                     {product.productNaam ?? "Onbekend product"}

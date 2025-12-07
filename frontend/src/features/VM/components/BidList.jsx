@@ -2,8 +2,7 @@
 
 export default function BidList({ bids }) {
     if (!bids || bids.length === 0) {
-        // De lege tekst toon je al in VMDashboard,
-        // hier hoeft dan niets te gebeuren.
+        
         return null;
     }
 

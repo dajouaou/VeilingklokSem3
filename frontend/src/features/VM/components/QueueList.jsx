@@ -2,8 +2,7 @@
 
 export default function QueueList({ queue }) {
     if (!queue || queue.length === 0) {
-        // Lege state wordt al in VMDashboard afgehandeld,
-        // maar we kunnen extra veilig nog iets doen:
+        
         return null;
     }
 

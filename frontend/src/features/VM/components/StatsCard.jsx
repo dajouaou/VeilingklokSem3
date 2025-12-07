@@ -7,7 +7,7 @@ export default function StatsCard({ totalBids }) {
                 <span className="vm-stats-label">Totaal aantal biedingen</span>
                 <span className="vm-stats-value">{totalBids}</span>
             </div>
-            {/* later kun je hier extra regels toevoegen, bv. omzet, aantal producten, etc. */}
+            
         </div>
     );
 }
