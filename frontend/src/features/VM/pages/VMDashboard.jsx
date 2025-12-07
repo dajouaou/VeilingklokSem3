@@ -1,8 +1,7 @@
-// src/pages/VMDashboard.jsx
-
+// src/features/VM/pages/VMDashboard.jsx
 import { useState } from "react";
 import useVMDashboard from "../hooks/useVMDashboard";
-import "../styles/dashboard.css";
+import "../../../styles/dashboard.css";   
 
 import CurrentProductCard from "../components/CurrentProductCard";
 import QueueList from "../components/QueueList";
@@ -10,6 +9,7 @@ import BidList from "../components/BidList";
 import ControlPanel from "../components/ControlPanel";
 import StatsCard from "../components/StatsCard";
 import AuditList from "../components/AuditList";
+
 
 export default function VMDashboard() {
     const {

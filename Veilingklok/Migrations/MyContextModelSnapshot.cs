@@ -181,9 +181,9 @@ namespace Veilingklok.Migrations
                         {
                             Id = 1,
                             Achternaam = "Meester",
-                            CreatedAtUtc = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8010),
+                            CreatedAtUtc = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3650),
                             Email = "vm1@example.com",
-                            PasswordHash = "/IBPOKARnfovopqiozKisg==.Ba29lfIDP5hPeHYg7lo9zo1/9jlIz9pVltxHk3Uq+y4=",
+                            PasswordHash = "g9ehff/U9llhu7RKCnlrpw==.gSVeOhv3WXgUDLUL+lLboa6EWhB3fRikL6YL1lvN6Y0=",
                             Role = 3,
                             Username = "vm1",
                             Voornaam = "Veiling"
@@ -192,9 +192,9 @@ namespace Veilingklok.Migrations
                         {
                             Id = 2,
                             Achternaam = "Aanvoerder",
-                            CreatedAtUtc = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8010),
+                            CreatedAtUtc = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3650),
                             Email = "aanvoerder1@example.com",
-                            PasswordHash = "dYZkwuby1vIXcT7oDqmLUQ==.3ezrXFONS2PtlZtMLu5ZNVb3G+8kcDEO3DgF4vGQ7zA=",
+                            PasswordHash = "ckF9A03MzVqMsAzf4xrNlw==.60yb61B/48wk1oo/wVFQf3YEYldKgzi2aCBUPDg8t2o=",
                             Role = 2,
                             Username = "aanvoerder1",
                             Voornaam = "Jan"
@@ -203,9 +203,9 @@ namespace Veilingklok.Migrations
                         {
                             Id = 3,
                             Achternaam = "Koper",
-                            CreatedAtUtc = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8020),
+                            CreatedAtUtc = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3650),
                             Email = "koper1@example.com",
-                            PasswordHash = "aGHWiJETfe58QNPIYnGGFw==.KeXMSKAtFMUnz3NiwryWdav5SdT0hVXaZLku4uVibI4=",
+                            PasswordHash = "CWdkETbo3KVwgdMrcBHs7w==.yXPizKVhha2Ag9qem8v+fcND0TAOaSGMoxdDBSSi3vs=",
                             Role = 1,
                             Username = "koper1",
                             Voornaam = "Klaas"
@@ -313,7 +313,7 @@ namespace Veilingklok.Migrations
                             Naam = "Alstroemeria Mix",
                             PotmaatOfSteellengte = "60cm",
                             Soort = "Bloem",
-                            VeilDatum = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8230)
+                            VeilDatum = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3780)
                         },
                         new
                         {
@@ -328,7 +328,7 @@ namespace Veilingklok.Migrations
                             Naam = "Boeket Gerbera Mix",
                             PotmaatOfSteellengte = "n.v.t.",
                             Soort = "Boeket",
-                            VeilDatum = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8230)
+                            VeilDatum = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3780)
                         },
                         new
                         {
@@ -343,7 +343,7 @@ namespace Veilingklok.Migrations
                             Naam = "Orchidee Phalaenopsis Wit",
                             PotmaatOfSteellengte = "12cm pot",
                             Soort = "Plant",
-                            VeilDatum = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8240)
+                            VeilDatum = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3780)
                         });
                 });
 
@@ -398,6 +398,10 @@ namespace Veilingklok.Migrations
                     b.Property<string>("Locatie")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Naam")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -426,10 +430,11 @@ namespace Veilingklok.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAtUtc = new DateTime(2025, 12, 6, 16, 18, 6, 594, DateTimeKind.Utc).AddTicks(8250),
-                            EindTijdUtc = new DateTime(2025, 12, 6, 18, 18, 6, 594, DateTimeKind.Utc).AddTicks(8260),
+                            CreatedAtUtc = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3800),
+                            EindTijdUtc = new DateTime(2025, 12, 7, 20, 33, 8, 953, DateTimeKind.Utc).AddTicks(3810),
                             Locatie = "Aalsmeer",
-                            StartTijdUtc = new DateTime(2025, 12, 6, 16, 28, 6, 594, DateTimeKind.Utc).AddTicks(8250),
+                            Naam = "",
+                            StartTijdUtc = new DateTime(2025, 12, 7, 18, 43, 8, 953, DateTimeKind.Utc).AddTicks(3800),
                             Status = 1,
                             VMId = 1
                         });
