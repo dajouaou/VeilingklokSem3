@@ -1,4 +1,5 @@
-﻿using Veilingklok.Core.Entities;
+﻿// Veilingklok/Features/Auth/Services/AuthService.cs
+using Veilingklok.Core.Entities;
 using Veilingklok.Core.Enums;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Auth.Dtos;
@@ -23,12 +24,12 @@ public class AuthService
     }
 
     public async Task<string> RegisterAsync(
-        string username, 
+        string username,
         string email,
-     string password,
-     string voornaam,
-     string achternaam,
-     UserRole rol)
+        string password,
+        string voornaam,
+        string achternaam,
+        UserRole rol)
     {
         var existingUser = await _gebruikerRepo.GetByEmailAsync(email);
         if (existingUser != null)
@@ -38,11 +39,11 @@ public class AuthService
 
         var user = new Gebruiker
         {
-            
+            Username = username,
             Email = email,
             Voornaam = voornaam,
             Achternaam = achternaam,
-            Role = rol,                    // gebruik de enum
+            Role = rol,
             PasswordHash = hashed,
             CreatedAtUtc = DateTime.UtcNow
         };
@@ -54,12 +55,11 @@ public class AuthService
         return token;
     }
 
-
     public async Task<string> LoginAsync(string email, string password)
     {
         var gebruiker = await _gebruikerRepo.GetByEmailAsync(email);
         if (gebruiker == null)
-            throw new Exception("Onge-ldige login.");
+            throw new Exception("Ongeldige login.");
 
         bool wachtwoordCorrect = _passwordService.VerifyPassword(password, gebruiker.PasswordHash);
         if (!wachtwoordCorrect)

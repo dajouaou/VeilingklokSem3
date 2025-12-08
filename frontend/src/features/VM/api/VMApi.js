@@ -11,25 +11,34 @@ if (!API_BASE) {
 
 async function safeFetch(path, options = {}) {
     const url = `${API_BASE}${path}`;
-
     const res = await fetch(url, options);
     const text = await res.text();
+    let json = null;
+
+    if (text) {
+        try {
+            json = JSON.parse(text);
+        } catch {
+            if (res.ok) {
+                console.error("Server gaf geen geldige JSON terug:", text);
+            }
+        }
+    }
 
     if (!res.ok) {
-        const message = text || `HTTP ${res.status}`;
-        console.error("Serverfout:", res.status, message);
-        throw new Error(message);
+        const message =
+            json?.message ||
+            json?.title ||
+            text ||
+            `HTTP ${res.status}`;
+
+        const error = new Error(message);
+        error.status = res.status;
+        error.body = json;
+        throw error;
     }
 
-    if (!text) return null;
-
-    try {
-        return JSON.parse(text);
-    } catch {
-        console.error("Geen geldige JSON van server:");
-        console.error(text);
-        throw new Error("Server gaf geen geldige JSON terug");
-    }
+    return json;
 }
 
 export function getDashboard(veilingId) {

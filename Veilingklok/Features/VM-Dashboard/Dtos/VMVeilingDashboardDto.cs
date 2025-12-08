@@ -1,4 +1,5 @@
 // Veilingklok/Features/VM/Dtos/VMVeilingDashboardDto.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Veilingklok.Core.Entities;
@@ -9,11 +10,13 @@ namespace Veilingklok.Features.VM.Dtos;
 public sealed class VMVeilingDashboardDto
 {
     public int VeilingId { get; set; }
-    public string VeilingNaam { get; set; } = string.Empty;
-    public string Locatie { get; set; } = string.Empty;
+    public string? VeilingNaam { get; set; }
+    public string? Locatie { get; set; }
     public VeilingStatus Status { get; set; }
+    public string? VMNaam { get; set; }
 
-    public string VMNaam { get; set; } = string.Empty;
+    public DateTime? StartTijdUtc { get; set; }
+    public DateTime? EindTijdUtc { get; set; }
 
     public VMCurrentProductDto? Current { get; set; }
     public List<VMVeilingProductDto> Queue { get; set; } = new();
@@ -31,15 +34,23 @@ public sealed class VMVeilingDashboardDto
         var queue = alleProducten
             .Where(p => p.Status == VeilingProductStatus.Queued)
             .OrderBy(p => p.Volgorde)
+            .ThenBy(p => p.Id)
             .Select(VMVeilingProductDto.FromEntity)
             .ToList();
 
-        var audit = v.AuditEntries
+        var audit = (v.AuditEntries ?? new List<AuditEntry>())
             .OrderByDescending(a => a.CreatedAtUtc)
             .Select(VMAuditDto.FromEntity)
             .ToList();
 
-        var totaalBiedingen = alleProducten.Sum(p => p.Bids.Count);
+        var totaalBiedingen = alleProducten
+            .Sum(p => (p.Bids ?? new List<Bid>()).Count);
+
+        var productenInQueueCount = alleProducten.Count(p =>
+            p.Status == VeilingProductStatus.Queued);
+
+        var verkochteProductenCount = alleProducten.Count(p =>
+            p.Status == VeilingProductStatus.Sold);
 
         return new VMVeilingDashboardDto
         {
@@ -47,15 +58,21 @@ public sealed class VMVeilingDashboardDto
             VeilingNaam = v.Naam,
             Locatie = v.Locatie,
             Status = v.Status,
-            VMNaam = v.VM?.Gebruiker?.Username ?? string.Empty,
+            VMNaam =
+                v.VM?.Naam
+                ?? v.VM?.Gebruiker?.FullName
+                ?? v.VM?.Gebruiker?.Username
+                ?? string.Empty,
+            StartTijdUtc = v.StartTijdUtc,
+            EindTijdUtc = v.EindTijdUtc,
             Current = v.CurrentVeilingProduct != null
                 ? VMCurrentProductDto.FromEntity(v.CurrentVeilingProduct)
                 : null,
             Queue = queue,
             Audit = audit,
             TotaalProducten = alleProducten.Count,
-            ProductenInQueue = queue.Count,
-            VerkochteProducten = alleProducten.Count(p => p.Status == VeilingProductStatus.Sold),
+            ProductenInQueue = productenInQueueCount,
+            VerkochteProducten = verkochteProductenCount,
             TotaalBiedingen = totaalBiedingen
         };
     }

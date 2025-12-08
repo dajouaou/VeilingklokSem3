@@ -85,7 +85,7 @@ namespace Veilingklok.Migrations
 
                     b.HasIndex("ActorGebruikerId");
 
-                    b.HasIndex("VeilingId");
+                    b.HasIndex("VeilingId", "CreatedAtUtc");
 
                     b.ToTable("AuditEntries");
                 });
@@ -128,7 +128,7 @@ namespace Veilingklok.Migrations
 
                     b.HasIndex("VeilingId");
 
-                    b.HasIndex("VeilingProductId");
+                    b.HasIndex("VeilingProductId", "PlacedAtUtc");
 
                     b.ToTable("Biedingen");
                 });
@@ -181,9 +181,9 @@ namespace Veilingklok.Migrations
                         {
                             Id = 1,
                             Achternaam = "Meester",
-                            CreatedAtUtc = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3650),
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc),
                             Email = "vm1@example.com",
-                            PasswordHash = "g9ehff/U9llhu7RKCnlrpw==.gSVeOhv3WXgUDLUL+lLboa6EWhB3fRikL6YL1lvN6Y0=",
+                            PasswordHash = "dm0tc2VlZC1zYWx0LTAwMA==.KRqeXLGmj1DryTFBWCId0sZltd6nURyxHIqdjAmoXIo=",
                             Role = 3,
                             Username = "vm1",
                             Voornaam = "Veiling"
@@ -192,9 +192,9 @@ namespace Veilingklok.Migrations
                         {
                             Id = 2,
                             Achternaam = "Aanvoerder",
-                            CreatedAtUtc = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3650),
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc),
                             Email = "aanvoerder1@example.com",
-                            PasswordHash = "ckF9A03MzVqMsAzf4xrNlw==.60yb61B/48wk1oo/wVFQf3YEYldKgzi2aCBUPDg8t2o=",
+                            PasswordHash = "YXYtc2VlZC1zYWx0LTAwMA==.tyfrGs1Ns/tRy5ChiEVBJlLHs3wqTLN3d24QNeJYzJs=",
                             Role = 2,
                             Username = "aanvoerder1",
                             Voornaam = "Jan"
@@ -203,9 +203,9 @@ namespace Veilingklok.Migrations
                         {
                             Id = 3,
                             Achternaam = "Koper",
-                            CreatedAtUtc = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3650),
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc),
                             Email = "koper1@example.com",
-                            PasswordHash = "CWdkETbo3KVwgdMrcBHs7w==.yXPizKVhha2Ag9qem8v+fcND0TAOaSGMoxdDBSSi3vs=",
+                            PasswordHash = "a3Atc2VlZC1zYWx0LTAwMA==.2ymdEbIJ9G+5O0/M/fT6jrS2ZRHYV3pzBK/2nW/BYco=",
                             Role = 1,
                             Username = "koper1",
                             Voornaam = "Klaas"
@@ -306,44 +306,179 @@ namespace Veilingklok.Migrations
                             AanvoerderId = 1,
                             Beschrijving = "Frisse mix alstroemeria's",
                             Categorie = "Bloemen",
-                            FotoUrl = "/images/products/alstroemeria-mix.jpg",
+                            FotoUrl = "/img/products/alstroemeria-mix.jpg",
                             HoeveelheidStuks = 50,
                             KlokLocatie = "Aalsmeer",
                             MinimumPrijs = 4m,
                             Naam = "Alstroemeria Mix",
                             PotmaatOfSteellengte = "60cm",
                             Soort = "Bloem",
-                            VeilDatum = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3780)
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 2,
                             AanvoerderId = 1,
+                            Beschrijving = "Dieprode anthurium",
+                            Categorie = "Planten",
+                            FotoUrl = "/img/products/anthurium-rood.jpg",
+                            HoeveelheidStuks = 15,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 8m,
+                            Naam = "Anthurium Rood",
+                            PotmaatOfSteellengte = "14cm pot",
+                            Soort = "Plant",
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AanvoerderId = 1,
                             Beschrijving = "Vrolijke mix van gerbera's",
                             Categorie = "Boeket",
-                            FotoUrl = "/images/products/boeket-gerbera-mix.jpg",
+                            FotoUrl = "/img/products/boeket-gerbera-mix.jpg",
                             HoeveelheidStuks = 30,
                             KlokLocatie = "Aalsmeer",
                             MinimumPrijs = 5m,
                             Naam = "Boeket Gerbera Mix",
                             PotmaatOfSteellengte = "n.v.t.",
                             Soort = "Boeket",
-                            VeilDatum = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3780)
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
-                            Id = 3,
+                            Id = 4,
+                            AanvoerderId = 1,
+                            Beschrijving = "Luxe ranunculus-mix premium",
+                            Categorie = "Boeket",
+                            FotoUrl = "/img/products/boeket-ranunculus-mix-premium.jpg",
+                            HoeveelheidStuks = 25,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 9m,
+                            Naam = "Boeket Ranunculus Mix Premium",
+                            PotmaatOfSteellengte = "n.v.t.",
+                            Soort = "Boeket",
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 5,
+                            AanvoerderId = 1,
+                            Beschrijving = "Oranje calla lelies",
+                            Categorie = "Bloemen",
+                            FotoUrl = "/img/products/calla-lily-oranje.jpg",
+                            HoeveelheidStuks = 40,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 7m,
+                            Naam = "Calla Lily Oranje",
+                            PotmaatOfSteellengte = "55cm",
+                            Soort = "Bloem",
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 6,
+                            AanvoerderId = 1,
+                            Beschrijving = "Grote ficus lyrata kamerplant",
+                            Categorie = "Planten",
+                            FotoUrl = "/img/products/ficus-lyrata.jpg",
+                            HoeveelheidStuks = 10,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 15m,
+                            Naam = "Ficus Lyrata",
+                            PotmaatOfSteellengte = "24cm pot",
+                            Soort = "Plant",
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 7,
+                            AanvoerderId = 1,
+                            Beschrijving = "Luchtige witte gypsophila",
+                            Categorie = "Bloemen",
+                            FotoUrl = "/img/products/gypsophila-paniculata-wit.jpg",
+                            HoeveelheidStuks = 40,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 3m,
+                            Naam = "Gypsophila Paniculata Wit",
+                            PotmaatOfSteellengte = "70cm",
+                            Soort = "Bloem",
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 8,
                             AanvoerderId = 1,
                             Beschrijving = "Elegante witte orchidee",
                             Categorie = "Planten",
-                            FotoUrl = "/images/products/orchidee-phalaenopsis-wit.jpg",
+                            FotoUrl = "/img/products/orchidee-phalaenopsis-wit.jpg",
                             HoeveelheidStuks = 20,
                             KlokLocatie = "Aalsmeer",
                             MinimumPrijs = 12m,
                             Naam = "Orchidee Phalaenopsis Wit",
                             PotmaatOfSteellengte = "12cm pot",
                             Soort = "Plant",
-                            VeilDatum = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3780)
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 9,
+                            AanvoerderId = 1,
+                            Beschrijving = "Sterke sansevieria zeylanica",
+                            Categorie = "Planten",
+                            FotoUrl = "/img/products/sansevieria-zeylanica.jpg",
+                            HoeveelheidStuks = 25,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 10m,
+                            Naam = "Sansevieria Zeylanica",
+                            PotmaatOfSteellengte = "17cm pot",
+                            Soort = "Plant",
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 10,
+                            AanvoerderId = 1,
+                            Beschrijving = "Warm seizoensboeket in herfsttinten",
+                            Categorie = "Boeket",
+                            FotoUrl = "/img/products/seizoensboeket-herfst-mix.jpg",
+                            HoeveelheidStuks = 30,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 14m,
+                            Naam = "Seizoensboeket Herfst Mix",
+                            PotmaatOfSteellengte = "n.v.t.",
+                            Soort = "Boeket",
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 11,
+                            AanvoerderId = 1,
+                            Beschrijving = "Dubbelbloemige tulpenmix",
+                            Categorie = "Bloemen",
+                            FotoUrl = "/img/products/tulpen-dubbelbloemig-mix.jpg",
+                            HoeveelheidStuks = 50,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 6m,
+                            Naam = "Tulpen Dubbelbloemig Mix",
+                            PotmaatOfSteellengte = "40cm",
+                            Soort = "Bloem",
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 12,
+                            AanvoerderId = 1,
+                            Beschrijving = "Licht boeket met witte rozen en lisianthus",
+                            Categorie = "Boeket",
+                            FotoUrl = "/img/products/White-Rose-Lisianthus-Bouquet.jpg",
+                            HoeveelheidStuks = 20,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 18m,
+                            Naam = "White Rose Lisianthus Boeket",
+                            PotmaatOfSteellengte = "n.v.t.",
+                            Soort = "Boeket",
+                            VeilDatum = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });
 
@@ -430,11 +565,11 @@ namespace Veilingklok.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAtUtc = new DateTime(2025, 12, 7, 18, 33, 8, 953, DateTimeKind.Utc).AddTicks(3800),
-                            EindTijdUtc = new DateTime(2025, 12, 7, 20, 33, 8, 953, DateTimeKind.Utc).AddTicks(3810),
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 8, 0, 0, 0, DateTimeKind.Utc),
+                            EindTijdUtc = new DateTime(2025, 1, 1, 10, 0, 0, 0, DateTimeKind.Utc),
                             Locatie = "Aalsmeer",
-                            Naam = "",
-                            StartTijdUtc = new DateTime(2025, 12, 7, 18, 43, 8, 953, DateTimeKind.Utc).AddTicks(3800),
+                            Naam = "Ochtendveiling Aalsmeer",
+                            StartTijdUtc = new DateTime(2025, 1, 1, 8, 10, 0, 0, DateTimeKind.Utc),
                             Status = 1,
                             VMId = 1
                         });
@@ -491,7 +626,7 @@ namespace Veilingklok.Migrations
 
                     b.HasIndex("SoldToKoperId");
 
-                    b.HasIndex("VeilingId");
+                    b.HasIndex("VeilingId", "Status", "Volgorde");
 
                     b.ToTable("VeilingProducten");
 
@@ -512,10 +647,10 @@ namespace Veilingklok.Migrations
                         {
                             Id = 2,
                             AanvoerderId = 1,
-                            Hoeveelheid = 30,
-                            HuidigePrijs = 12m,
+                            Hoeveelheid = 15,
+                            HuidigePrijs = 15m,
                             ProductId = 2,
-                            StartPrijs = 12m,
+                            StartPrijs = 15m,
                             Status = 0,
                             VeilingId = 1,
                             Volgorde = 2
@@ -524,13 +659,121 @@ namespace Veilingklok.Migrations
                         {
                             Id = 3,
                             AanvoerderId = 1,
-                            Hoeveelheid = 20,
-                            HuidigePrijs = 20m,
+                            Hoeveelheid = 30,
+                            HuidigePrijs = 12m,
                             ProductId = 3,
-                            StartPrijs = 20m,
+                            StartPrijs = 12m,
                             Status = 0,
                             VeilingId = 1,
                             Volgorde = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 25,
+                            HuidigePrijs = 18m,
+                            ProductId = 4,
+                            StartPrijs = 18m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 4
+                        },
+                        new
+                        {
+                            Id = 5,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 40,
+                            HuidigePrijs = 14m,
+                            ProductId = 5,
+                            StartPrijs = 14m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 5
+                        },
+                        new
+                        {
+                            Id = 6,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 10,
+                            HuidigePrijs = 30m,
+                            ProductId = 6,
+                            StartPrijs = 30m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 6
+                        },
+                        new
+                        {
+                            Id = 7,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 40,
+                            HuidigePrijs = 8m,
+                            ProductId = 7,
+                            StartPrijs = 8m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 7
+                        },
+                        new
+                        {
+                            Id = 8,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 20,
+                            HuidigePrijs = 24m,
+                            ProductId = 8,
+                            StartPrijs = 24m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 8
+                        },
+                        new
+                        {
+                            Id = 9,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 25,
+                            HuidigePrijs = 20m,
+                            ProductId = 9,
+                            StartPrijs = 20m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 9
+                        },
+                        new
+                        {
+                            Id = 10,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 30,
+                            HuidigePrijs = 28m,
+                            ProductId = 10,
+                            StartPrijs = 28m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 10
+                        },
+                        new
+                        {
+                            Id = 11,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 50,
+                            HuidigePrijs = 16m,
+                            ProductId = 11,
+                            StartPrijs = 16m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 11
+                        },
+                        new
+                        {
+                            Id = 12,
+                            AanvoerderId = 1,
+                            Hoeveelheid = 20,
+                            HuidigePrijs = 32m,
+                            ProductId = 12,
+                            StartPrijs = 32m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 12
                         });
                 });
 
@@ -574,7 +817,7 @@ namespace Veilingklok.Migrations
                     b.HasOne("Veilingklok.Core.Entities.Gebruiker", "PlacedByGebruiker")
                         .WithMany()
                         .HasForeignKey("PlacedByGebruikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Veilingklok.Core.Entities.Veiling", "Veiling")
@@ -664,7 +907,8 @@ namespace Veilingklok.Migrations
 
                     b.HasOne("Veilingklok.Core.Entities.Koper", "SoldToKoper")
                         .WithMany("GekochteVeilingProducten")
-                        .HasForeignKey("SoldToKoperId");
+                        .HasForeignKey("SoldToKoperId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Veilingklok.Core.Entities.Veiling", "Veiling")
                         .WithMany("VeilingProducten")

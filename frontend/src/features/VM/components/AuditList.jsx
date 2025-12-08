@@ -1,4 +1,5 @@
-// src/components/AuditList.jsx
+// src/features/VM/components/AuditList.jsx
+import { formatDateTime } from "../utils/formatters";
 
 export default function AuditList({ entries }) {
     if (!entries || entries.length === 0) {
@@ -7,25 +8,32 @@ export default function AuditList({ entries }) {
 
     return (
         <ul className="vm-audit-list">
-            {entries.map((entry) => (
-                <li key={entry.id} className="vm-audit-item">
-                    <div className="vm-audit-action">
-                        {entry.action ?? "Onbekende actie"}
-                    </div>
-                    <div className="vm-audit-meta">
-                        {entry.actorNaam ?? entry.actor ?? "Onbekende gebruiker"}
-                        {entry.createdAtUtc && (
-                            <>
-                                {" "}
-                                •{" "}
-                                <span className="vm-audit-time">
-                  {new Date(entry.createdAtUtc).toLocaleString("nl-NL")}
-                </span>
-                            </>
-                        )}
-                    </div>
-                </li>
-            ))}
+            {entries.map((entry) => {
+                const action = entry.action ?? "Onbekende actie";
+                const actor =
+                    entry.actorNaam ?? entry.actor ?? "Onbekende gebruiker";
+                const time = entry.createdAtUtc
+                    ? formatDateTime(entry.createdAtUtc)
+                    : null;
+
+                return (
+                    <li key={entry.id} className="vm-audit-item">
+                        <div className="vm-audit-action">{action}</div>
+                        <div className="vm-audit-meta">
+                            {actor}
+                            {time && (
+                                <>
+                                    {" "}
+                                    •{" "}
+                                    <span className="vm-audit-time">
+                                        {time}
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                    </li>
+                );
+            })}
         </ul>
     );
 }

@@ -14,12 +14,22 @@ public sealed class VMBidDto
 
     public static VMBidDto FromEntity(Bid bid)
     {
+        var fullName = bid.Koper?.Gebruiker?.FullName;
+        var username = bid.Koper?.Gebruiker?.Username;
+        var fallbackNaam = bid.Koper?.Naam;
+
+        var koperNaam =
+            !string.IsNullOrWhiteSpace(fullName) ? fullName :
+            !string.IsNullOrWhiteSpace(username) ? username :
+            fallbackNaam ??
+            string.Empty;
+
         return new VMBidDto
         {
             Id = bid.Id,
             VeilingProductId = bid.VeilingProductId,
             Amount = bid.Amount,
-            KoperNaam = bid.Koper?.Naam ?? string.Empty,
+            KoperNaam = koperNaam,
             PlacedAtUtc = bid.PlacedAtUtc
         };
     }

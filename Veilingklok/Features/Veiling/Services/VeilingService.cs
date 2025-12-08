@@ -1,3 +1,4 @@
+// Veilingklok/Features/Veiling/Services/VeilingService.cs
 using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Entities;
 using Veilingklok.Core.Enums;
@@ -10,15 +11,13 @@ public sealed class VeilingService : IVeilingService
 {
     private readonly MyContext _db;
 
-    public VeilingService(MyContext db)//Dependency Injection
+    public VeilingService(MyContext db)
     {
         _db = db;
     }
 
-    public async Task<Result<VeilingProduct>> GetCurrentProductAsync(int veilingId)//het actuele product
+    public async Task<Result<VeilingProduct>> GetCurrentProductAsync(int veilingId)
     {
-        //Query
-        //veiling + actieve product + productdetails + aanvoerder binnenhalen
         var veiling = await _db.Veilingen
             .Include(v => v.CurrentVeilingProduct)
                 .ThenInclude(p => p.Product)
@@ -26,30 +25,15 @@ public sealed class VeilingService : IVeilingService
                 .ThenInclude(p => p.Aanvoerder)
             .FirstOrDefaultAsync(v => v.Id == veilingId);
 
-        
-        
-        
-        
-        
-        
-        //foutmelding want id bestaat niet
         if (veiling == null)
             return Result<VeilingProduct>.Fail("Veiling niet gevonden.");
 
-        //veiling nog niet gestart en geen CurrentVeilingProduct.
         if (veiling.CurrentVeilingProduct == null)
             return Result<VeilingProduct>.Fail("Geen actief product.");
 
-        //Geeft het actieve product terug
         return Result<VeilingProduct>.Ok(veiling.CurrentVeilingProduct);
     }
 
-    
-    
-    
-    
-    
-    //alle producten die nog moeten komen
     public async Task<Result<List<VeilingProduct>>> GetQueueAsync(int veilingId)
     {
         var producten = await _db.VeilingProducten
@@ -62,67 +46,41 @@ public sealed class VeilingService : IVeilingService
         return Result<List<VeilingProduct>>.Ok(producten);
     }
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    ////een bod op het actieve produc platsen
     public async Task<Result<Bid>> PlaceBidAsync(int veilingId, int koperId, decimal amount)
     {
-        
-        //Haal veiling + actief product op
         var veiling = await _db.Veilingen
             .Include(v => v.CurrentVeilingProduct)
             .FirstOrDefaultAsync(v => v.Id == veilingId);
 
-        
-        
-        
-        
-        //bestaat de veiling?
         if (veiling == null)
             return Result<Bid>.Fail("Veiling niet gevonden.");
 
-        
-        
-        
-        
-        //is er een actief product
         var current = veiling.CurrentVeilingProduct;
         if (current == null || current.Status != VeilingProductStatus.Active)
             return Result<Bid>.Fail("Bieden is niet mogelijk.");
 
-        
-        
-        
-        
-        // een nieuwe bod aanmaken
+        var koper = await _db.Kopers
+            .Include(k => k.Gebruiker)
+            .FirstOrDefaultAsync(k => k.Id == koperId);
+
+        if (koper == null)
+            return Result<Bid>.Fail("Koper niet gevonden.");
+
         var bid = new Bid
         {
             VeilingId = veilingId,
             VeilingProductId = current.Id,
-            KoperId = koperId,
-            PlacedByGebruikerId = koperId,
+            KoperId = koper.Id,
+            PlacedByGebruikerId = koper.GebruikerId,
             Amount = amount,
             Source = BidSource.Buyer
         };
 
-        
-        
-        
-        
-        
-        current.Bids.Add(bid);//Bod toevoegen aan het product
-        current.HuidigePrijs = amount;//Prijs updaten
+        current.Bids.Add(bid);
+        current.HuidigePrijs = amount;
 
-        await _db.SaveChangesAsync();//Opslaan in db
+        await _db.SaveChangesAsync();
 
-        return Result<Bid>.Ok(bid);//terugsturen naar frontend
+        return Result<Bid>.Ok(bid);
     }
 }
