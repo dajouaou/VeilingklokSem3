@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Entities;
+using Veilingklok.Core.Enums;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.AanvoerderDashboard.Dtos;
 using Veilingklok.Infrastructure.Database;
@@ -17,48 +18,98 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
 
         private async Task<Aanvoerder> GetAanvoerderForGebruikerAsync(int gebruikerId)
         {
-            var a = await _db.Aanvoerders
-                .SingleOrDefaultAsync(x => x.GebruikerId == gebruikerId);
-
+            var a = await _db.Aanvoerders.SingleOrDefaultAsync(x => x.GebruikerId == gebruikerId);
             if (a == null)
                 throw new ArgumentException("Geen aanvoerder-profiel gevonden.");
-
             return a;
         }
+
+        private static readonly HashSet<DateTime> Feestdagen = new()
+        {
+            new DateTime(2025, 1, 1),
+            new DateTime(2025, 4, 18),
+            new DateTime(2025, 4, 20),
+            new DateTime(2025, 4, 21),
+            new DateTime(2025, 5, 29),
+            new DateTime(2025, 6, 8),
+            new DateTime(2025, 6, 9),
+            new DateTime(2025, 12, 25),
+            new DateTime(2025, 12, 26)
+        };
 
         public async Task<AanmeldingListItemDto> CreateAanmeldingAsync(int gebruikerId, AanmeldingCreateDto dto)
         {
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
+            var datum = dto.Veildatum.Date;
 
-            // ⛔️ Belangrijk: controleer of deze veildatum bestaat
-            var bestaat = await _db.Veilingen
-                .AnyAsync(v => v.StartTijd.Date == dto.Veildatum.Date);
+            if (datum.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+                throw new ArgumentException("Zaterdag en zondag zijn geen geldige veildagen.");
 
-            if (!bestaat)
-                throw new ArgumentException(
-                    "Deze veildatum bestaat niet of is niet gestart door de veilingmeester."
-                );
+            if (Feestdagen.Contains(datum))
+                throw new ArgumentException("Deze dag is een feestdag en kan niet gekozen worden.");
+
+            if (string.IsNullOrWhiteSpace(dto.Potmaat) &&
+                string.IsNullOrWhiteSpace(dto.Steellengte))
+                throw new ArgumentException("Vul potmaat of steellengte in.");
 
             var entity = new Aanmelding
             {
                 AanvoerderId = aanvoerder.Id,
                 Soort = dto.Soort,
-                PotmaatOfSteellengte = dto.PotmaatOfSteellengte,
+                Potmaat = dto.Potmaat,
+                Steellengte = dto.Steellengte,
                 Hoeveelheid = dto.Hoeveelheid,
                 MinimumPrijs = dto.MinimumPrijs,
                 KlokLocatie = dto.KlokLocatie,
-                Veildatum = dto.Veildatum.Date,
+                Veildatum = datum,
                 FotoUrl = dto.FotoUrl
             };
 
             _db.Aanmeldingen.Add(entity);
             await _db.SaveChangesAsync();
 
-            return Map(entity, isVerkocht: false, verkoopPrijs: null, koperNaam: null);
+            return Map(entity, false, null, null);
         }
 
-        public async Task<IReadOnlyList<AanmeldingListItemDto>> GetAanmeldingenAsync(
-            int gebruikerId, DateTime? veildatum)
+        public async Task<AanmeldingListItemDto> UpdateAanmeldingAsync(int gebruikerId, int id, AanmeldingUpdateDto dto)
+        {
+            var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
+
+            var entity = await _db.Aanmeldingen
+                .FirstOrDefaultAsync(a => a.Id == id && a.AanvoerderId == aanvoerder.Id);
+
+            if (entity == null)
+                throw new ArgumentException("Aanmelding niet gevonden.");
+
+            entity.Soort = dto.Soort;
+            entity.Potmaat = dto.Potmaat;
+            entity.Steellengte = dto.Steellengte;
+            entity.Hoeveelheid = dto.Hoeveelheid;
+            entity.MinimumPrijs = dto.MinimumPrijs;
+            entity.KlokLocatie = dto.KlokLocatie;
+            entity.Veildatum = dto.Veildatum.Date;
+            entity.FotoUrl = dto.FotoUrl;
+
+            await _db.SaveChangesAsync();
+
+            return Map(entity, false, null, null);
+        }
+
+        public async Task DeleteAanmeldingAsync(int gebruikerId, int id)
+        {
+            var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
+
+            var entity = await _db.Aanmeldingen
+                .FirstOrDefaultAsync(a => a.Id == id && a.AanvoerderId == aanvoerder.Id);
+
+            if (entity == null)
+                throw new ArgumentException("Aanmelding niet gevonden.");
+
+            _db.Aanmeldingen.Remove(entity);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<IReadOnlyList<AanmeldingListItemDto>> GetAanmeldingenAsync(int gebruikerId, DateTime? veildatum)
         {
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
 
@@ -75,11 +126,12 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             return list.Select(a =>
             {
                 bool verkocht = a.VeilingProduct != null && a.VeilingProduct.IsVerkocht;
-                decimal? verkoopPrijs = verkocht ? a.VeilingProduct!.HuidigePrijs : null;
-                string? koperNaam = verkocht ? a.VeilingProduct!.Koper?.Naam : null;
-
-                return Map(a, verkocht, verkoopPrijs, koperNaam);
-
+                return Map(
+                    a,
+                    verkocht,
+                    verkocht ? a.VeilingProduct!.HuidigePrijs : null,
+                    verkocht ? a.VeilingProduct!.Koper?.Naam : null
+                );
             }).ToList();
         }
 
@@ -99,8 +151,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             var totaal = list.Count;
             var verkocht = list.Where(a => a.VeilingProduct != null && a.VeilingProduct.IsVerkocht);
 
-            decimal opbrengst = verkocht.Sum(v =>
-                v.VeilingProduct!.HuidigePrijs * v.Hoeveelheid);
+            decimal opbrengst = verkocht.Sum(v => v.VeilingProduct!.HuidigePrijs * v.Hoeveelheid);
 
             return new AanvoerderStatsDto
             {
@@ -120,7 +171,8 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             {
                 Id = a.Id,
                 Soort = a.Soort,
-                PotmaatOfSteellengte = a.PotmaatOfSteellengte,
+                Potmaat = a.Potmaat,
+                Steellengte = a.Steellengte,
                 Hoeveelheid = a.Hoeveelheid,
                 MinimumPrijs = a.MinimumPrijs,
                 KlokLocatie = a.KlokLocatie.ToString(),
@@ -130,9 +182,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 IsVerkocht = isVerkocht,
                 VerkoopPrijs = verkoopPrijs,
                 KoperNaam = koperNaam,
-                TotaleOpbrengst = isVerkocht
-                    ? verkoopPrijs * a.Hoeveelheid
-                    : null
+                TotaleOpbrengst = isVerkocht ? verkoopPrijs * a.Hoeveelheid : null
             };
         }
     }

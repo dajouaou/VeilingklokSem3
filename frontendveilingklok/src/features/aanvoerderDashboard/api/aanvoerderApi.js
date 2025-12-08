@@ -37,3 +37,27 @@ export async function fetchAanvoerderStats({ token, veildatum }) {
     if (!res.ok) throw new Error("Kon statistieken niet laden.");
     return res.json();
 }
+export async function updateAanmelding({ token, id, data }) {
+    const res = await fetch(`${API_BASE}/api/aanvoerder/dashboard/aanmeldingen/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data)
+    });
+
+    if (!res.ok) throw new Error("Kon aanmelding niet wijzigen.");
+    return res.json();
+}
+
+export async function deleteAanmelding({ token, id }) {
+    const res = await fetch(`${API_BASE}/api/aanvoerder/dashboard/aanmeldingen/${id}`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    });
+
+    if (!res.ok) throw new Error("Kon aanmelding niet verwijderen.");
+}

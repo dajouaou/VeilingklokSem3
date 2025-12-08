@@ -6,7 +6,6 @@ using Veilingklok.Features.AanvoerderDashboard.Dtos;
 using Veilingklok.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace Veilingklok.Features.AanvoerderDashboard.Controllers;
 
 [ApiController]
@@ -17,65 +16,55 @@ public class AanvoerderDashboardController : ControllerBase
     private readonly IAanvoerderDashboardService _service;
     private readonly MyContext _db;
 
-    public AanvoerderDashboardController(IAanvoerderDashboardService service)
+    public AanvoerderDashboardController(IAanvoerderDashboardService service, MyContext db)
     {
         _service = service;
+        _db = db;
     }
 
     private int GetGebruikerId()
     {
         var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(idStr))
-            throw new ArgumentException("Gebruiker-id ontbreekt in token.");
-        return int.Parse(idStr);
+        return int.Parse(idStr ?? throw new ArgumentException("Geen gebruiker-id in token."));
     }
 
-    // GET api/aanvoerder/dashboard/aanmeldingen?veildatum=2025-12-05
     [HttpGet("aanmeldingen")]
     public async Task<ActionResult<List<AanmeldingListItemDto>>> GetAanmeldingen([FromQuery] DateTime? veildatum)
     {
         var gebruikerId = GetGebruikerId();
-        var list = await _service.GetAanmeldingenAsync(gebruikerId, veildatum);
-        return Ok(list);
+        return Ok(await _service.GetAanmeldingenAsync(gebruikerId, veildatum));
     }
 
-    // POST api/aanvoerder/dashboard/aanmeldingen
     [HttpPost("aanmeldingen")]
     public async Task<ActionResult<AanmeldingListItemDto>> CreateAanmelding([FromBody] AanmeldingCreateDto dto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
         var gebruikerId = GetGebruikerId();
         var created = await _service.CreateAanmeldingAsync(gebruikerId, dto);
-
-        return CreatedAtAction(nameof(GetAanmeldingen),
-            new { veildatum = created.Veildatum.Date },
-            created);
+        return Ok(created);
     }
 
-    // GET api/aanvoerder/dashboard/statistieken?veildatum=2025-12-05
+    // ✅ FIXED: UPDATE GEBRUIKT NU AANMELDINGUPDATEDTO
+    [HttpPut("aanmeldingen/{id}")]
+    public async Task<ActionResult<AanmeldingListItemDto>> UpdateAanmelding(int id, [FromBody] AanmeldingUpdateDto dto)
+    {
+        var gebruikerId = GetGebruikerId();
+        var updated = await _service.UpdateAanmeldingAsync(gebruikerId, id, dto);
+        return Ok(updated);
+    }
+
+    [HttpDelete("aanmeldingen/{id}")]
+    public async Task<ActionResult> DeleteAanmelding(int id)
+    {
+        var gebruikerId = GetGebruikerId();
+        await _service.DeleteAanmeldingAsync(gebruikerId, id);
+        return NoContent();
+    }
+
     [HttpGet("statistieken")]
     public async Task<ActionResult<AanvoerderStatsDto>> GetStats([FromQuery] DateTime? veildatum)
     {
         var gebruikerId = GetGebruikerId();
-        var dto = await _service.GetStatsAsync(gebruikerId, veildatum);
-        return Ok(dto);
-    }
-    [HttpPost("veildagen")]
-    public async Task<ActionResult> CreateVeildag([FromBody] DateTime datum)
-    {
-        if (datum.Date < DateTime.Today)
-            return BadRequest("Datum mag niet in het verleden liggen.");
-
-        var bestaat = await _db.Veildagen.AnyAsync(v => v.Datum == datum.Date);
-        if (bestaat)
-            return BadRequest("Deze veildatum bestaat al.");
-
-        _db.Veildagen.Add(new Veildag { Datum = datum.Date });
-        await _db.SaveChangesAsync();
-
-        return Ok();
+        return Ok(await _service.GetStatsAsync(gebruikerId, veildatum));
     }
 
     [HttpGet("veildagen")]
@@ -88,5 +77,4 @@ public class AanvoerderDashboardController : ControllerBase
 
         return Ok(dagen);
     }
-
 }

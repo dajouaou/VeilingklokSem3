@@ -22,10 +22,13 @@ export default function AanvoerderDashboard() {
     const [filterDate, setFilterDate] = useState("");
     const [search, setSearch] = useState("");
     const [beheerOpen, setBeheerOpen] = useState(false);
+    const highlightedDates = items.map(i => new Date(i.veildatum));
+
 
     const [form, setForm] = useState({
         soort: "",
-        potmaatOfSteellengte: "",
+        potmaat: "",
+        steellengte: "",
         hoeveelheid: "",
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
@@ -80,13 +83,15 @@ export default function AanvoerderDashboard() {
 
         const payload = {
             soort: form.soort,
-            potmaatOfSteellengte: form.potmaatOfSteellengte || null,
+            potmaat: form.potmaat || null,
+            steellengte: form.steellengte || null,
             hoeveelheid: Number(form.hoeveelheid),
             minimumPrijs: Number(form.minimumPrijs),
             klokLocatie: form.klokLocatie,
             veildatum: new Date(form.veildatum + "T00:00:00").toISOString(),
             fotoUrl: form.fotoUrl || null,
         };
+
 
         try {
             const created = await createAanmelding({ token, data: payload });
@@ -180,15 +185,27 @@ export default function AanvoerderDashboard() {
                                 </div>
 
                                 <div className="col-md-6">
-                                    <label className="form-label">Potmaat of steellengte</label>
+                                    <label className="form-label">Potmaat</label>
                                     <input
-                                        name="potmaatOfSteellengte"
+                                        name="potmaat"
                                         type="text"
                                         className="form-control"
-                                        value={form.potmaatOfSteellengte}
+                                        value={form.potmaat}
                                         onChange={handleFormChange}
                                     />
                                 </div>
+
+                                <div className="col-md-6">
+                                    <label className="form-label">Steellengte</label>
+                                    <input
+                                        name="steellengte"
+                                        type="text"
+                                        className="form-control"
+                                        value={form.steellengte}
+                                        onChange={handleFormChange}
+                                    />
+                                </div>
+
 
                                 <div className="col-md-4">
                                     <label className="form-label">Hoeveelheid *</label>
@@ -232,7 +249,13 @@ export default function AanvoerderDashboard() {
 
                                 <div className="col-md-4">
                                     <label className="form-label">Veildatum *</label>
-                                    
+                                    <VeildagPicker
+                                        value={form.veildatum}
+                                        onChange={(value) =>
+                                            setForm((prev) => ({ ...prev, veildatum: value }))
+                                        }
+                                        highlightedDates={items.map(i => i.veildatum)}
+                                    />
                                 </div>
 
                                 <div className="col-md-8">
@@ -363,7 +386,9 @@ export default function AanvoerderDashboard() {
             {beheerOpen && (
                 <AanmeldingenBeheer
                     items={filteredItems}
+                    token={token}
                     onClose={() => setBeheerOpen(false)}
+                    onUpdated={loadDashboardData}
                 />
             )}
 

@@ -3,7 +3,7 @@ using Veilingklok.Core.Enums;
 
 namespace Veilingklok.Features.AanvoerderDashboard.Dtos
 {
-    public class AanmeldingCreateDto
+    public class AanmeldingUpdateDto
     {
         [Required, MaxLength(100)]
         public string Soort { get; set; } = string.Empty;
