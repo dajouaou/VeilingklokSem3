@@ -6,7 +6,7 @@ import {
     startVeiling as apiStartVeiling,
     nextProduct as apiNextProduct,
     closeCurrent as apiCloseCurrent,
-} from "../../api/VMApi";
+} from  "../api/VMApi";
 
 function getErrorMessage(err, fallback) {
     if (!err) return fallback;

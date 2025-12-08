@@ -199,7 +199,8 @@ private static void AddAuditEntry(Core.Entities.Veiling veiling, string action)
     {
         VeilingId = veiling.Id,
         Action = action,
-        CreatedAtUtc = DateTime.UtcNow
+        CreatedAtUtc = DateTime.UtcNow,
+        ActorGebruikerId = veiling.VM?.GebruikerId ?? 1
     });
 }
 }
