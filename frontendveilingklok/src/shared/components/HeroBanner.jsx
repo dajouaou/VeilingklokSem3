@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+ï»¿import { useEffect, useState } from "react";
 
 const API_BASE = "https://localhost:56418";
 
@@ -6,7 +6,7 @@ export default function HeroBanner() {
     const [data, setData] = useState({
         titel: "Laden...",
         beschrijving: "Even geduld, veiling wordt geladen.",
-        bid: "€0,00",
+        bid: "â‚¬0,00",
         afbeelding: "/images/bloemen.jpg"
     });
 
@@ -44,7 +44,7 @@ export default function HeroBanner() {
                     beschrijving: product
                         ? `Aantal: ${product.hoeveelheid}`
                         : "Bekijk nu de nieuwste veiling.",
-                    bid: `€${prijs.toFixed(2)}`,
+                    bid: `â‚¬${prijs.toFixed(2)}`,
                     afbeelding: product?.afbeeldingUrl ?? "/images/bloemen.jpg"
                 });
 
