@@ -37,12 +37,3 @@ export async function fetchAanvoerderStats({ token, veildatum }) {
     if (!res.ok) throw new Error("Kon statistieken niet laden.");
     return res.json();
 }
-
-export async function fetchVeilDagenForAanvoerder(token) {
-    const res = await fetch("https://localhost:56418/api/veiling-public/dagen", {
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!res.ok) throw new Error("Kon veildagen niet laden.");
-    return res.json();
-}
