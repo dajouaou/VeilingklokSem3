@@ -1,9 +1,12 @@
+
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext.jsx";
 import {
     fetchAanmeldingen,
     createAanmelding,
     fetchAanvoerderStats,
+    fetchVeilDagenForAanvoerder,
+    createVeildag
 } from "./api/aanvoerderApi.js";
 
 import VeildagPicker from "./components/VeildagPicker.jsx";
@@ -22,6 +25,8 @@ export default function AanvoerderDashboard() {
     const [search, setSearch] = useState("");
     const [beheerOpen, setBeheerOpen] = useState(false);
 
+    const [veildagen, setVeildagen] = useState([]);
+
     const [form, setForm] = useState({
         soort: "",
         potmaatOfSteellengte: "",
@@ -38,7 +43,16 @@ export default function AanvoerderDashboard() {
     useEffect(() => {
         if (!token || role !== "Aanvoerder") return;
         loadDashboardData();
+        loadVeildagen();
     }, [token, role, filterDate]);
+
+    async function loadVeildagen() {
+        try {
+            const dagen = await fetchVeilDagenForAanvoerder(token);
+            setVeildagen(dagen);
+        } catch { }
+    }
+
 
     async function loadDashboardData() {
         setLoading(true);
@@ -53,7 +67,6 @@ export default function AanvoerderDashboard() {
             setItems(aanmeldingen);
             setStats(statsDto);
         } catch (err) {
-            console.error(err);
             setLoadError(err.message);
         } finally {
             setLoading(false);
@@ -63,6 +76,21 @@ export default function AanvoerderDashboard() {
     function handleFormChange(e) {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
+    }
+
+    async function handleCreateVeildag() {
+        if (!form.veildatum) {
+            setFormError("Kies eerst een datum voordat je een veildag aanmaakt.");
+            return;
+        }
+
+        try {
+            await createVeildag(token, form.veildatum);
+            await loadVeildagen();
+            setFormSuccess("Nieuwe veildag aangemaakt!");
+        } catch (err) {
+            setFormError(err.message);
+        }
     }
 
     async function handleSubmit(e) {
@@ -100,7 +128,6 @@ export default function AanvoerderDashboard() {
                 fotoUrl: "",
             });
         } catch (err) {
-            console.error(err);
             setFormError(err.message);
         }
     }
@@ -214,7 +241,7 @@ export default function AanvoerderDashboard() {
                                 </div>
 
                                 <div className="col-md-4">
-                                    <label className="form-label">Gewenste kloklocatie</label>
+                                    <label className="form-label">Kloklocatie</label>
                                     <select
                                         name="klokLocatie"
                                         className="form-select"
@@ -236,6 +263,14 @@ export default function AanvoerderDashboard() {
                                             setForm((prev) => ({ ...prev, veildatum: value }))
                                         }
                                     />
+
+                                    <button
+                                        type="button"
+                                        className="btn btn-outline-primary btn-sm mt-2"
+                                        onClick={handleCreateVeildag}
+                                    >
+                                        Nieuwe veildag aanmaken
+                                    </button>
                                 </div>
 
                                 <div className="col-md-8">

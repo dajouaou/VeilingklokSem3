@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { fetchVeilDagenForAanvoerder } from "../api/aanvoerderApi";
 
 export default function VeildagDropdown({ token, value, onChange }) {
     const [dagen, setDagen] = useState([]);
@@ -7,14 +8,7 @@ export default function VeildagDropdown({ token, value, onChange }) {
     useEffect(() => {
         async function load() {
             try {
-                const res = await fetch(
-                    "https://localhost:56418/api/veiling-public/dagen",
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-
-                if (!res.ok) throw new Error("Kon veildagen niet laden.");
-
-                const data = await res.json();
+                const data = await fetchVeilDagenForAanvoerder(token);
                 setDagen(data);
             } catch (err) {
                 console.error("Fout bij ophalen veildagen:", err);
@@ -29,7 +23,11 @@ export default function VeildagDropdown({ token, value, onChange }) {
     if (loading) return <p>Laden...</p>;
 
     return (
-        <select className="form-select" value={value} onChange={(e) => onChange(e.target.value)}>
+        <select
+            className="form-select"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+        >
             <option value="">-- Kies een veildatum --</option>
             {dagen.map((d) => (
                 <option key={d} value={d}>

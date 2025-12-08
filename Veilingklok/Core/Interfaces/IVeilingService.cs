@@ -4,7 +4,7 @@ namespace Veilingklok.Core.Interfaces
 {
     public interface IVeilingService
     {
-        Task<VeilingOverzichtDto> StartVeilingAsync(DateTime veildatum);
+        Task<VeilingOverzichtDto> StartVeilingAsync(DateTime veildatum, TimeSpan? startTijd = null);
         Task<VeilingOverzichtDto> GetDetailsAsync(int veilingId);
         Task PauseAsync(int veilingId);
         Task ResumeAsync(int veilingId);

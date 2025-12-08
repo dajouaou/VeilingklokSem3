@@ -5,7 +5,6 @@ using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Veiling.Dtos;
 using VeilingEntity = Veilingklok.Core.Entities.Veiling;
 
-
 namespace Veilingklok.Features.Veiling.Services
 {
     public class VeilingService : IVeilingService
@@ -17,7 +16,7 @@ namespace Veilingklok.Features.Veiling.Services
             _db = db;
         }
 
-        public async Task<VeilingOverzichtDto> StartVeilingAsync(DateTime veildatum)
+        public async Task<VeilingOverzichtDto> StartVeilingAsync(DateTime veildatum, TimeSpan? startTijd = null)
         {
             var aanmeldingen = await _db.Aanmeldingen
                 .Where(a => a.Veildatum.Date == veildatum.Date)
@@ -27,9 +26,13 @@ namespace Veilingklok.Features.Veiling.Services
             if (!aanmeldingen.Any())
                 throw new ArgumentException("Geen aanmeldingen voor deze veildatum.");
 
+            var geplandeStart = startTijd.HasValue
+                ? veildatum.Date + startTijd.Value
+                : DateTime.UtcNow;
+
             var veiling = new VeilingEntity
             {
-                StartTijd = DateTime.UtcNow,
+                StartTijd = geplandeStart,
                 IsGestart = true
             };
 
@@ -46,7 +49,7 @@ namespace Veilingklok.Features.Veiling.Services
                     AanmeldingId = a.Id,
                     StartPrijs = a.MinimumPrijs,
                     HuidigePrijs = a.MinimumPrijs,
-                    Volgorde = volgorde++,
+                    Volgorde = volgorde++
                 };
 
                 _db.VeilingProducten.Add(product);
@@ -82,7 +85,6 @@ namespace Veilingklok.Features.Veiling.Services
                 IsAfgesloten = v.IsAfgesloten
             };
 
-            // huidig product
             var hp = v.Producten.SingleOrDefault(p => p.Id == v.HuidigProductId);
 
             if (hp != null)
@@ -94,6 +96,7 @@ namespace Veilingklok.Features.Veiling.Services
                     FotoUrl = hp.Aanmelding.FotoUrl,
                     StartPrijs = hp.StartPrijs,
                     HuidigePrijs = hp.HuidigePrijs,
+                    Hoeveelheid = hp.Aanmelding.Hoeveelheid,
                     IsActief = hp.IsActief,
                     IsVerkocht = hp.IsVerkocht
                 };
@@ -106,8 +109,9 @@ namespace Veilingklok.Features.Veiling.Services
                 {
                     VeilingProductId = p.Id,
                     Soort = p.Aanmelding!.Soort,
-                    FotoUrl = p.Aanmelding!.FotoUrl,
+                    FotoUrl = p.Aanmelding.FotoUrl,
                     StartPrijs = p.StartPrijs,
+                    Hoeveelheid = p.Aanmelding.Hoeveelheid,
                     Volgorde = p.Volgorde
                 })
                 .ToList();
@@ -165,7 +169,6 @@ namespace Veilingklok.Features.Veiling.Services
 
             _db.Biedingen.Add(bod);
 
-            // activeer volgend product
             var volgende = await _db.VeilingProducten
                 .Where(p => p.VeilingId == veilingId && !p.IsVerkocht && !p.IsActief)
                 .OrderBy(p => p.Volgorde)
@@ -192,6 +195,7 @@ namespace Veilingklok.Features.Veiling.Services
                 Tijdstip = bod.Tijdstip
             };
         }
+
         public async Task<List<string>> GetVeilingDagenAsync()
         {
             var dates = await _db.Veilingen
@@ -200,9 +204,9 @@ namespace Veilingklok.Features.Veiling.Services
                 .OrderBy(d => d)
                 .ToListAsync();
 
-            return dates.Select(d => d.ToString("yyyy-MM-dd")).ToList();
+            return dates
+                .Select(d => d.ToString("yyyy-MM-dd"))
+                .ToList();
         }
-
-
     }
 }

@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.AanvoerderDashboard.Dtos;
+using Veilingklok.Infrastructure.Database;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace Veilingklok.Features.AanvoerderDashboard.Controllers;
 
@@ -12,6 +15,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Controllers;
 public class AanvoerderDashboardController : ControllerBase
 {
     private readonly IAanvoerderDashboardService _service;
+    private readonly MyContext _db;
 
     public AanvoerderDashboardController(IAanvoerderDashboardService service)
     {
@@ -58,4 +62,31 @@ public class AanvoerderDashboardController : ControllerBase
         var dto = await _service.GetStatsAsync(gebruikerId, veildatum);
         return Ok(dto);
     }
+    [HttpPost("veildagen")]
+    public async Task<ActionResult> CreateVeildag([FromBody] DateTime datum)
+    {
+        if (datum.Date < DateTime.Today)
+            return BadRequest("Datum mag niet in het verleden liggen.");
+
+        var bestaat = await _db.Veildagen.AnyAsync(v => v.Datum == datum.Date);
+        if (bestaat)
+            return BadRequest("Deze veildatum bestaat al.");
+
+        _db.Veildagen.Add(new Veildag { Datum = datum.Date });
+        await _db.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpGet("veildagen")]
+    public async Task<ActionResult<List<string>>> GetVeildagen()
+    {
+        var dagen = await _db.Veildagen
+            .OrderBy(v => v.Datum)
+            .Select(v => v.Datum.ToString("yyyy-MM-dd"))
+            .ToListAsync();
+
+        return Ok(dagen);
+    }
+
 }
