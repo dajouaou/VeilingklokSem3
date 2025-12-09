@@ -18,4 +18,5 @@
     public string? KoperNaam { get; set; }
     public decimal? VerkoopPrijs { get; set; }
     public decimal? TotaleOpbrengst { get; set; }
+
 }

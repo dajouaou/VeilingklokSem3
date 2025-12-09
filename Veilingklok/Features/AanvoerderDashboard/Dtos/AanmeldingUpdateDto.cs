@@ -22,4 +22,6 @@ public class AanmeldingUpdateDto
     [Required]
     public DateTime Veildatum { get; set; }
     public IFormFile? Foto { get; set; }
+    public string? Beschrijving { get; set; }
+
 }
