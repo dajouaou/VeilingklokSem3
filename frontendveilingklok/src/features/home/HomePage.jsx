@@ -2,6 +2,7 @@
 import HeroBanner from "../../shared/components/HeroBanner";
 import NextBids from "../../shared/components/NextBids";
 import ReviewSection from "../../shared/components/ReviewSection";
+import Footer from "../../shared/components/Footer";
 
 export default function HomePage() {
     return (
@@ -11,6 +12,7 @@ export default function HomePage() {
             <HeroBanner />
             <NextBids />
             <ReviewSection />
+            <Footer />
         </>
     );
 }
