@@ -1,139 +1,106 @@
-using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Entities;
 using Veilingklok.Core.Enums;
 using Veilingklok.Infrastructure.Database;
-
+using Veilingklok.Features.Auth.Services;
 
 namespace Veilingklok.Infrastructure.Database.Seed;
 
 public static class DbSeeder
 {
-    public static async Task SeedAsync(MyContext db)
+    public static async Task SeedAsync(MyContext db, PasswordService passwordService)
     {
+        // Seeder draait alleen op lege database ? registratieformulier blijft werken
         if (await db.Gebruikers.AnyAsync()) return;
 
         var now = DateTime.UtcNow;
 
-        string Img(string file) => $"/img/products/{file}";
-        string Hash(string pw) => BCrypt.Net.BCrypt.HashPassword(pw);
+        string Hash(string pw) => passwordService.HashPassword(pw);
 
-        // 1) Gebruikers (10)
-
-        var sofiaMeester = new Gebruiker
+  
+        var users = new List<Gebruiker>
         {
-            Username = "sofia.veilingmeester",
-            Email = "sofia.veilingmeester@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Veilingmeester,
-            CreatedAtUtc = now
+
+            new() {
+                Email = "DLS.admin@jemid.com",
+                PasswordHash = Hash("Pass123!"),
+                Rol = UserRole.Admin,
+                Voornaam = "DLS",
+                Achternaam = "Admin",
+                CreatedAtUtc = now
+            },
+
+            new() {
+                Email = "sonia@veilingklok.local",
+                PasswordHash = Hash("Pass123!"),
+                Rol = UserRole.Aanvoerder,
+                Voornaam = "Sonia",
+                Achternaam = "Pasarga",
+                CreatedAtUtc = now
+            },
+
+            new() {
+                Email = "chris@veilingklok.local",
+                PasswordHash = Hash("Pass123!"),
+                Rol = UserRole.Koper,
+                Voornaam = "Chris",
+                Achternaam = "Shayan",
+                CreatedAtUtc = now
+            },
+
+            new() {
+                Email = "tristan@veilingklok.local",
+                PasswordHash = Hash("Pass123!"),
+                Rol = UserRole.Koper,
+                Voornaam = "Tristan",
+                Achternaam = "Perspolisi",
+                CreatedAtUtc = now
+            },
+
+            new() {
+                Email = "miriam@veilingklok.local",
+                PasswordHash = Hash("Pass123!"),
+                Rol = UserRole.Koper,
+                Voornaam = "Miriam",
+                Achternaam = "van de Hoeven",
+                CreatedAtUtc = now
+            }
         };
 
-        var sofiaAdmin = new Gebruiker
-        {
-            Username = "sofia.admin",
-            Email = "sofia.admin@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Admin,
-            CreatedAtUtc = now
-        };
-
-        var saraUser = new Gebruiker
-        {
-            Username = "sara.aanvoerder",
-            Email = "sara@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Aanvoerder,
-            CreatedAtUtc = now
-        };
-
-        var soniaUser = new Gebruiker
-        {
-            Username = "sonia.aanvoerder",
-            Email = "sonia@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Aanvoerder,
-            CreatedAtUtc = now
-        };
-
-        var siaUser = new Gebruiker
-        {
-            Username = "sia.aanvoerder",
-            Email = "sia@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Aanvoerder,
-            CreatedAtUtc = now
-        };
-
-        var sashaUser = new Gebruiker
-        {
-            Username = "sasha.koper",
-            Email = "sasha@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Koper,
-            CreatedAtUtc = now
-        };
-
-        var saynaUser = new Gebruiker
-        {
-            Username = "sayna.koper",
-            Email = "sayna@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Koper,
-            CreatedAtUtc = now
-        };
-
-        var chrisUser = new Gebruiker
-        {
-            Username = "chris.koper",
-            Email = "chris@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Koper,
-            CreatedAtUtc = now
-        };
-
-        var tristanUser = new Gebruiker
-        {
-            Username = "tristan.koper",
-            Email = "tristan@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Koper,
-            CreatedAtUtc = now
-        };
-
-        var miriamUser = new Gebruiker
-        {
-            Username = "miriam.koper",
-            Email = "miriam@veilingklok.local",
-            PasswordHash = Hash("Pass123!"),
-            Rol = UserRole.Koper,
-            CreatedAtUtc = now
-        };
-
-        db.Gebruikers.AddRange(
-            sofiaMeester, sofiaAdmin,
-            saraUser, soniaUser, siaUser,
-            sashaUser, saynaUser, chrisUser, tristanUser, miriamUser
-        );
+        db.Gebruikers.AddRange(users);
         await db.SaveChangesAsync();
 
-        // -----------------------------
-        // 2) Profielen (3 + 5)
-        // -----------------------------
-        var saraAanvoerder = new Aanvoerder { GebruikerId = saraUser.Id, Naam = "Sara Pasargad" };
-        var soniaAanvoerder = new Aanvoerder { GebruikerId = soniaUser.Id, Naam = "Sonia Pasarga" };
-        var siaAanvoerder = new Aanvoerder { GebruikerId = siaUser.Id, Naam = "Sia Zagros" };
+        foreach (var user in users)
+        {
+            switch (user.Rol)
+            {
+                case UserRole.Aanvoerder:
+                    db.Aanvoerders.Add(new Aanvoerder
+                    {
+                        GebruikerId = user.Id,
+                        Naam = $"{user.Voornaam} {user.Achternaam}"
+                    });
+                    break;
 
-        var sashaKoper = new Koper { GebruikerId = sashaUser.Id, Naam = "Sasha Niki" };
-        var saynaKoper = new Koper { GebruikerId = saynaUser.Id, Naam = "Sayna Shayan" };
-        var chrisKoper = new Koper { GebruikerId = chrisUser.Id, Naam = "Chris Shayan" };
-        var tristanKoper = new Koper { GebruikerId = tristanUser.Id, Naam = "Tristan Perspolisi" };
-        var miriamKoper = new Koper { GebruikerId = miriamUser.Id, Naam = "Miriam van de Hoeven" };
+                case UserRole.Koper:
+                    db.Kopers.Add(new Koper
+                    {
+                        GebruikerId = user.Id,
+                        Naam = $"{user.Voornaam} {user.Achternaam}"
+                    });
+                    break;
 
-        db.Aanvoerders.AddRange(saraAanvoerder, soniaAanvoerder, siaAanvoerder);
-        db.Kopers.AddRange(sashaKoper, saynaKoper, chrisKoper, tristanKoper, miriamKoper);
+                case UserRole.Veilingmeester:
+                    db.Veilingmeesters.Add(new Veilingmeester
+                    {
+                        GebruikerId = user.Id,
+                        Naam = $"{user.Voornaam} {user.Achternaam}"
+                    });
+                    break;
+
+            }
+        }
+
         await db.SaveChangesAsync();
     }
-
 }
-

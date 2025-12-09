@@ -6,6 +6,7 @@ import Register from "../features/auth/Register.jsx";
 import HomePage from "../features/home/HomePage.jsx";
 import AanvoerderDashboard from "../features/aanvoerderDashboard/AanvoerderDashboard";
 import VeilingmeesterDashboard from "../features/veilingmeesterDashboard/VeilingmeesterDashboard";
+import PlanVeiling from "../features/veilingmeesterDashboard/PlanVeiling";
 
 export default function AppRouter() {
     return (
@@ -41,6 +42,15 @@ export default function AppRouter() {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/veilingmeester/plan"
+                element={
+                    <ProtectedRoute allowedRoles={["Veilingmeester"]}>
+                        <PlanVeiling />
+                    </ProtectedRoute>
+                }
+            />
+
 
         </Routes>
     );

@@ -1,4 +1,5 @@
 const API_BASE = "https://localhost:56418/api/veiling";
+const PUBLIC_API_BASE = "https://localhost:56418/api/veiling-public";
 
 export async function getActiveVeiling(token) {
     const res = await fetch(`${API_BASE}/active`, {
@@ -9,17 +10,25 @@ export async function getActiveVeiling(token) {
     return res.json();
 }
 
-export async function startVeiling(token, date) {
+export async function startVeiling(token, date, time) {
+    const body = time
+        ? { veildatum: date, startTijd: time }
+        : { veildatum: date };
+
     const res = await fetch(`${API_BASE}/start`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify({ veildatum: date })
+        body: JSON.stringify(body)
     });
 
-    if (!res.ok) throw new Error("Kon veiling niet starten.");
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error("Kon veiling niet starten: " + text);
+    }
+
     return res.json();
 }
 
@@ -50,15 +59,23 @@ export async function placeBid(token, id) {
         headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) throw new Error("Bod plaatsen mislukt.");
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error("Bod plaatsen mislukt: " + text);
+    }
+
     return res.json();
 }
 
 export async function fetchVeilingDagen(token) {
-    const res = await fetch(`${API_BASE}/dagen`, {
+    const res = await fetch(`${PUBLIC_API_BASE}/dagen`, {
         headers: { Authorization: `Bearer ${token}` }
     });
 
-    if (!res.ok) throw new Error("Kon veildagen niet laden.");
+    if (!res.ok) {
+        const text = await res.text();
+        throw new Error("Kon veildagen niet laden: " + text);
+    }
+
     return res.json();
 }

@@ -1,11 +1,14 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext.jsx";
+
 import {
     fetchAanmeldingen,
     createAanmelding,
     fetchAanvoerderStats,
 } from "./api/aanvoerderApi.js";
-import VeildagDropdown from "./components/VeildagDropdown.jsx";
+
+import VeildagPicker from "./components/VeildagPicker.jsx";
+import AanmeldingenBeheer from "./components/AanmeldingenBeheer.jsx";
 
 export default function AanvoerderDashboard() {
     const { token, role } = useContext(AuthContext);
@@ -18,15 +21,17 @@ export default function AanvoerderDashboard() {
 
     const [filterDate, setFilterDate] = useState("");
     const [search, setSearch] = useState("");
+    const [beheerOpen, setBeheerOpen] = useState(false);
 
     const [form, setForm] = useState({
         soort: "",
-        potmaatOfSteellengte: "",
+        potmaat: "",
+        steellengte: "",
         hoeveelheid: "",
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
         veildatum: "",
-        fotoUrl: "",
+        fotoFile: null,  
     });
 
     const [formError, setFormError] = useState("");
@@ -50,7 +55,6 @@ export default function AanvoerderDashboard() {
             setItems(aanmeldingen);
             setStats(statsDto);
         } catch (err) {
-            console.error(err);
             setLoadError(err.message);
         } finally {
             setLoading(false);
@@ -64,6 +68,7 @@ export default function AanvoerderDashboard() {
 
     async function handleSubmit(e) {
         e.preventDefault();
+
         setFormError("");
         setFormSuccess("");
 
@@ -74,41 +79,52 @@ export default function AanvoerderDashboard() {
 
         const payload = {
             soort: form.soort,
-            potmaatOfSteellengte: form.potmaatOfSteellengte || null,
+            potmaat: form.potmaat || null,
+            steellengte: form.steellengte || null,
             hoeveelheid: Number(form.hoeveelheid),
             minimumPrijs: Number(form.minimumPrijs),
             klokLocatie: form.klokLocatie,
-            veildatum: new Date(form.veildatum + "T00:00:00").toISOString(),
-            fotoUrl: form.fotoUrl || null,
+            veildatum: form.veildatum,
+            fotoFile: form.fotoFile,
         };
 
 
         try {
             const created = await createAanmelding({ token, data: payload });
-            setItems((prev) => [...prev, created]);
+
+            setItems(prev => [...prev, created]);
+
+            const updatedStats = await fetchAanvoerderStats({
+                token,
+                veildatum: filterDate || undefined
+            });
+            setStats(updatedStats);
 
             setFormSuccess("Product succesvol aangemeld.");
             setForm({
                 soort: "",
-                potmaatOfSteellengte: "",
+                potmaat: "",
+                steellengte: "",
                 hoeveelheid: "",
                 minimumPrijs: "",
                 klokLocatie: "Naaldwijk",
                 veildatum: "",
-                fotoUrl: "",
+                fotoFile: null,
             });
         } catch (err) {
-            console.error(err);
             setFormError(err.message);
         }
     }
 
+
     const filteredItems = items.filter((item) => {
         if (!search) return true;
+
         const term = search.toLowerCase();
         return (
             item.soort.toLowerCase().includes(term) ||
-            (item.potmaatOfSteellengte || "").toLowerCase().includes(term)
+            (item.potmaat?.toLowerCase?.() || "").includes(term) ||
+            (item.steellengte?.toLowerCase?.() || "").includes(term)
         );
     });
 
@@ -126,9 +142,7 @@ export default function AanvoerderDashboard() {
                             <div className="card shadow-sm border-0">
                                 <div className="card-body">
                                     <p className="text-muted mb-1">Totaal aanmeldingen</p>
-                                    <p className="fs-4 fw-bold">
-                                        {stats.totaalAantalAanmeldingen}
-                                    </p>
+                                    <p className="fs-4 fw-bold">{stats.totaalAantalAanmeldingen}</p>
                                 </div>
                             </div>
                         </div>
@@ -146,9 +160,7 @@ export default function AanvoerderDashboard() {
                             <div className="card shadow-sm border-0">
                                 <div className="card-body">
                                     <p className="text-muted mb-1">Totale opbrengst</p>
-                                    <p className="fs-4 fw-bold">
-                                        €{stats.totaleOpbrengst.toFixed(2)}
-                                    </p>
+                                    <p className="fs-4 fw-bold">{stats.totaleOpbrengst.toFixed(2)}</p>
                                 </div>
                             </div>
                         </div>
@@ -162,12 +174,11 @@ export default function AanvoerderDashboard() {
                         <h2 className="h4 mb-3">Nieuw product aanmelden</h2>
 
                         {formError && <div className="alert alert-danger">{formError}</div>}
-                        {formSuccess && (
-                            <div className="alert alert-success">{formSuccess}</div>
-                        )}
+                        {formSuccess && <div className="alert alert-success">{formSuccess}</div>}
 
                         <form onSubmit={handleSubmit}>
                             <div className="row g-3">
+
                                 <div className="col-md-6">
                                     <label className="form-label">Soort *</label>
                                     <input
@@ -176,17 +187,27 @@ export default function AanvoerderDashboard() {
                                         className="form-control"
                                         value={form.soort}
                                         onChange={handleFormChange}
-                                        required
                                     />
                                 </div>
 
                                 <div className="col-md-6">
-                                    <label className="form-label">Potmaat of steellengte</label>
+                                    <label className="form-label">Potmaat</label>
                                     <input
-                                        name="potmaatOfSteellengte"
+                                        name="potmaat"
                                         type="text"
                                         className="form-control"
-                                        value={form.potmaatOfSteellengte}
+                                        value={form.potmaat}
+                                        onChange={handleFormChange}
+                                    />
+                                </div>
+
+                                <div className="col-md-6">
+                                    <label className="form-label">Steellengte</label>
+                                    <input
+                                        name="steellengte"
+                                        type="text"
+                                        className="form-control"
+                                        value={form.steellengte}
                                         onChange={handleFormChange}
                                     />
                                 </div>
@@ -200,12 +221,11 @@ export default function AanvoerderDashboard() {
                                         className="form-control"
                                         value={form.hoeveelheid}
                                         onChange={handleFormChange}
-                                        required
                                     />
                                 </div>
 
                                 <div className="col-md-4">
-                                    <label className="form-label">Minimumprijs (€) *</label>
+                                    <label className="form-label">Minimumprijs (euro) *</label>
                                     <input
                                         name="minimumPrijs"
                                         type="number"
@@ -214,48 +234,40 @@ export default function AanvoerderDashboard() {
                                         className="form-control"
                                         value={form.minimumPrijs}
                                         onChange={handleFormChange}
-                                        required
                                     />
                                 </div>
 
                                 <div className="col-md-4">
-                                    <label className="form-label">Gewenste kloklocatie</label>
+                                    <label className="form-label">Kloklocatie</label>
                                     <select
                                         name="klokLocatie"
                                         className="form-select"
                                         value={form.klokLocatie}
                                         onChange={handleFormChange}
                                     >
-                                        <option value={0}>Naaldwijk</option>
-                                        <option value={1}>Aalsmeer</option>
-                                        <option value={2}>Rijnsburg</option>
-                                        <option value={3}>Eelde</option>
+                                        <option value="Naaldwijk">Naaldwijk</option>
+                                        <option value="Aalsmeer">Aalsmeer</option>
+                                        <option value="Rijnsburg">Rijnsburg</option>
+                                        <option value="Eelde">Eelde</option>
                                     </select>
-
-
-
                                 </div>
 
                                 <div className="col-md-4">
                                     <label className="form-label">Veildatum *</label>
-                                    <VeildagDropdown
-                                        token={token}
+                                    <VeildagPicker
                                         value={form.veildatum}
-                                        onChange={(value) =>
-                                            setForm((prev) => ({ ...prev, veildatum: value }))
-                                        }
+                                        onChange={(value) => setForm((prev) => ({ ...prev, veildatum: value }))}
+                                        highlightedDates={items.map(i => i.veildatum)}
                                     />
                                 </div>
 
-                                {/* Foto */}
                                 <div className="col-md-8">
                                     <label className="form-label">Foto-URL</label>
                                     <input
-                                        name="fotoUrl"
-                                        type="url"
+                                        type="file"
+                                        accept="image/*"
                                         className="form-control"
-                                        value={form.fotoUrl}
-                                        onChange={handleFormChange}
+                                        onChange={(e) => setForm(prev => ({ ...prev, fotoFile: e.target.files[0] }))}
                                     />
                                 </div>
                             </div>
@@ -274,33 +286,41 @@ export default function AanvoerderDashboard() {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h2 className="h4">Mijn aanmeldingen</h2>
 
-                    <div className="d-flex gap-2">
-                        <div>
-                            <label className="form-label mb-1">Filter op veildatum</label>
-                            <input
-                                type="date"
-                                className="form-control"
-                                value={filterDate}
-                                onChange={(e) => setFilterDate(e.target.value)}
-                            />
-                        </div>
+                    <button
+                        className="btn btn-outline-primary"
+                        onClick={() => setBeheerOpen(true)}
+                    >
+                        Aanmeldingen beheren
+                    </button>
+                </div>
 
-                        <div>
-                            <label className="form-label mb-1">Zoek op soort</label>
-                            <input
-                                type="search"
-                                className="form-control"
-                                placeholder="Bijv. Rozen"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                            />
-                        </div>
+                <div className="d-flex gap-2 mb-3">
+                    <div>
+                        <label className="form-label mb-1">Filter op veildatum</label>
+                        <input
+                            type="date"
+                            className="form-control"
+                            value={filterDate}
+                            onChange={(e) => setFilterDate(e.target.value)}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="form-label mb-1">Zoek op soort</label>
+                        <input
+                            type="search"
+                            className="form-control"
+                            placeholder="Bijv. Rozen"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
                     </div>
                 </div>
 
                 {loadError && <p className="text-danger">{loadError}</p>}
                 {loading && <p>Laden...</p>}
-                {!loading && filteredItems.length === 0 && !loadError && (
+
+                {!loading && filteredItems.length === 0 && (
                     <p>Geen aanmeldingen.</p>
                 )}
 
@@ -319,6 +339,7 @@ export default function AanvoerderDashboard() {
                                     <th>Verkoop</th>
                                 </tr>
                             </thead>
+
                             <tbody>
                                 {filteredItems.map((item) => (
                                     <tr key={item.id}>
@@ -338,29 +359,27 @@ export default function AanvoerderDashboard() {
                                                 <span className="text-muted">Geen foto</span>
                                             )}
                                         </td>
+
                                         <td>{item.soort}</td>
-                                        <td>{item.potmaatOfSteellengte || "-"}</td>
+
+                                        <td>{item.potmaat || item.steellengte || "-"}</td>
+
                                         <td>{item.hoeveelheid}</td>
-                                        <td>€{item.minimumPrijs.toFixed(2)}</td>
+
+                                        <td>{item.minimumPrijs.toFixed(2)}</td>
+
                                         <td>{item.klokLocatie}</td>
-                                        <td>
-                                            {new Date(
-                                                item.veildatum
-                                            ).toLocaleDateString("nl-NL")}
-                                        </td>
+
+                                        <td>{new Date(item.veildatum).toLocaleDateString("nl-NL")}</td>
+
                                         <td>
                                             {item.isVerkocht ? (
                                                 <>
-                                                    <div>
-                                                        €
-                                                        {item.verkoopPrijs?.toFixed(2)} / stuk
-                                                    </div>
+                                                    <div>{item.verkoopPrijs?.toFixed(2)} / stuk</div>
                                                     <div className="small text-muted">
-                                                        Totaal: €
+                                                        Totaal: 
                                                         {item.totaleOpbrengst?.toFixed(2)}
-                                                        {item.koperNaam && (
-                                                            <> – {item.koperNaam}</>
-                                                        )}
+                                                        {item.koperNaam && <> – {item.koperNaam}</>}
                                                     </div>
                                                 </>
                                             ) : (
@@ -376,6 +395,16 @@ export default function AanvoerderDashboard() {
                     </div>
                 )}
             </section>
+
+            {beheerOpen && (
+                <AanmeldingenBeheer
+                    items={filteredItems}
+                    token={token}
+                    onClose={() => setBeheerOpen(false)}
+                    onUpdated={loadDashboardData}
+                />
+            )}
+
         </main>
     );
 }

@@ -10,8 +10,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Folder Include="src\features\veilingmeesterDashboard\api\" />
-    <Folder Include="src\features\veilingmeesterDashboard\components\" />
     <Folder Include="src\features\veilingmeesterDashboard\hooks\" />
+    <Folder Include="src\features\veilingmeesterDashboard\pages\" />
     <Folder Include="src\shared\layout\" />
   </ItemGroup>
 </Project>

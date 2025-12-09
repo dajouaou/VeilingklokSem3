@@ -1,19 +1,20 @@
-// /src/features/veilingmeesterDashboard/hooks/useLiveVeiling.js
 import { useEffect, useState } from "react";
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 
 export default function useLiveVeiling(token, veilingId) {
     const [lot, setLot] = useState(null);
     const [queue, setQueue] = useState([]);
+    const [bids, setBids] = useState([]);
+    const [audit, setAudit] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!veilingId) return;
+        if (!veilingId || !token) return;
 
         setLoading(true);
 
         const connection = new HubConnectionBuilder()
-            .withUrl("https://localhost:5001/hubs/auction", {
+            .withUrl("https://localhost:56418/hub/veiling", {
                 accessTokenFactory: () => token
             })
             .withAutomaticReconnect()
@@ -25,20 +26,36 @@ export default function useLiveVeiling(token, veilingId) {
         });
 
         connection.on("ReceiveQueue", (items) => {
-            setQueue(items);
+            setQueue(items || []);
         });
 
-        connection.start()
+        connection.on("ReceiveBid", (bod) => {
+            setBids((prev) => [bod, ...prev]);
+        });
+
+        connection.on("ReceiveAudit", (evt) => {
+            setAudit((prev) => [evt, ...prev]);
+        });
+
+        connection
+            .start()
             .then(() => {
-                connection.invoke("SubscribeVeiling", veilingId);
+                connection.invoke("JoinVeilingGroup", veilingId);
                 setLoading(false);
             })
-            .catch(err => console.error("SignalR error:", err));
+            .catch((err) => {
+                console.error("SignalR fout:", err);
+                setLoading(false);
+            });
 
         return () => {
-            connection.stop();
+
+            connection
+                .invoke("LeaveVeilingGroup", veilingId)
+                .catch(() => { })
+                .finally(() => connection.stop());
         };
     }, [veilingId, token]);
 
-    return { lot, queue, loading };
+    return { lot, queue, bids, audit, loading };
 }

@@ -39,13 +39,17 @@ namespace Veilingklok.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PotmaatOfSteellengte")
+                    b.Property<string>("Potmaat")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Soort")
                         .IsRequired()
                         .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Steellengte")
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime>("Veildatum")
@@ -85,10 +89,6 @@ namespace Veilingklok.Migrations
                     b.Property<int>("Rol")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Voornaam")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -96,6 +96,20 @@ namespace Veilingklok.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Gebruikers");
+                });
+
+            modelBuilder.Entity("Veildag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Datum")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Veildagen");
                 });
 
             modelBuilder.Entity("VeilingProduct", b =>
