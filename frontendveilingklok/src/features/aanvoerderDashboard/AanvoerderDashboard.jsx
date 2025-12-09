@@ -31,7 +31,7 @@ export default function AanvoerderDashboard() {
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
         veildatum: "",
-        fotoUrl: "",
+        fotoFile: null,  
     });
 
     const [formError, setFormError] = useState("");
@@ -85,8 +85,9 @@ export default function AanvoerderDashboard() {
             minimumPrijs: Number(form.minimumPrijs),
             klokLocatie: form.klokLocatie,
             veildatum: form.veildatum,
-            fotoUrl: form.fotoUrl || null,
+            fotoFile: form.fotoFile,
         };
+
 
         try {
             const created = await createAanmelding({ token, data: payload });
@@ -108,7 +109,7 @@ export default function AanvoerderDashboard() {
                 minimumPrijs: "",
                 klokLocatie: "Naaldwijk",
                 veildatum: "",
-                fotoUrl: "",
+                fotoFile: null,
             });
         } catch (err) {
             setFormError(err.message);
@@ -159,7 +160,7 @@ export default function AanvoerderDashboard() {
                             <div className="card shadow-sm border-0">
                                 <div className="card-body">
                                     <p className="text-muted mb-1">Totale opbrengst</p>
-                                    <p className="fs-4 fw-bold">€{stats.totaleOpbrengst.toFixed(2)}</p>
+                                    <p className="fs-4 fw-bold">{stats.totaleOpbrengst.toFixed(2)}</p>
                                 </div>
                             </div>
                         </div>
@@ -224,7 +225,7 @@ export default function AanvoerderDashboard() {
                                 </div>
 
                                 <div className="col-md-4">
-                                    <label className="form-label">Minimumprijs (€) *</label>
+                                    <label className="form-label">Minimumprijs (euro) *</label>
                                     <input
                                         name="minimumPrijs"
                                         type="number"
@@ -263,11 +264,10 @@ export default function AanvoerderDashboard() {
                                 <div className="col-md-8">
                                     <label className="form-label">Foto-URL</label>
                                     <input
-                                        name="fotoUrl"
-                                        type="url"
+                                        type="file"
+                                        accept="image/*"
                                         className="form-control"
-                                        value={form.fotoUrl}
-                                        onChange={handleFormChange}
+                                        onChange={(e) => setForm(prev => ({ ...prev, fotoFile: e.target.files[0] }))}
                                     />
                                 </div>
                             </div>
@@ -366,7 +366,7 @@ export default function AanvoerderDashboard() {
 
                                         <td>{item.hoeveelheid}</td>
 
-                                        <td>€{item.minimumPrijs.toFixed(2)}</td>
+                                        <td>{item.minimumPrijs.toFixed(2)}</td>
 
                                         <td>{item.klokLocatie}</td>
 
@@ -375,9 +375,9 @@ export default function AanvoerderDashboard() {
                                         <td>
                                             {item.isVerkocht ? (
                                                 <>
-                                                    <div>€{item.verkoopPrijs?.toFixed(2)} / stuk</div>
+                                                    <div>{item.verkoopPrijs?.toFixed(2)} / stuk</div>
                                                     <div className="small text-muted">
-                                                        Totaal: €
+                                                        Totaal: 
                                                         {item.totaleOpbrengst?.toFixed(2)}
                                                         {item.koperNaam && <> – {item.koperNaam}</>}
                                                     </div>

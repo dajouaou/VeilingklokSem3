@@ -13,18 +13,31 @@ export async function fetchAanmeldingen({ token, veildatum }) {
 }
 
 export async function createAanmelding({ token, data }) {
+    const formData = new FormData();
+    formData.append("Soort", data.soort);
+    formData.append("Potmaat", data.potmaat ?? "");
+    formData.append("Steellengte", data.steellengte ?? "");
+    formData.append("Hoeveelheid", data.hoeveelheid);
+    formData.append("MinimumPrijs", data.minimumPrijs);
+    formData.append("KlokLocatie", data.klokLocatie);
+    formData.append("Veildatum", data.veildatum);
+
+    if (data.fotoFile) {
+        formData.append("Foto", data.fotoFile);
+    }
+
     const res = await fetch(`${API_BASE}/api/aanvoerder/dashboard/aanmeldingen`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(data),
+        body: formData
     });
 
     if (!res.ok) throw new Error("Kon aanmelding niet opslaan.");
     return res.json();
 }
+
 
 export async function fetchAanvoerderStats({ token, veildatum }) {
     const params = new URLSearchParams();
