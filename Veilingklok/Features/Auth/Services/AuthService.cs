@@ -23,30 +23,28 @@ public class AuthService
     }
 
     public async Task<string> RegisterAsync(
-     string email,
-     string password,
-     string voornaam,
-     string achternaam,
-     UserRole rol)
+        string email,
+        string password,
+        string voornaam,
+        string achternaam,
+        UserRole rol)
     {
-        var existingUser = await _gebruikerRepo.GetByEmailAsync(email);
-        if (existingUser != null)
+        var bestaand = await _gebruikerRepo.GetByEmailAsync(email);
+        if (bestaand != null)
             throw new Exception("Email is al in gebruik.");
-
-        var hashed = _passwordService.HashPassword(password);
 
         var user = new Gebruiker
         {
             Email = email,
             Voornaam = voornaam,
             Achternaam = achternaam,
-            Rol = rol,                    // gebruik de enum
-            PasswordHash = hashed,
+            Rol = rol,
+            PasswordHash = _passwordService.HashPassword(password),
             CreatedAtUtc = DateTime.UtcNow
         };
 
         await _gebruikerRepo.AddAsync(user);
-        // Maak gekoppelde rol-entiteit aan
+
         switch (rol)
         {
             case UserRole.Koper:
@@ -66,14 +64,15 @@ public class AuthService
                 break;
 
             case UserRole.Veilingmeester:
-                // later eventueel extra data
+                await _gebruikerRepo.CreateVeilingmeesterAsync(new Veilingmeester
+                {
+                    GebruikerId = user.Id,
+                    Naam = $"{voornaam} {achternaam}"
+                });
                 break;
         }
 
-
-        var token = _jwtService.GenerateToken(user);
-
-        return token;
+        return _jwtService.GenerateToken(user);
     }
 
 
@@ -83,8 +82,8 @@ public class AuthService
         if (gebruiker == null)
             throw new Exception("Ongeldige login.");
 
-        bool wachtwoordCorrect = _passwordService.VerifyPassword(password, gebruiker.PasswordHash);
-        if (!wachtwoordCorrect)
+        bool ok = _passwordService.VerifyPassword(password, gebruiker.PasswordHash);
+        if (!ok)
             throw new Exception("Ongeldige login.");
 
         return _jwtService.GenerateToken(gebruiker);

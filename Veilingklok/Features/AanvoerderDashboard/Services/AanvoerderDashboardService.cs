@@ -96,6 +96,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             entity.MinimumPrijs = dto.MinimumPrijs;
             entity.KlokLocatie = dto.KlokLocatie;
             entity.Veildatum = dto.Veildatum.Date;
+            entity.Beschrijving = dto.Beschrijving;
 
             if (fotoUrl != null)
                 entity.FotoUrl = fotoUrl;
@@ -192,7 +193,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 VerkoopPrijs = verkoopPrijs,
                 KoperNaam = koperNaam,
                 TotaleOpbrengst = isVerkocht ? verkoopPrijs * a.Hoeveelheid : null,
-                Beschrijving = a.Beschrijving          // nieuw
+                Beschrijving = a.Beschrijving      
             };
         }
 
