@@ -20,6 +20,7 @@ public class Aanmelding
     public string? FotoUrl { get; set; }
     public int? VeilingProductId { get; set; }
     public VeilingProduct? VeilingProduct { get; set; }
+    public string? Beschrijving { get; set; }
 
 
 }

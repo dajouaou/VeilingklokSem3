@@ -178,12 +178,14 @@ export default function AanmeldingenBeheer({ items, onClose, token,
                                     </div>
 
                                     <div className="col-12">
-                                        <label className="form-label">Foto-URL</label>
+                                        <label>Foto</label>
                                         <input
-                                            name="fotoUrl"
+                                            type="file"
+                                            accept="image/*"
                                             className="form-control"
-                                            value={form.fotoUrl}
-                                            onChange={handleFormChange}
+                                            onChange={(e) =>
+                                                setForm(prev => ({ ...prev, fotoFile: e.target.files[0] }))
+                                            }
                                         />
                                     </div>
 

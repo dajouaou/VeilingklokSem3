@@ -65,7 +65,8 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 MinimumPrijs = dto.MinimumPrijs,
                 KlokLocatie = dto.KlokLocatie,
                 Veildatum = datum,
-                FotoUrl = fotoUrl  
+                FotoUrl = fotoUrl,
+                Beschrijving = dto.Beschrijving
             };
 
             _db.Aanmeldingen.Add(entity);
@@ -95,6 +96,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             entity.MinimumPrijs = dto.MinimumPrijs;
             entity.KlokLocatie = dto.KlokLocatie;
             entity.Veildatum = dto.Veildatum.Date;
+            entity.Beschrijving = dto.Beschrijving;
 
             if (fotoUrl != null)
                 entity.FotoUrl = fotoUrl;
@@ -171,10 +173,10 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
         }
 
         private static AanmeldingListItemDto Map(
-            Aanmelding a,
-            bool isVerkocht,
-            decimal? verkoopPrijs,
-            string? koperNaam)
+           Aanmelding a,
+           bool isVerkocht,
+           decimal? verkoopPrijs,
+           string? koperNaam)
         {
             return new AanmeldingListItemDto
             {
@@ -190,8 +192,10 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 IsVerkocht = isVerkocht,
                 VerkoopPrijs = verkoopPrijs,
                 KoperNaam = koperNaam,
-                TotaleOpbrengst = isVerkocht ? verkoopPrijs * a.Hoeveelheid : null
+                TotaleOpbrengst = isVerkocht ? verkoopPrijs * a.Hoeveelheid : null,
+                Beschrijving = a.Beschrijving      
             };
         }
+
     }
 }

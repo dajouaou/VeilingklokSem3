@@ -39,8 +39,10 @@ public class AanvoerderDashboardController : ControllerBase
     }
 
     [HttpPost("aanmeldingen")]
-    public async Task<IActionResult> CreateAanmelding([FromForm] AanmeldingCreateDto dto)
+    public async Task<ActionResult<AanmeldingListItemDto>> CreateAanmelding([FromForm] AanmeldingCreateDto dto)
     {
+        var gebruikerId = GetGebruikerId();
+
         string? fotoPad = null;
 
         if (dto.Foto != null && dto.Foto.Length > 0)
@@ -57,26 +59,14 @@ public class AanvoerderDashboardController : ControllerBase
                 await dto.Foto.CopyToAsync(stream);
             }
 
-            fotoPad = $"/uploads/{fileName}";
+            fotoPad = "/uploads/" + fileName;
         }
 
-        var entity = new Aanmelding
-        {
-            Soort = dto.Soort,
-            Potmaat = dto.Potmaat,
-            Steellengte = dto.Steellengte,
-            Hoeveelheid = dto.Hoeveelheid,
-            MinimumPrijs = dto.MinimumPrijs,
-            KlokLocatie = dto.KlokLocatie,
-            Veildatum = dto.Veildatum,
-            FotoUrl = fotoPad, // hier sla je de geüploade foto op
-        };
+        var result = await _service.CreateAanmeldingAsync(gebruikerId, dto, fotoPad);
 
-        _db.Aanmeldingen.Add(entity);
-        await _db.SaveChangesAsync();
-
-        return Ok(entity);
+        return Ok(result);
     }
+
 
     [HttpPut("aanmeldingen/{id}")]
     public async Task<ActionResult<AanmeldingListItemDto>> UpdateAanmelding(

@@ -22,4 +22,7 @@ public class AanmeldingCreateDto
     [Required]
     public DateTime Veildatum { get; set; }
     public IFormFile? Foto { get; set; }
+    
+    public string? Beschrijving { get; set; }
+
 }

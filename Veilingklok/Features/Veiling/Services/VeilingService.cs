@@ -150,6 +150,7 @@ namespace Veilingklok.Features.Veiling.Services
         public async Task<BodDto> PlaatsBodAsync(int veilingId, BodPlaatsenDto dto, int koperId)
         {
             var product = await _db.VeilingProducten
+                .Include(p => p.Aanmelding)
                 .Include(p => p.Biedingen)
                 .SingleAsync(p => p.Id == dto.VeilingProductId && p.VeilingId == veilingId);
 
@@ -160,7 +161,24 @@ namespace Veilingklok.Features.Veiling.Services
             product.KoperId = koperId;
             product.HuidigePrijs = dto.Prijs;
 
-            var bod = new BodEntity
+            var p = new Product
+            {
+                AanvoerderId = product.Aanmelding!.AanvoerderId,
+                Naam = product.Aanmelding.Soort,
+                Categorie = null,
+                Beschrijving = product.Aanmelding.Beschrijving,
+                FotoUrl = product.Aanmelding.FotoUrl,
+                Soort = product.Aanmelding.Soort,
+                PotmaatOfSteellengte = product.Aanmelding.Potmaat ?? product.Aanmelding.Steellengte,
+                HoeveelheidStuks = product.Aanmelding.Hoeveelheid,
+                MinimumPrijs = product.Aanmelding.MinimumPrijs,
+                KlokLocatie = product.Aanmelding.KlokLocatie.ToString(),
+                VeilDatum = product.Aanmelding.Veildatum
+            };
+
+            _db.Producten.Add(p);
+
+            var bod = new Bod
             {
                 VeilingId = veilingId,
                 VeilingProductId = product.Id,
@@ -171,8 +189,8 @@ namespace Veilingklok.Features.Veiling.Services
             _db.Biedingen.Add(bod);
 
             var volgende = await _db.VeilingProducten
-                .Where(p => p.VeilingId == veilingId && !p.IsVerkocht && !p.IsActief)
-                .OrderBy(p => p.Volgorde)
+                .Where(pv => pv.VeilingId == veilingId && !pv.IsVerkocht && !pv.IsActief)
+                .OrderBy(pv => pv.Volgorde)
                 .FirstOrDefaultAsync();
 
             var veiling = await _db.Veilingen.FindAsync(veilingId);
@@ -196,6 +214,7 @@ namespace Veilingklok.Features.Veiling.Services
                 Tijdstip = bod.Tijdstip
             };
         }
+
 
         public async Task<List<string>> GetVeilingDagenAsync()
         {
