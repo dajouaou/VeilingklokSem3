@@ -101,8 +101,10 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<MyContext>();
+        var passwordService = scope.ServiceProvider.GetRequiredService<PasswordService>();
+
         await db.Database.MigrateAsync();
-        await DbSeeder.SeedAsync(db);
+        await DbSeeder.SeedAsync(db, passwordService); // ← FIX: geef passwordService mee
     }
     catch (Exception ex)
     {

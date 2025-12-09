@@ -1,6 +1,6 @@
-
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext.jsx";
+
 import {
     fetchAanmeldingen,
     createAanmelding,
@@ -22,8 +22,6 @@ export default function AanvoerderDashboard() {
     const [filterDate, setFilterDate] = useState("");
     const [search, setSearch] = useState("");
     const [beheerOpen, setBeheerOpen] = useState(false);
-    const highlightedDates = items.map(i => new Date(i.veildatum));
-
 
     const [form, setForm] = useState({
         soort: "",
@@ -43,8 +41,6 @@ export default function AanvoerderDashboard() {
         if (!token || role !== "Aanvoerder") return;
         loadDashboardData();
     }, [token, role, filterDate]);
-
-
 
     async function loadDashboardData() {
         setLoading(true);
@@ -70,9 +66,9 @@ export default function AanvoerderDashboard() {
         setForm((prev) => ({ ...prev, [name]: value }));
     }
 
-
     async function handleSubmit(e) {
         e.preventDefault();
+
         setFormError("");
         setFormSuccess("");
 
@@ -88,19 +84,26 @@ export default function AanvoerderDashboard() {
             hoeveelheid: Number(form.hoeveelheid),
             minimumPrijs: Number(form.minimumPrijs),
             klokLocatie: form.klokLocatie,
-            veildatum: new Date(form.veildatum + "T00:00:00").toISOString(),
+            veildatum: form.veildatum,
             fotoUrl: form.fotoUrl || null,
         };
 
-
         try {
             const created = await createAanmelding({ token, data: payload });
-            setItems((prev) => [...prev, created]);
+
+            setItems(prev => [...prev, created]);
+
+            const updatedStats = await fetchAanvoerderStats({
+                token,
+                veildatum: filterDate || undefined
+            });
+            setStats(updatedStats);
 
             setFormSuccess("Product succesvol aangemeld.");
             setForm({
                 soort: "",
-                potmaatOfSteellengte: "",
+                potmaat: "",
+                steellengte: "",
                 hoeveelheid: "",
                 minimumPrijs: "",
                 klokLocatie: "Naaldwijk",
@@ -112,18 +115,20 @@ export default function AanvoerderDashboard() {
         }
     }
 
+
     const filteredItems = items.filter((item) => {
         if (!search) return true;
+
         const term = search.toLowerCase();
         return (
             item.soort.toLowerCase().includes(term) ||
-            (item.potmaatOfSteellengte || "").toLowerCase().includes(term)
+            (item.potmaat?.toLowerCase?.() || "").includes(term) ||
+            (item.steellengte?.toLowerCase?.() || "").includes(term)
         );
     });
 
     return (
         <main id="main" className="container py-4">
-
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="h3">Aanvoerdersdashboard</h1>
                 <p className="text-muted mb-0">Beheer je veilingaanmeldingen</p>
@@ -206,7 +211,6 @@ export default function AanvoerderDashboard() {
                                     />
                                 </div>
 
-
                                 <div className="col-md-4">
                                     <label className="form-label">Hoeveelheid *</label>
                                     <input
@@ -251,9 +255,7 @@ export default function AanvoerderDashboard() {
                                     <label className="form-label">Veildatum *</label>
                                     <VeildagPicker
                                         value={form.veildatum}
-                                        onChange={(value) =>
-                                            setForm((prev) => ({ ...prev, veildatum: value }))
-                                        }
+                                        onChange={(value) => setForm((prev) => ({ ...prev, veildatum: value }))}
                                         highlightedDates={items.map(i => i.veildatum)}
                                     />
                                 </div>
@@ -271,7 +273,9 @@ export default function AanvoerderDashboard() {
                             </div>
 
                             <div className="mt-4 d-flex justify-content-end">
-                                <button type="submit" className="btn btn-success">Aanmelden</button>
+                                <button type="submit" className="btn btn-success">
+                                    Aanmelden
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -315,7 +319,10 @@ export default function AanvoerderDashboard() {
 
                 {loadError && <p className="text-danger">{loadError}</p>}
                 {loading && <p>Laden...</p>}
-                {!loading && filteredItems.length === 0 && <p>Geen aanmeldingen.</p>}
+
+                {!loading && filteredItems.length === 0 && (
+                    <p>Geen aanmeldingen.</p>
+                )}
 
                 {!loading && filteredItems.length > 0 && (
                     <div className="table-responsive">
@@ -354,10 +361,13 @@ export default function AanvoerderDashboard() {
                                         </td>
 
                                         <td>{item.soort}</td>
-                                        <td>{item.potmaatOfSteellengte || "-"}</td>
+
+                                        <td>{item.potmaat || item.steellengte || "-"}</td>
+
                                         <td>{item.hoeveelheid}</td>
 
                                         <td>€{item.minimumPrijs.toFixed(2)}</td>
+
                                         <td>{item.klokLocatie}</td>
 
                                         <td>{new Date(item.veildatum).toLocaleDateString("nl-NL")}</td>
@@ -367,12 +377,15 @@ export default function AanvoerderDashboard() {
                                                 <>
                                                     <div>€{item.verkoopPrijs?.toFixed(2)} / stuk</div>
                                                     <div className="small text-muted">
-                                                        Totaal: €{item.totaleOpbrengst?.toFixed(2)}
+                                                        Totaal: €
+                                                        {item.totaleOpbrengst?.toFixed(2)}
                                                         {item.koperNaam && <> – {item.koperNaam}</>}
                                                     </div>
                                                 </>
                                             ) : (
-                                                <span className="badge bg-secondary">Nog niet verkocht</span>
+                                                <span className="badge bg-secondary">
+                                                    Nog niet verkocht
+                                                </span>
                                             )}
                                         </td>
                                     </tr>

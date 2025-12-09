@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { updateAanmelding, deleteAanmelding } from "../api/aanvoerderApi";
 
-export default function AanmeldingenBeheer({ items, onClose, token, onUpdated }) {
+export default function AanmeldingenBeheer({ items, onClose, token,
+}) {
     const [editing, setEditing] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
 
-    // Form state
     const [form, setForm] = useState({
         soort: "",
         potmaat: "",
@@ -39,7 +39,8 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                 ...form,
                 hoeveelheid: Number(form.hoeveelheid),
                 minimumPrijs: Number(form.minimumPrijs),
-                veildatum: new Date(form.veildatum + "T00:00:00"),
+                veildatum: form.veildatum,
+
             },
         });
 
@@ -107,7 +108,6 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                             </tbody>
                         </table>
 
-                        {/* BEWERK MODAL */}
                         {editing && (
                             <div className="mt-4 p-3 border rounded bg-light">
                                 <h5>Aanmelding bewerken</h5>
@@ -207,7 +207,6 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                             </div>
                         )}
 
-                        {/* DELETE CONFIRMATION */}
                         {confirmDelete && (
                             <div className="alert alert-danger mt-4">
                                 <h5>Weet je zeker dat je deze aanmelding wilt verwijderen?</h5>
