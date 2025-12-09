@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+﻿import { Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./ProtectedRoute";
 
 import Login from "../features/auth/Login.jsx";
@@ -8,13 +8,17 @@ import AanvoerderDashboard from "../features/aanvoerderDashboard/AanvoerderDashb
 import VeilingmeesterDashboard from "../features/veilingmeesterDashboard/VeilingmeesterDashboard";
 import PlanVeiling from "../features/veilingmeesterDashboard/PlanVeiling";
 
+import ActueelBod from "../features/Actueelbod.jsx";
+
 export default function AppRouter() {
     return (
         <Routes>
 
-           
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+
+            {/* Actueel bod openbaar */}
+            <Route path="/actueelbod" element={<ActueelBod />} />
 
             <Route
                 path="/"
@@ -42,6 +46,7 @@ export default function AppRouter() {
                     </ProtectedRoute>
                 }
             />
+
             <Route
                 path="/veilingmeester/plan"
                 element={
@@ -50,7 +55,6 @@ export default function AppRouter() {
                     </ProtectedRoute>
                 }
             />
-
 
         </Routes>
     );

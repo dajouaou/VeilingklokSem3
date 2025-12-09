@@ -21,6 +21,10 @@
     object-fit: contain;
 }
 
+.object-fit-cover {
+    object-fit: cover;
+}
+
 /* Links: subtiele underline-animatie */
 .navbar .nav-link {
     position: relative;

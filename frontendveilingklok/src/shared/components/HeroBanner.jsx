@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from "react";
 
-const API_BASE = "https://localhost:56418";
+const API_BASE = "https://localhost:5174";
 
 export default function HeroBanner() {
     const [data, setData] = useState({
@@ -72,7 +72,7 @@ export default function HeroBanner() {
                             </div>
                         </div>
 
-                        <a href="/actuelebod" className="btn" id="btn-herobanner">
+                        <a href="/Actueelbod" className="btn" id="btn-herobanner">
                              Bekijk veiling
                         </a>
                     </div>
