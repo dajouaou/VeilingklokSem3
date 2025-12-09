@@ -178,7 +178,7 @@ namespace Veilingklok.Features.Veiling.Services
 
             _db.Producten.Add(p);
 
-            var bod = new Bod
+            var bod = new BodEntity
             {
                 VeilingId = veilingId,
                 VeilingProductId = product.Id,
