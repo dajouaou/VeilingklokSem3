@@ -45,6 +45,7 @@ public class AanvoerderDashboardController : ControllerBase
 
         string? fotoPad = null;
 
+
         if (dto.Foto != null && dto.Foto.Length > 0)
         {
             var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
@@ -59,7 +60,8 @@ public class AanvoerderDashboardController : ControllerBase
                 await dto.Foto.CopyToAsync(stream);
             }
 
-            fotoPad = "/uploads/" + fileName;
+            fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+
         }
 
         var result = await _service.CreateAanmeldingAsync(gebruikerId, dto, fotoPad);
@@ -91,7 +93,7 @@ public class AanvoerderDashboardController : ControllerBase
                 await dto.Foto.CopyToAsync(stream);
             }
 
-            fotoPad = $"/uploads/{fileName}";
+            fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
         }
 
         var updated = await _service.UpdateAanmeldingAsync(gebruikerId, id, dto, fotoPad);

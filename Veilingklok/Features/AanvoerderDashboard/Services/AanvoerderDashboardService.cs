@@ -125,6 +125,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
 
             var query = _db.Aanmeldingen
+                .Include(a => a.Aanvoerder)
                 .Include(a => a.VeilingProduct)
                 .ThenInclude(vp => vp.Koper)
                 .Where(a => a.AanvoerderId == aanvoerder.Id);
@@ -177,6 +178,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
            bool isVerkocht,
            decimal? verkoopPrijs,
            string? koperNaam)
+
         {
             return new AanmeldingListItemDto
             {
@@ -193,7 +195,9 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 VerkoopPrijs = verkoopPrijs,
                 KoperNaam = koperNaam,
                 TotaleOpbrengst = isVerkocht ? verkoopPrijs * a.Hoeveelheid : null,
-                Beschrijving = a.Beschrijving      
+                Beschrijving = a.Beschrijving,
+                AanvoerderNaam = a.Aanvoerder?.Naam,
+
             };
         }
 

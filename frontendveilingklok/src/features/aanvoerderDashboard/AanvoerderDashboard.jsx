@@ -86,6 +86,7 @@ export default function AanvoerderDashboard() {
             klokLocatie: form.klokLocatie,
             veildatum: form.veildatum,
             fotoFile: form.fotoFile,
+            beschrijving: form.beschrijving || "",
         };
 
 
@@ -270,6 +271,17 @@ export default function AanvoerderDashboard() {
                                         onChange={(e) => setForm(prev => ({ ...prev, fotoFile: e.target.files[0] }))}
                                     />
                                 </div>
+                                <div className="col-12">
+                                    <label className="form-label">Beschrijving</label>
+                                    <textarea
+                                        name="beschrijving"
+                                        className="form-control"
+                                        rows="3"
+                                        value={form.beschrijving || ""}
+                                        onChange={handleFormChange}
+                                    />
+                                </div>
+
                             </div>
 
                             <div className="mt-4 d-flex justify-content-end">
@@ -336,6 +348,7 @@ export default function AanvoerderDashboard() {
                                     <th>Min. prijs</th>
                                     <th>Kloklocatie</th>
                                     <th>Veildatum</th>
+                                    <th>Aanvoerder</th>
                                     <th>Verkoop</th>
                                 </tr>
                             </thead>
@@ -371,6 +384,8 @@ export default function AanvoerderDashboard() {
                                         <td>{item.klokLocatie}</td>
 
                                         <td>{new Date(item.veildatum).toLocaleDateString("nl-NL")}</td>
+
+                                        <td>{item.aanvoerderNaam}</td>
 
                                         <td>
                                             {item.isVerkocht ? (

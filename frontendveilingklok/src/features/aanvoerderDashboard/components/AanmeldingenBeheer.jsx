@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { updateAanmelding, deleteAanmelding } from "../api/aanvoerderApi";
 
-export default function AanmeldingenBeheer({ items, onClose, token,
-}) {
+export default function AanmeldingenBeheer({ items, onClose, token, onUpdated }) {
     const [editing, setEditing] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
+    const [beschrijvingItem, setBeschrijvingItem] = useState(null);
 
     const [form, setForm] = useState({
         soort: "",
@@ -14,7 +14,8 @@ export default function AanmeldingenBeheer({ items, onClose, token,
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
         veildatum: "",
-        fotoUrl: "",
+        fotoFile: null,
+        beschrijving: "",
     });
 
     function startEdit(item) {
@@ -27,7 +28,8 @@ export default function AanmeldingenBeheer({ items, onClose, token,
             minimumPrijs: item.minimumPrijs,
             klokLocatie: item.klokLocatie,
             veildatum: item.veildatum.split("T")[0],
-            fotoUrl: item.fotoUrl || "",
+            beschrijving: item.beschrijving || "",
+            fotoFile: null,
         });
     }
 
@@ -39,12 +41,10 @@ export default function AanmeldingenBeheer({ items, onClose, token,
                 ...form,
                 hoeveelheid: Number(form.hoeveelheid),
                 minimumPrijs: Number(form.minimumPrijs),
-                veildatum: form.veildatum,
-
             },
         });
 
-        onUpdated(); // dashboard data opnieuw laden
+        onUpdated();
         setEditing(null);
     }
 
@@ -77,6 +77,7 @@ export default function AanmeldingenBeheer({ items, onClose, token,
                                     <th>Soort</th>
                                     <th>Hoeveelheid</th>
                                     <th>Min. prijs</th>
+                                    <th>Beschrijving</th>
                                     <th>Acties</th>
                                 </tr>
                             </thead>
@@ -87,6 +88,19 @@ export default function AanmeldingenBeheer({ items, onClose, token,
                                         <td>{a.soort}</td>
                                         <td>{a.hoeveelheid}</td>
                                         <td>€{a.minimumPrijs.toFixed(2)}</td>
+
+                                        <td>
+                                            {a.beschrijving ? (
+                                                <button
+                                                    className="btn btn-sm btn-outline-secondary"
+                                                    onClick={() => setBeschrijvingItem(a)}
+                                                >
+                                                    Bekijken
+                                                </button>
+                                            ) : (
+                                                <span className="text-muted">-</span>
+                                            )}
+                                        </td>
 
                                         <td>
                                             <button
@@ -178,7 +192,7 @@ export default function AanmeldingenBeheer({ items, onClose, token,
                                     </div>
 
                                     <div className="col-12">
-                                        <label>Foto</label>
+                                        <label>Nieuwe foto (optioneel)</label>
                                         <input
                                             type="file"
                                             accept="image/*"
@@ -186,6 +200,17 @@ export default function AanmeldingenBeheer({ items, onClose, token,
                                             onChange={(e) =>
                                                 setForm(prev => ({ ...prev, fotoFile: e.target.files[0] }))
                                             }
+                                        />
+                                    </div>
+
+                                    <div className="col-12 mt-2">
+                                        <label className="form-label">Beschrijving</label>
+                                        <textarea
+                                            name="beschrijving"
+                                            className="form-control"
+                                            rows="3"
+                                            value={form.beschrijving}
+                                            onChange={handleFormChange}
                                         />
                                     </div>
 
@@ -234,6 +259,47 @@ export default function AanmeldingenBeheer({ items, onClose, token,
                     </div>
                 </div>
             </div>
+
+            {beschrijvingItem && (
+                <div className="modal d-block" tabIndex="-1">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+
+                            <div className="modal-header">
+                                <h5 className="modal-title">
+                                    Beschrijving van {beschrijvingItem.soort}
+                                </h5>
+                                <button
+                                    className="btn-close"
+                                    onClick={() => setBeschrijvingItem(null)}
+                                ></button>
+                            </div>
+
+                            <div className="modal-body">
+                                <p>{beschrijvingItem.beschrijving}</p>
+
+                                {beschrijvingItem.fotoUrl && (
+                                    <img
+                                        src={beschrijvingItem.fotoUrl}
+                                        className="img-fluid rounded mt-3"
+                                        alt="Product"
+                                    />
+                                )}
+                            </div>
+
+                            <div className="modal-footer">
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => setBeschrijvingItem(null)}
+                                >
+                                    Sluiten
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

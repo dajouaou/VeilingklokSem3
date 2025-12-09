@@ -24,7 +24,7 @@ export async function createAanmelding({ token, data }) {
     formData.append("Hoeveelheid", data.hoeveelheid);
     formData.append("MinimumPrijs", data.minimumPrijs);
     formData.append("KlokLocatie", data.klokLocatie);
-    formData.append("Veildatum", data.veildatum);
+    formData.append("Veildatum", new Date(data.veildatum).toISOString());
 
     if (data.fotoFile) {
         formData.append("Foto", data.fotoFile);

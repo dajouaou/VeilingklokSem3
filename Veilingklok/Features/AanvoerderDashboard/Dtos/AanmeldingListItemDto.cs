@@ -19,6 +19,8 @@
     public decimal? VerkoopPrijs { get; set; }
     public decimal? TotaleOpbrengst { get; set; }
     public string? Beschrijving { get; set; }
+    public string AanvoerderNaam { get; set; }
+
 
 
 }

@@ -34,6 +34,7 @@
         <Folder Include="Features\VeilingmeesterDashboard\Models\" />
         <Folder Include="Features\VeilingmeesterDashboard\Services\" />
         <Folder Include="Infrastructure\SignalR\Events\" />
+        <Folder Include="wwwroot\uploads\" />
     </ItemGroup>
 
 </Project>
