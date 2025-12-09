@@ -160,7 +160,7 @@ namespace Veilingklok.Features.Veiling.Services
             product.KoperId = koperId;
             product.HuidigePrijs = dto.Prijs;
 
-            var bod = new Bod
+            var bod = new BodEntity
             {
                 VeilingId = veilingId,
                 VeilingProductId = product.Id,
