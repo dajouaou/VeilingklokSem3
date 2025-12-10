@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Veilingklok.Core.Enums;
 
-public class AanmeldingCreateDto
+public class AanmeldingUpdateDto
 {
     [Required, MaxLength(100)]
     public string Soort { get; set; } = string.Empty;
@@ -22,7 +22,6 @@ public class AanmeldingCreateDto
     [Required]
     public DateTime Veildatum { get; set; }
     public IFormFile? Foto { get; set; }
-    
     public string? Beschrijving { get; set; }
 
 }

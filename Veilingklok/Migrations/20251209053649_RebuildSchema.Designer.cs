@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veilingklok.Infrastructure.Database;
 
@@ -10,9 +11,11 @@ using Veilingklok.Infrastructure.Database;
 namespace Veilingklok.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20251209053649_RebuildSchema")]
+    partial class RebuildSchema
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -25,9 +28,6 @@ namespace Veilingklok.Migrations
 
                     b.Property<int>("AanvoerderId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Beschrijving")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("FotoUrl")
                         .HasColumnType("TEXT");
@@ -91,6 +91,10 @@ namespace Veilingklok.Migrations
 
                     b.Property<int>("Rol")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Voornaam")
                         .IsRequired()
@@ -233,55 +237,6 @@ namespace Veilingklok.Migrations
                     b.ToTable("Kopers", (string)null);
                 });
 
-            modelBuilder.Entity("Veilingklok.Core.Entities.Product", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("AanvoerderId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Beschrijving")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Categorie")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FotoUrl")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("HoeveelheidStuks")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("KlokLocatie")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<decimal>("MinimumPrijs")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Naam")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("PotmaatOfSteellengte")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Soort")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("VeilDatum")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AanvoerderId");
-
-                    b.ToTable("Producten");
-                });
-
             modelBuilder.Entity("Veilingklok.Core.Entities.Veiling", b =>
                 {
                     b.Property<int>("Id")
@@ -415,17 +370,6 @@ namespace Veilingklok.Migrations
                         .IsRequired();
 
                     b.Navigation("Gebruiker");
-                });
-
-            modelBuilder.Entity("Veilingklok.Core.Entities.Product", b =>
-                {
-                    b.HasOne("Veilingklok.Core.Entities.Aanvoerder", "Aanvoerder")
-                        .WithMany()
-                        .HasForeignKey("AanvoerderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Aanvoerder");
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Veiling", b =>

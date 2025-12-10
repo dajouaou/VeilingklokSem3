@@ -9,7 +9,8 @@ public class Aanmelding
     public Aanvoerder? Aanvoerder { get; set; }
 
     public string Soort { get; set; } = string.Empty;
-    public string? PotmaatOfSteellengte { get; set; }
+    public string? Potmaat { get; set; }
+    public string? Steellengte { get; set; }
     public int Hoeveelheid { get; set; }
     public decimal MinimumPrijs { get; set; }
 
@@ -19,6 +20,7 @@ public class Aanmelding
     public string? FotoUrl { get; set; }
     public int? VeilingProductId { get; set; }
     public VeilingProduct? VeilingProduct { get; set; }
+    public string? Beschrijving { get; set; }
 
 
 }
