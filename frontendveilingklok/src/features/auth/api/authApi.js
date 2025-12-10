@@ -20,7 +20,13 @@ export async function registerApi({ email, password, voornaam, achternaam, rol }
     const res = await fetch(`${API_URL}/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, voornaam, achternaam, rol }),
+        body: JSON.stringify({
+            email,
+            password,
+            voornaam,
+            achternaam,
+            rol: Number(rol) 
+        }),
     });
 
     if (!res.ok) {
@@ -28,5 +34,5 @@ export async function registerApi({ email, password, voornaam, achternaam, rol }
         throw new Error(err?.message || "Registratie mislukt");
     }
 
-    return res.json(); // token 
+    return res.json(); // token
 }

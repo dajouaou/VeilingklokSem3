@@ -5,17 +5,17 @@ import { Navigate } from "react-router-dom";
 export default function ProtectedRoute({ allowedRoles, children }) {
     const { token, role } = useContext(AuthContext);
 
-    // Wachten totdat auth is geladen (null = nog niet bekend)
+    // Auth laden (token = null)
     if (token === null) {
-        return null; // laad nog niets
+        return <div>Loading...</div>;
     }
 
-    // niet ingelogd → naar login
+    // Niet ingelogd
     if (!token) {
         return <Navigate to="/login" replace />;
     }
 
-    // verkeerd role → terug naar home
+    // Rol niet toegestaan
     if (!allowedRoles.includes(role)) {
         return <Navigate to="/" replace />;
     }

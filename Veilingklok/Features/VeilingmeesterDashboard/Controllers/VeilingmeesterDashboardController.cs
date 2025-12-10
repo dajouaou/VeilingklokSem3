@@ -25,10 +25,11 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
             return Ok(new VeilingmeesterDashboardDto
             {
-                Overzicht = overzicht,
-                Biedingen = overzicht?.HuidigProduct != null ? overzicht.Wachtrij.Select(w => new BodDto()).ToList() : new(),
+                Overzicht = overzicht ?? new(),
+                Biedingen = new(),      // evt. later vullen met echte biedingen
                 AuditEvents = new()
             });
         }
+
     }
 }

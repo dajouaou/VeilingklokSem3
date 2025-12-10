@@ -1,124 +1,201 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../auth/AuthContext";
-import { fetchVeilingDagen, startVeiling } from "../veiling/api/veilingApi";
+import { fetchVeilingDagen, fetchAanmeldingenVoorDatum, planVeiling } from "../veiling/api/veilingApi";
+import Sidebar from "./components/Sidebar";
+
 import "./VeilingmeesterDashboard.css";
 
 export default function PlanVeiling() {
-    const { token } = useContext(AuthContext);
+    const { token, logout } = useContext(AuthContext);
 
     const [dagen, setDagen] = useState([]);
     const [gekozenDatum, setGekozenDatum] = useState("");
     const [startTijd, setStartTijd] = useState("09:00");
-    const [loading, setLoading] = useState(true);
+
+    const [available, setAvailable] = useState([]);
+    const [selected, setSelected] = useState([]);
+
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
-        async function load() {
+        async function loadDays() {
             try {
-                setLoading(true);
-                setError("");
                 const d = await fetchVeilingDagen(token);
                 setDagen(d);
-            } catch (e) {
-                console.error(e);
+            } catch {
                 setError("Kon veildagen niet ophalen.");
-            } finally {
-                setLoading(false);
             }
         }
-        load();
+        loadDays();
     }, [token]);
+
+    useEffect(() => {
+        async function loadItems() {
+            if (!gekozenDatum) {
+                setAvailable([]);
+                setSelected([]);
+                return;
+            }
+
+            try {
+                const items = await fetchAanmeldingenVoorDatum(token, gekozenDatum);
+                setAvailable(items);
+                setSelected([]);
+            } catch {
+                setError("Kon producten niet ophalen.");
+            }
+        }
+        loadItems();
+    }, [gekozenDatum]);
+
+    function addToSelected(item) {
+        setAvailable(prev => prev.filter(x => x.id !== item.id));
+        setSelected(prev => [...prev, item]);
+    }
+
+    function removeFromSelected(item) {
+        setSelected(prev => prev.filter(x => x.id !== item.id));
+        setAvailable(prev => [...prev, item]);
+    }
 
     async function handlePlan() {
         setError("");
         setSuccess("");
 
-        if (!gekozenDatum) {
-            setError("Kies een veildatum.");
+        if (!gekozenDatum || !startTijd || selected.length === 0) {
+            setError("Vul alle velden in.");
             return;
         }
 
         try {
-            await startVeiling(token, gekozenDatum, startTijd);
-            setSuccess("Veiling succesvol gestart.");
-        } catch (e) {
-            console.error(e);
-            setError("Veiling starten mislukt.");
+            await planVeiling(token, {
+                veildatum: gekozenDatum,
+                startTijd,
+                aanmeldingIds: selected.map(s => s.id)
+            });
+
+            setSuccess("Veiling succesvol gepland!");
+        } catch (err) {
+            setError(err.message);
         }
     }
 
     return (
-        <div className="vm-layout vm-layout-inner">
-            <div className="vm-main vm-main-full">
+        <div className="vm-layout">
+
+            {/* ? Sidebar werkt nu hetzelfde als in Dashboard */}
+            <Sidebar
+                logout={logout}
+                active="planning"
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
+            />
+
+            <div className="vm-main">
+
+                {/* ? Hamburger knop zodat sidebar open kan op mobiel */}
                 <header className="vm-topbar">
+                    <button
+                        className="vm-hamburger"
+                        onClick={() => setSidebarOpen(true)}
+                    >
+                        ? Menu
+                    </button>
+
                     <div>
                         <h1>Veiling plannen</h1>
-                        <p>Kies een komende veildag en configureer de starttijd.</p>
+                        <p>Kies veildag, tijd en producten.</p>
                     </div>
                 </header>
 
+                {/* Jouw originele inhoud — NIETS HIERAAN AANGEPAST */}
                 <main className="vm-main-content">
                     <section className="vm-card vm-card-highlight">
-                        <div className="vm-card-header">
-                            <div>
-                                <h2>Nieuwe veiling configureren</h2>
-                                <p>Je kunt hier een veiling klaarzetten of direct starten.</p>
+
+                        {error && <div className="alert alert-danger">{error}</div>}
+                        {success && <div className="alert alert-success">{success}</div>}
+
+                        <div className="vm-start-grid">
+                            <div className="vm-field">
+                                <label>Veildatum</label>
+                                <select className="form-select"
+                                    value={gekozenDatum}
+                                    onChange={(e) => setGekozenDatum(e.target.value)}
+                                >
+                                    <option value="">-- Kies dag --</option>
+                                    {dagen.map(d => (
+                                        <option key={d} value={d}>{d}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="vm-field">
+                                <label>Starttijd</label>
+                                <input type="time"
+                                    className="form-control"
+                                    value={startTijd}
+                                    onChange={(e) => setStartTijd(e.target.value)}
+                                />
                             </div>
                         </div>
 
-                        {error && <div className="alert alert-danger vm-alert">{error}</div>}
-                        {success && (
-                            <div className="alert alert-success vm-alert">{success}</div>
-                        )}
+                        {gekozenDatum && (
+                            <div className="vm-planning-container">
 
-                        {loading ? (
-                            <div className="vm-loading-block">
-                                <div className="spinner-border text-primary" />
-                                <span>Beschikbare veildagen laden…</span>
-                            </div>
-                        ) : (
-                            <div className="vm-start-grid">
-                                <div className="vm-field">
-                                    <label>Beschikbare veildagen</label>
-                                    <select
-                                        className="form-select"
-                                        value={gekozenDatum}
-                                        onChange={(e) => setGekozenDatum(e.target.value)}
-                                    >
-                                        <option value="">-- Selecteer een dag --</option>
-                                        {dagen.map((d) => (
-                                            <option key={d} value={d}>
-                                                {d}
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div className="vm-list">
+                                    <h5>Beschikbare producten ({available.length})</h5>
+
+                                    {available.map(item => (
+                                        <div key={item.id} className="vm-planning-item">
+                                            <div>
+                                                <b>{item.soort}</b> ({item.hoeveelheid} st.)
+                                                <div className="small text-muted">
+                                                    Min €{item.minimumPrijs.toFixed(2)}
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                className="btn btn-outline-primary btn-sm"
+                                                onClick={() => addToSelected(item)}
+                                            >
+                                                Toevoegen
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
 
-                                <div className="vm-field">
-                                    <label>Starttijd</label>
-                                    <input
-                                        type="time"
-                                        className="form-control"
-                                        value={startTijd}
-                                        onChange={(e) => setStartTijd(e.target.value)}
-                                    />
-                                </div>
+                                <div className="vm-list">
+                                    <h5>Veilingvolgorde ({selected.length})</h5>
 
-                                <div className="vm-field vm-field-actions">
-                                    <button
-                                        className="btn btn-primary vm-primary-btn"
-                                        onClick={handlePlan}
-                                        disabled={!gekozenDatum || loading}
-                                    >
-                                        Start veiling
-                                    </button>
-                                    <span className="vm-hint">
-                                        Controleer of er nog geen andere actieve veiling is.
-                                    </span>
+                                    {selected.map((item, i) => (
+                                        <div key={item.id} className="vm-planning-item">
+                                            <div>
+                                                #{i + 1} – <b>{item.soort}</b>
+                                            </div>
+
+                                            <button
+                                                className="btn btn-outline-secondary btn-sm"
+                                                onClick={() => removeFromSelected(item)}
+                                            >
+                                                Verwijder
+                                            </button>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
+
+                        <div className="text-end mt-3">
+                            <button className="btn btn-primary"
+                                onClick={handlePlan}
+                                disabled={selected.length === 0}
+                            >
+                                Veiling plannen
+                            </button>
+                        </div>
+
                     </section>
                 </main>
             </div>

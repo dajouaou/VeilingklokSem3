@@ -1,81 +1,71 @@
-const API_BASE = "https://localhost:56418/api/veiling";
-const PUBLIC_API_BASE = "https://localhost:56418/api/veiling-public";
+const API_BASE = "https://localhost:56418";
 
-export async function getActiveVeiling(token) {
-    const res = await fetch(`${API_BASE}/active`, {
-        headers: { Authorization: `Bearer ${token}` }
+async function apiGet(url, token) {
+    const res = await fetch(`${API_BASE}${url}`, {
+        headers: { Authorization: `Bearer ${token}` },
     });
-
-    if (!res.ok) return null;
+    if (!res.ok) throw new Error(`GET ${url} mislukt`);
     return res.json();
 }
 
-export async function startVeiling(token, date, time) {
-    const body = time
-        ? { veildatum: date, startTijd: time }
-        : { veildatum: date };
-
-    const res = await fetch(`${API_BASE}/start`, {
+async function apiPost(url, token, body) {
+    const res = await fetch(`${API_BASE}${url}`, {
         method: "POST",
         headers: {
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
         },
-        body: JSON.stringify(body)
+        body: body ? JSON.stringify(body) : null,
     });
+
+    let json = null;
+    try { json = await res.json(); } catch { }
 
     if (!res.ok) {
-        const text = await res.text();
-        throw new Error("Kon veiling niet starten: " + text);
+        throw new Error(json?.message || `POST ${url} mislukt`);
     }
-
-    return res.json();
+    return json;
 }
 
-export async function pauseVeiling(token, id) {
-    await fetch(`${API_BASE}/${id}/pause`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-    });
+export function getActiveVeiling(token) {
+    return apiGet("/api/veilingmeester/veilingen/actief", token);
 }
 
-export async function resumeVeiling(token, id) {
-    await fetch(`${API_BASE}/${id}/resume`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-    });
+export function startVeiling(token, veilingId) {
+    return apiPost(`/api/veilingmeester/veilingen/${veilingId}/start`, token);
 }
 
-export async function stopVeiling(token, id) {
-    await fetch(`${API_BASE}/${id}/stop`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-    });
+export function pauseVeiling(token, veilingId) {
+    return apiPost(`/api/veilingmeester/veilingen/${veilingId}/pause`, token);
 }
 
-export async function placeBid(token, id) {
-    const res = await fetch(`${API_BASE}/${id}/bod`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error("Bod plaatsen mislukt: " + text);
-    }
-
-    return res.json();
+export function resumeVeiling(token, veilingId) {
+    return apiPost(`/api/veilingmeester/veilingen/${veilingId}/resume`, token);
 }
 
-export async function fetchVeilingDagen(token) {
-    const res = await fetch(`${PUBLIC_API_BASE}/dagen`, {
-        headers: { Authorization: `Bearer ${token}` }
-    });
+export function stopVeiling(token, veilingId) {
+    return apiPost(`/api/veilingmeester/veilingen/${veilingId}/stop`, token);
+}
 
-    if (!res.ok) {
-        const text = await res.text();
-        throw new Error("Kon veildagen niet laden: " + text);
-    }
+export function placeBid(token, veilingId) {
+    return apiPost(`/api/veilingmeester/veilingen/${veilingId}/buy`, token);
+}
 
-    return res.json();
+export function fetchVeilingDagen(token) {
+    return apiGet("/api/veilingmeester/planning/veildagen", token);
+}
+
+export function fetchAanmeldingenVoorDatum(token, veildatum) {
+    return apiGet(
+        `/api/veilingmeester/planning/aanmeldingen?veildatum=${encodeURIComponent(veildatum)}`,
+        token
+    );
+}
+
+export function planVeiling(token, body) {
+    return apiPost("/api/veilingmeester/planning/plan", token, body);
+}
+
+export function fetchPlannedVeilingen(token) {
+    return apiGet("/api/veilingmeester/planning/gepland", token);
 }

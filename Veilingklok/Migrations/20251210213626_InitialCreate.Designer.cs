@@ -11,8 +11,8 @@ using Veilingklok.Infrastructure.Database;
 namespace Veilingklok.Migrations
 {
     [DbContext(typeof(MyContext))]
-    [Migration("20251205125015_FixRelations")]
-    partial class FixRelations
+    [Migration("20251210213626_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -29,8 +29,10 @@ namespace Veilingklok.Migrations
                     b.Property<int>("AanvoerderId")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Beschrijving")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("FotoUrl")
-                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("Hoeveelheid")
@@ -43,7 +45,7 @@ namespace Veilingklok.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PotmaatOfSteellengte")
+                    b.Property<string>("Potmaat")
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
@@ -52,20 +54,19 @@ namespace Veilingklok.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("Steellengte")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime>("Veildatum")
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("VeilingProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("VeilingProductId1")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AanvoerderId");
-
-                    b.HasIndex("VeilingProductId1");
 
                     b.ToTable("Aanmeldingen", (string)null);
                 });
@@ -94,10 +95,6 @@ namespace Veilingklok.Migrations
                     b.Property<int>("Rol")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Voornaam")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -105,6 +102,20 @@ namespace Veilingklok.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Gebruikers");
+                });
+
+            modelBuilder.Entity("Veildag", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Datum")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Veildagen");
                 });
 
             modelBuilder.Entity("VeilingProduct", b =>
@@ -139,13 +150,14 @@ namespace Veilingklok.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AanmeldingId");
+                    b.HasIndex("AanmeldingId")
+                        .IsUnique();
 
                     b.HasIndex("KoperId");
 
                     b.HasIndex("VeilingId");
 
-                    b.ToTable("VeilingProducten", (string)null);
+                    b.ToTable("VeilingProducten");
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Aanvoerder", b =>
@@ -224,11 +236,63 @@ namespace Veilingklok.Migrations
                     b.ToTable("Kopers", (string)null);
                 });
 
+            modelBuilder.Entity("Veilingklok.Core.Entities.Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AanvoerderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Beschrijving")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Categorie")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FotoUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("HoeveelheidStuks")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("KlokLocatie")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("MinimumPrijs")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Naam")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("PotmaatOfSteellengte")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Soort")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("VeilDatum")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AanvoerderId");
+
+                    b.ToTable("Producten");
+                });
+
             modelBuilder.Entity("Veilingklok.Core.Entities.Veiling", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("Datum")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("EindTijd")
                         .HasColumnType("TEXT");
@@ -236,17 +300,11 @@ namespace Veilingklok.Migrations
                     b.Property<int?>("HuidigProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsAfgesloten")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsGestart")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsPauze")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("StartTijd")
+                    b.Property<TimeSpan>("StartTijd")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
@@ -284,20 +342,14 @@ namespace Veilingklok.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("VeilingProduct", "VeilingProduct")
-                        .WithMany()
-                        .HasForeignKey("VeilingProductId1");
-
                     b.Navigation("Aanvoerder");
-
-                    b.Navigation("VeilingProduct");
                 });
 
             modelBuilder.Entity("VeilingProduct", b =>
                 {
                     b.HasOne("Aanmelding", "Aanmelding")
-                        .WithMany()
-                        .HasForeignKey("AanmeldingId")
+                        .WithOne("VeilingProduct")
+                        .HasForeignKey("VeilingProduct", "AanmeldingId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -365,6 +417,17 @@ namespace Veilingklok.Migrations
                     b.Navigation("Gebruiker");
                 });
 
+            modelBuilder.Entity("Veilingklok.Core.Entities.Product", b =>
+                {
+                    b.HasOne("Veilingklok.Core.Entities.Aanvoerder", "Aanvoerder")
+                        .WithMany()
+                        .HasForeignKey("AanvoerderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Aanvoerder");
+                });
+
             modelBuilder.Entity("Veilingklok.Core.Entities.Veiling", b =>
                 {
                     b.HasOne("VeilingProduct", "HuidigProduct")
@@ -384,6 +447,11 @@ namespace Veilingklok.Migrations
                         .IsRequired();
 
                     b.Navigation("Gebruiker");
+                });
+
+            modelBuilder.Entity("Aanmelding", b =>
+                {
+                    b.Navigation("VeilingProduct");
                 });
 
             modelBuilder.Entity("Gebruiker", b =>

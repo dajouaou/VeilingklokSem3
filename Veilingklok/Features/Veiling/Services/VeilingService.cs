@@ -3,6 +3,7 @@ using Veilingklok.Core.Entities;
 using Veilingklok.Infrastructure.Database;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Veiling.Dtos;
+using Veilingklok.Core.Enums;
 using VeilingEntity = Veilingklok.Core.Entities.Veiling;
 
 namespace Veilingklok.Features.Veiling.Services
@@ -26,14 +27,14 @@ namespace Veilingklok.Features.Veiling.Services
             if (!aanmeldingen.Any())
                 throw new ArgumentException("Geen aanmeldingen voor deze veildatum.");
 
-            var geplandeStart = startTijd.HasValue
-                ? veildatum.Date + startTijd.Value
-                : DateTime.UtcNow;
+            // Starttijd: als niet meegegeven, standaard 09:00
+            var tijd = startTijd ?? new TimeSpan(9, 0, 0);
 
             var veiling = new VeilingEntity
             {
-                StartTijd = geplandeStart,
-                IsGestart = true
+                Datum = veildatum.Date,
+                StartTijd = tijd,
+                Status = VeilingStatus.Gestart
             };
 
             _db.Veilingen.Add(veiling);
@@ -43,16 +44,14 @@ namespace Veilingklok.Features.Veiling.Services
 
             foreach (var a in aanmeldingen)
             {
-                var product = new VeilingProduct
+                _db.VeilingProducten.Add(new VeilingProduct
                 {
                     VeilingId = veiling.Id,
                     AanmeldingId = a.Id,
                     StartPrijs = a.MinimumPrijs,
                     HuidigePrijs = a.MinimumPrijs,
                     Volgorde = volgorde++
-                };
-
-                _db.VeilingProducten.Add(product);
+                });
             }
 
             await _db.SaveChangesAsync();
@@ -74,15 +73,15 @@ namespace Veilingklok.Features.Veiling.Services
         {
             var v = await _db.Veilingen
                 .Include(v => v.Producten)
-                .ThenInclude(p => p.Aanmelding)
+                    .ThenInclude(p => p.Aanmelding)
                 .SingleAsync(v => v.Id == veilingId);
 
             var dto = new VeilingOverzichtDto
             {
                 Id = v.Id,
-                IsGestart = v.IsGestart,
-                IsPauze = v.IsPauze,
-                IsAfgesloten = v.IsAfgesloten
+                IsGestart = v.Status == VeilingStatus.Gestart,
+                IsPauze = v.Status == VeilingStatus.Gepauzeerd,
+                IsAfgesloten = v.Status == VeilingStatus.Afgesloten
             };
 
             var hp = v.Producten.SingleOrDefault(p => p.Id == v.HuidigProductId);
@@ -124,7 +123,7 @@ namespace Veilingklok.Features.Veiling.Services
             var v = await _db.Veilingen.FindAsync(veilingId)
                 ?? throw new ArgumentException("Veiling niet gevonden");
 
-            v.IsPauze = true;
+            v.Status = VeilingStatus.Gepauzeerd;
             await _db.SaveChangesAsync();
         }
 
@@ -133,7 +132,7 @@ namespace Veilingklok.Features.Veiling.Services
             var v = await _db.Veilingen.FindAsync(veilingId)
                 ?? throw new ArgumentException("Veiling niet gevonden");
 
-            v.IsPauze = false;
+            v.Status = VeilingStatus.Gestart;
             await _db.SaveChangesAsync();
         }
 
@@ -142,7 +141,7 @@ namespace Veilingklok.Features.Veiling.Services
             var v = await _db.Veilingen.FindAsync(veilingId)
                 ?? throw new ArgumentException("Veiling niet gevonden");
 
-            v.IsAfgesloten = true;
+            v.Status = VeilingStatus.Afgesloten;
             await _db.SaveChangesAsync();
         }
 
@@ -156,10 +155,13 @@ namespace Veilingklok.Features.Veiling.Services
             if (!product.IsActief)
                 throw new ArgumentException("Product is niet actief.");
 
+            // product verkopen
             product.IsVerkocht = true;
+            product.IsActief = false;
             product.KoperId = koperId;
             product.HuidigePrijs = dto.Prijs;
 
+            // historisch Product-record opslaan
             var p = new Product
             {
                 AanvoerderId = product.Aanmelding!.AanvoerderId,
@@ -187,21 +189,23 @@ namespace Veilingklok.Features.Veiling.Services
 
             _db.Biedingen.Add(bod);
 
+            // volgende product in de klok zoeken
             var volgende = await _db.VeilingProducten
                 .Where(pv => pv.VeilingId == veilingId && !pv.IsVerkocht && !pv.IsActief)
                 .OrderBy(pv => pv.Volgorde)
                 .FirstOrDefaultAsync();
 
-            var veiling = await _db.Veilingen.FindAsync(veilingId);
+            var veiling = await _db.Veilingen.FindAsync(veilingId)
+                ?? throw new ArgumentException("Veiling niet gevonden");
 
             if (volgende != null)
             {
                 volgende.IsActief = true;
-                veiling!.HuidigProductId = volgende.Id;
+                veiling.HuidigProductId = volgende.Id;
             }
             else
             {
-                veiling!.IsAfgesloten = true;
+                veiling.Status = VeilingStatus.Afgesloten;
             }
 
             await _db.SaveChangesAsync();
@@ -214,11 +218,10 @@ namespace Veilingklok.Features.Veiling.Services
             };
         }
 
-
         public async Task<List<string>> GetVeilingDagenAsync()
         {
             var dates = await _db.Veilingen
-                .Select(v => v.StartTijd.Date)
+                .Select(v => v.Datum)
                 .Distinct()
                 .OrderBy(d => d)
                 .ToListAsync();

@@ -3,6 +3,7 @@ using Veilingklok.Core.Entities;
 using Veilingklok.Features.Veiling.Dtos;
 using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
+using Veilingklok.Core.Enums;
 
 namespace Veilingklok.Features.Veiling.Services
 {
@@ -27,12 +28,13 @@ namespace Veilingklok.Features.Veiling.Services
                 var actieveVeilingen = await db.Veilingen
                     .Include(v => v.HuidigProduct)
                         .ThenInclude(p => p.Aanmelding)
-                    .Where(v => v.IsGestart && !v.IsPauze && !v.IsAfgesloten)
+                    .Where(v => v.Status == VeilingStatus.Gestart)
                     .ToListAsync(stoppingToken);
 
                 foreach (var v in actieveVeilingen)
                 {
-                    if (v.HuidigProduct == null) continue;
+                    if (v.HuidigProduct == null)
+                        continue;
 
                     // prijsdaling
                     v.HuidigProduct.HuidigePrijs -= 0.05m;
@@ -45,15 +47,14 @@ namespace Veilingklok.Features.Veiling.Services
                     {
                         VeilingProductId = v.HuidigProduct.Id,
                         Soort = v.HuidigProduct.Aanmelding!.Soort,
-                        FotoUrl = v.HuidigProduct.Aanmelding!.FotoUrl,
-                        Hoeveelheid = v.HuidigProduct.Aanmelding!.Hoeveelheid,
+                        FotoUrl = v.HuidigProduct.Aanmelding.FotoUrl,
+                        Hoeveelheid = v.HuidigProduct.Aanmelding.Hoeveelheid,
                         StartPrijs = v.HuidigProduct.StartPrijs,
                         HuidigePrijs = v.HuidigProduct.HuidigePrijs,
                         IsActief = true,
                         IsVerkocht = v.HuidigProduct.IsVerkocht
                     };
 
-                    // **Nederlandse methode gebruiken**
                     await broadcaster.StuurHuidigProduct(v.Id, dto);
                 }
 

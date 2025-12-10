@@ -14,13 +14,17 @@ export default function Register() {
     });
 
     const [error, setError] = useState("");
+    const [rol, setRol] = useState("");   // ? HIER MOET HIJ STAAN
 
     async function handleSubmit(e) {
         e.preventDefault();
         setError("");
 
         try {
-            await registerApi(form);
+            await registerApi({
+                ...form,
+                rol: Number(rol),
+            });
 
             alert("Succesvol geregistreerd! Je kunt nu inloggen.");
             navigate("/login");
@@ -44,6 +48,7 @@ export default function Register() {
                             {error && <div className="alert alert-danger">{error}</div>}
 
                             <form onSubmit={handleSubmit}>
+
                                 <div className="mb-3">
                                     <input
                                         type="text"
@@ -98,17 +103,15 @@ export default function Register() {
 
                                 <div className="mb-3">
                                     <select
-                                        className="form-control"
-                                        value={form.rol}
-                                        onChange={(e) =>
-                                            setForm({ ...form, rol: e.target.value })
-                                        }
+                                        className="form-select"
+                                        value={rol}
+                                        onChange={(e) => setRol(e.target.value)}
                                         required
                                     >
-                                        <option value="">Kies een rol…</option>
-                                        <option value="Koper">Koper</option>
-                                        <option value="Aanvoerder">Aanvoerder</option>
-                                        <option value="Veilingmeester">Veilingmeester</option>
+                                        <option value="">-- Kies rol --</option>
+                                        <option value={1}>Koper</option>
+                                        <option value={2}>Aanvoerder</option>
+                                        <option value={3}>Veilingmeester</option>
                                     </select>
                                 </div>
 

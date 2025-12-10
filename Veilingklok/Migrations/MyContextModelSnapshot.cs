@@ -288,23 +288,20 @@ namespace Veilingklok.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("Datum")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTime?>("EindTijd")
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("HuidigProductId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("IsAfgesloten")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsGestart")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("IsPauze")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("StartTijd")
+                    b.Property<TimeSpan>("StartTijd")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 

@@ -1,15 +1,16 @@
-﻿namespace Veilingklok.Core.Entities
+﻿using Veilingklok.Core.Enums;
+
+namespace Veilingklok.Core.Entities
 {
     public class Veiling
     {
         public int Id { get; set; }
+        public DateTime Datum { get; set; }
+        public TimeSpan StartTijd { get; set; }
 
-        public DateTime StartTijd { get; set; }
         public DateTime? EindTijd { get; set; }
 
-        public bool IsGestart { get; set; }
-        public bool IsPauze { get; set; }
-        public bool IsAfgesloten { get; set; }
+        public VeilingStatus Status { get; set; } = VeilingStatus.Gepland;
 
         public int? HuidigProductId { get; set; }
         public VeilingProduct? HuidigProduct { get; set; }
