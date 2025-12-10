@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,6 +14,7 @@ using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.Database.Seed; // Seeder
 using Veilingklok.Infrastructure.Repositories;
 using Veilingklok.Infrastructure.SignalR.Hubs;
+using System.Globalization;
 
 
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
@@ -94,6 +96,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 var app = builder.Build();
+var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
+culture.DateTimeFormat.ShortDatePattern = "yyyy-MM-dd";
+culture.DateTimeFormat.DateSeparator = "-";
+
+CultureInfo.DefaultThreadCurrentCulture = culture;
+CultureInfo.DefaultThreadCurrentUICulture = culture;
+
 
 // Migrate + Seed (vóór app.Run)
 using (var scope = app.Services.CreateScope())
@@ -101,8 +110,10 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var db = scope.ServiceProvider.GetRequiredService<MyContext>();
+        var passwordService = scope.ServiceProvider.GetRequiredService<PasswordService>();
+
         await db.Database.MigrateAsync();
-        await DbSeeder.SeedAsync(db);
+        await DbSeeder.SeedAsync(db, passwordService); // ← FIX: geef passwordService mee
     }
     catch (Exception ex)
     {
@@ -143,6 +154,7 @@ if (app.Environment.IsDevelopment())
         c.RoutePrefix = "swagger";
     });
 }
+app.UseStaticFiles();
 
 // Middleware
 app.UseHttpsRedirection();

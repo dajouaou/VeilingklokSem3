@@ -13,14 +13,17 @@ namespace Veilingklok.Features.AanvoerderDashboard.Controllers;
 [Authorize(Roles = "Aanvoerder")]
 public class AanvoerderDashboardController : ControllerBase
 {
-    private readonly IAanvoerderDashboardService _service;
     private readonly MyContext _db;
+    private readonly IAanvoerderDashboardService _service;
+    private readonly IWebHostEnvironment _env;
 
-    public AanvoerderDashboardController(IAanvoerderDashboardService service, MyContext db)
+    public AanvoerderDashboardController(IAanvoerderDashboardService service,MyContext db, IWebHostEnvironment env)
     {
         _service = service;
         _db = db;
+        _env = env;
     }
+
 
     private int GetGebruikerId()
     {
@@ -36,21 +39,68 @@ public class AanvoerderDashboardController : ControllerBase
     }
 
     [HttpPost("aanmeldingen")]
-    public async Task<ActionResult<AanmeldingListItemDto>> CreateAanmelding([FromBody] AanmeldingCreateDto dto)
+    public async Task<ActionResult<AanmeldingListItemDto>> CreateAanmelding([FromForm] AanmeldingCreateDto dto)
     {
         var gebruikerId = GetGebruikerId();
-        var created = await _service.CreateAanmeldingAsync(gebruikerId, dto);
-        return Ok(created);
+
+        string? fotoPad = null;
+
+
+        if (dto.Foto != null && dto.Foto.Length > 0)
+        {
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await dto.Foto.CopyToAsync(stream);
+            }
+
+            fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+
+        }
+
+        var result = await _service.CreateAanmeldingAsync(gebruikerId, dto, fotoPad);
+
+        return Ok(result);
     }
 
-    // ✅ FIXED: UPDATE GEBRUIKT NU AANMELDINGUPDATEDTO
+
     [HttpPut("aanmeldingen/{id}")]
-    public async Task<ActionResult<AanmeldingListItemDto>> UpdateAanmelding(int id, [FromBody] AanmeldingUpdateDto dto)
+    public async Task<ActionResult<AanmeldingListItemDto>> UpdateAanmelding(
+        int id,
+        [FromForm] AanmeldingUpdateDto dto)
     {
         var gebruikerId = GetGebruikerId();
-        var updated = await _service.UpdateAanmeldingAsync(gebruikerId, id, dto);
+
+        string? fotoPad = null;
+
+        if (dto.Foto != null && dto.Foto.Length > 0)
+        {
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await dto.Foto.CopyToAsync(stream);
+            }
+
+            fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+        }
+
+        var updated = await _service.UpdateAanmeldingAsync(gebruikerId, id, dto, fotoPad);
+
         return Ok(updated);
     }
+
 
     [HttpDelete("aanmeldingen/{id}")]
     public async Task<ActionResult> DeleteAanmelding(int id)

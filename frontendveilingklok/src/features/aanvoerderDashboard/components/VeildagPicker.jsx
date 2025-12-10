@@ -44,7 +44,7 @@ export default function VeildagPicker({ value, onChange, highlightedDates = [] }
             }}
             className="form-control"
             placeholderText="Kies een veildatum"
-            dateFormat="yyyy-MM-dd"
+            dateFormat="yyyy-MM-dd"cd 
             filterDate={(date) => !isDayBlocked(date)}
             highlightDates={highlight}
             popperPlacement="bottom-start"

@@ -5,6 +5,7 @@ using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.AanvoerderDashboard.Dtos;
 using Veilingklok.Infrastructure.Database;
 
+
 namespace Veilingklok.Features.AanvoerderDashboard.Services
 {
     public class AanvoerderDashboardService : IAanvoerderDashboardService
@@ -36,8 +37,10 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             new DateTime(2025, 12, 25),
             new DateTime(2025, 12, 26)
         };
-
-        public async Task<AanmeldingListItemDto> CreateAanmeldingAsync(int gebruikerId, AanmeldingCreateDto dto)
+        public async Task<AanmeldingListItemDto> CreateAanmeldingAsync(
+            int gebruikerId,
+            AanmeldingCreateDto dto,
+            string? fotoUrl)
         {
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
             var datum = dto.Veildatum.Date;
@@ -62,7 +65,8 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 MinimumPrijs = dto.MinimumPrijs,
                 KlokLocatie = dto.KlokLocatie,
                 Veildatum = datum,
-                FotoUrl = dto.FotoUrl
+                FotoUrl = fotoUrl,
+                Beschrijving = dto.Beschrijving
             };
 
             _db.Aanmeldingen.Add(entity);
@@ -71,7 +75,11 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             return Map(entity, false, null, null);
         }
 
-        public async Task<AanmeldingListItemDto> UpdateAanmeldingAsync(int gebruikerId, int id, AanmeldingUpdateDto dto)
+        public async Task<AanmeldingListItemDto> UpdateAanmeldingAsync(
+            int gebruikerId,
+            int id,
+            AanmeldingUpdateDto dto,
+            string? fotoUrl)
         {
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
 
@@ -88,7 +96,10 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             entity.MinimumPrijs = dto.MinimumPrijs;
             entity.KlokLocatie = dto.KlokLocatie;
             entity.Veildatum = dto.Veildatum.Date;
-            entity.FotoUrl = dto.FotoUrl;
+            entity.Beschrijving = dto.Beschrijving;
+
+            if (fotoUrl != null)
+                entity.FotoUrl = fotoUrl;
 
             await _db.SaveChangesAsync();
 
@@ -114,6 +125,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
 
             var query = _db.Aanmeldingen
+                .Include(a => a.Aanvoerder)
                 .Include(a => a.VeilingProduct)
                 .ThenInclude(vp => vp.Koper)
                 .Where(a => a.AanvoerderId == aanvoerder.Id);
@@ -162,10 +174,11 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
         }
 
         private static AanmeldingListItemDto Map(
-            Aanmelding a,
-            bool isVerkocht,
-            decimal? verkoopPrijs,
-            string? koperNaam)
+           Aanmelding a,
+           bool isVerkocht,
+           decimal? verkoopPrijs,
+           string? koperNaam)
+
         {
             return new AanmeldingListItemDto
             {
@@ -178,12 +191,15 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 KlokLocatie = a.KlokLocatie.ToString(),
                 Veildatum = a.Veildatum,
                 FotoUrl = a.FotoUrl,
-
                 IsVerkocht = isVerkocht,
                 VerkoopPrijs = verkoopPrijs,
                 KoperNaam = koperNaam,
-                TotaleOpbrengst = isVerkocht ? verkoopPrijs * a.Hoeveelheid : null
+                TotaleOpbrengst = isVerkocht ? verkoopPrijs * a.Hoeveelheid : null,
+                Beschrijving = a.Beschrijving,
+                AanvoerderNaam = a.Aanvoerder?.Naam,
+
             };
         }
+
     }
 }

@@ -4,8 +4,8 @@ import { updateAanmelding, deleteAanmelding } from "../api/aanvoerderApi";
 export default function AanmeldingenBeheer({ items, onClose, token, onUpdated }) {
     const [editing, setEditing] = useState(null);
     const [confirmDelete, setConfirmDelete] = useState(null);
+    const [beschrijvingItem, setBeschrijvingItem] = useState(null);
 
-    // Form state
     const [form, setForm] = useState({
         soort: "",
         potmaat: "",
@@ -14,7 +14,8 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
         veildatum: "",
-        fotoUrl: "",
+        fotoFile: null,
+        beschrijving: "",
     });
 
     function startEdit(item) {
@@ -27,7 +28,8 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
             minimumPrijs: item.minimumPrijs,
             klokLocatie: item.klokLocatie,
             veildatum: item.veildatum.split("T")[0],
-            fotoUrl: item.fotoUrl || "",
+            beschrijving: item.beschrijving || "",
+            fotoFile: null,
         });
     }
 
@@ -39,11 +41,10 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                 ...form,
                 hoeveelheid: Number(form.hoeveelheid),
                 minimumPrijs: Number(form.minimumPrijs),
-                veildatum: new Date(form.veildatum + "T00:00:00"),
             },
         });
 
-        onUpdated(); // dashboard data opnieuw laden
+        onUpdated();
         setEditing(null);
     }
 
@@ -76,6 +77,7 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                                     <th>Soort</th>
                                     <th>Hoeveelheid</th>
                                     <th>Min. prijs</th>
+                                    <th>Beschrijving</th>
                                     <th>Acties</th>
                                 </tr>
                             </thead>
@@ -86,6 +88,19 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                                         <td>{a.soort}</td>
                                         <td>{a.hoeveelheid}</td>
                                         <td>€{a.minimumPrijs.toFixed(2)}</td>
+
+                                        <td>
+                                            {a.beschrijving ? (
+                                                <button
+                                                    className="btn btn-sm btn-outline-secondary"
+                                                    onClick={() => setBeschrijvingItem(a)}
+                                                >
+                                                    Bekijken
+                                                </button>
+                                            ) : (
+                                                <span className="text-muted">-</span>
+                                            )}
+                                        </td>
 
                                         <td>
                                             <button
@@ -107,7 +122,6 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                             </tbody>
                         </table>
 
-                        {/* BEWERK MODAL */}
                         {editing && (
                             <div className="mt-4 p-3 border rounded bg-light">
                                 <h5>Aanmelding bewerken</h5>
@@ -178,11 +192,24 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                                     </div>
 
                                     <div className="col-12">
-                                        <label className="form-label">Foto-URL</label>
+                                        <label>Nieuwe foto (optioneel)</label>
                                         <input
-                                            name="fotoUrl"
+                                            type="file"
+                                            accept="image/*"
                                             className="form-control"
-                                            value={form.fotoUrl}
+                                            onChange={(e) =>
+                                                setForm(prev => ({ ...prev, fotoFile: e.target.files[0] }))
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="col-12 mt-2">
+                                        <label className="form-label">Beschrijving</label>
+                                        <textarea
+                                            name="beschrijving"
+                                            className="form-control"
+                                            rows="3"
+                                            value={form.beschrijving}
                                             onChange={handleFormChange}
                                         />
                                     </div>
@@ -207,7 +234,6 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                             </div>
                         )}
 
-                        {/* DELETE CONFIRMATION */}
                         {confirmDelete && (
                             <div className="alert alert-danger mt-4">
                                 <h5>Weet je zeker dat je deze aanmelding wilt verwijderen?</h5>
@@ -233,6 +259,47 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                     </div>
                 </div>
             </div>
+
+            {beschrijvingItem && (
+                <div className="modal d-block" tabIndex="-1">
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+
+                            <div className="modal-header">
+                                <h5 className="modal-title">
+                                    Beschrijving van {beschrijvingItem.soort}
+                                </h5>
+                                <button
+                                    className="btn-close"
+                                    onClick={() => setBeschrijvingItem(null)}
+                                ></button>
+                            </div>
+
+                            <div className="modal-body">
+                                <p>{beschrijvingItem.beschrijving}</p>
+
+                                {beschrijvingItem.fotoUrl && (
+                                    <img
+                                        src={beschrijvingItem.fotoUrl}
+                                        className="img-fluid rounded mt-3"
+                                        alt="Product"
+                                    />
+                                )}
+                            </div>
+
+                            <div className="modal-footer">
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={() => setBeschrijvingItem(null)}
+                                >
+                                    Sluiten
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

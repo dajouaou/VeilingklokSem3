@@ -16,6 +16,8 @@ public class MyContext : DbContext
     public DbSet<VeilingProduct> VeilingProducten => Set<VeilingProduct>();
     public DbSet<Bod> Biedingen => Set<Bod>();
     public DbSet<Veildag> Veildagen { get; set; }
+    public DbSet<Product> Producten => Set<Product>();
+
 
 
 
