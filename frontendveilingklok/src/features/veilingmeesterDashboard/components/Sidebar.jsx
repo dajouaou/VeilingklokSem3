@@ -18,8 +18,7 @@ export default function Sidebar({ logout, active, sidebarOpen, setSidebarOpen })
                     <span className="vm-nav-dot" />
                     Dashboard
                 </a>
-                <a className={active === "planning" ? "active" : ""} href="/veilingmeester/planning">
-                    <span className="vm-nav-dot" />
+                <a className={active === "planning" ? "active" : ""} href="/veilingmeester/plan">
                     Veiling plannen
                 </a>
                 <a className={active === "statistiek" ? "active" : ""} href="/veilingmeester/statistieken">
