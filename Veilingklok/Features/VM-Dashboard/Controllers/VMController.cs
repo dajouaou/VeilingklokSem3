@@ -1,6 +1,7 @@
 // Veilingklok/Features/VM/VMController.cs
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Veilingklok.Core.Shared;
@@ -9,6 +10,7 @@ using Veilingklok.Features.VM.Services;
 
 namespace Veilingklok.Features.VM;
 
+[Authorize(Roles = "Veilingmeester")]
 [ApiController]
 [Route("api/veilingen/{veilingId:int}/vm")]
 public sealed class VMController : ControllerBase

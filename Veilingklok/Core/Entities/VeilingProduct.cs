@@ -15,7 +15,7 @@ public class VeilingProduct
     public int? AanvoerderId { get; set; }//fk naar aanvoerder
     public Aanvoerder? Aanvoerder { get; set; }//aanvoerder-
 
-    public int Volgorde { get; set; }//plek in de queue
+    public int Volgorde { get; set; }//plek in de queue-
     public int Hoeveelheid { get; set; } = 1;//Hoeveel stuks
 
     public decimal StartPrijs { get; set; }//De prijs waarmee de klok begint voordat het aftellen start

@@ -1,17 +1,13 @@
-using Veilingklok.Core.Entities;
+// src/Features/Veiling/IVeilingService.cs
+using System.Threading.Tasks;
 using Veilingklok.Core.Shared;
+using Veilingklok.Features.Veiling.Dtos;
 
-namespace Veilingklok.Features.Veiling.Services;
+namespace Veilingklok.Features.Veiling;
 
 public interface IVeilingService
 {
-    
-    //Haalt het actieve product op
-    Task<Result<VeilingProduct>> GetCurrentProductAsync(int veilingId);
-    
-    //Haalt de queue op
-    Task<Result<List<VeilingProduct>>> GetQueueAsync(int veilingId);
-    
-    //een gebruiker laat een bod plaatsen
-    Task<Result<Bid>> PlaceBidAsync(int veilingId, int koperId, decimal amount);
+    Task<Result<PublicVeilingDto>> LoadPublicAsync(int veilingId);
+
+    Task<Result<BidResultDto>> PlaceBidAsync(int veilingId, int koperId);
 }

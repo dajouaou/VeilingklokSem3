@@ -1,20 +1,18 @@
+// Veilingklok/Program.cs
+using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
-using System.Text.Json;
+using Microsoft.IdentityModel.Tokens;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Auth.Services;
-using Veilingklok.Infrastructure.Database;
-using Veilingklok.Infrastructure.Repositories;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Veilingklok.Features.Realtime;
+using Veilingklok.Features.Veiling;
 using Veilingklok.Features.Veiling.Services;
 using Veilingklok.Features.VM.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.SqlServer;
-
-
+using Veilingklok.Infrastructure.Database;
+using Veilingklok.Infrastructure.Repositories;
 
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 {
@@ -25,31 +23,23 @@ AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
-
 
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
         o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
-
 builder.Services.AddDbContext<MyContext>(opt =>
     opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
-
-
-
 
 builder.Services.AddSignalR()
     .AddJsonProtocol(o =>
         o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
-
 builder.Services.AddHealthChecks();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 
 builder.Services.Scan(scan => scan
     .FromApplicationDependencies()
@@ -60,13 +50,10 @@ builder.Services.Scan(scan => scan
 builder.Services.AddScoped<IVMService, VMService>();
 builder.Services.AddScoped<IVeilingService, VeilingService>();
 
-
-
 builder.Services.AddScoped<IGebruikerRepository, GebruikerRepository>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
-
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -82,16 +69,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+builder.Services.AddAuthorization();
 
-builder.Services.AddCors(opt =>
-    opt.AddPolicy("AllowFrontend", p => p
-        .AllowAnyOrigin()
-        .AllowAnyHeader()
-        .AllowAnyMethod()
-    ));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
-
 
 using (var scope = app.Services.CreateScope())
 {
@@ -106,7 +98,6 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine(ex.ToString());
     }
 }
-
 
 app.UseExceptionHandler(errorApp =>
 {
@@ -128,26 +119,24 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
-app.UseCors("AllowFrontend");
+
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-
-app.MapControllers();
+app.MapControllers().RequireCors("Frontend");
+app.MapHub<AuctionHub>("/hubs/auction").RequireCors("Frontend");
 app.MapHealthChecks("/health");
-
-
 
 app.Run();

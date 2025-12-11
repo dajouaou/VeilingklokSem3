@@ -1,5 +1,7 @@
+// src/Features/Veiling/Controllers/VeilingController.cs
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Veilingklok.Features.Veiling.Services;
+using Veilingklok.Features.Veiling;
 
 namespace Veilingklok.Features.Veiling.Controllers;
 
@@ -14,27 +16,21 @@ public class VeilingController : ControllerBase
         _service = service;
     }
 
-    // actieve product ophalen
-    [HttpGet("{veilingId:int}/current")]
-    public async Task<IActionResult> GetCurrentProduct(int veilingId)
+    [HttpGet("{veilingId:int}/public")]
+    public async Task<IActionResult> GetPublic(int veilingId)
     {
-        var result = await _service.GetCurrentProductAsync(veilingId);
-        return result.Success ? Ok(result.Value) : BadRequest(result.Error);
+        var result = await _service.LoadPublicAsync(veilingId);
+        if (!result.Success)
+            return BadRequest(result.Error);
+        return Ok(result.Value);
     }
 
-    // queue ophalen
-    [HttpGet("{veilingId:int}/queue")]
-    public async Task<IActionResult> GetQueue(int veilingId)
-    {
-        var result = await _service.GetQueueAsync(veilingId);
-        return result.Success ? Ok(result.Value) : BadRequest(result.Error);
-    }
-
-    // bod plaatsen
     [HttpPost("{veilingId:int}/bids")]
-    public async Task<IActionResult> PlaceBid(int veilingId, int koperId, decimal amount)
+    public async Task<IActionResult> PlaceBid(int veilingId, [FromQuery] int koperId)
     {
-        var result = await _service.PlaceBidAsync(veilingId, koperId, amount);
-        return result.Success ? Ok(result.Value) : BadRequest(result.Error);
+        var result = await _service.PlaceBidAsync(veilingId, koperId);
+        if (!result.Success)
+            return BadRequest(result.Error);
+        return Ok(result.Value);
     }
 }

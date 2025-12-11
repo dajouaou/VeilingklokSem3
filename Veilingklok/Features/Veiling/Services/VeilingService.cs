@@ -1,8 +1,13 @@
-// Veilingklok/Features/Veiling/Services/VeilingService.cs
+// src/Features/Veiling/Services/VeilingService.cs
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Entities;
 using Veilingklok.Core.Enums;
 using Veilingklok.Core.Shared;
+using Veilingklok.Features.Veiling.Dtos;
 using Veilingklok.Infrastructure.Database;
 
 namespace Veilingklok.Features.Veiling.Services;
@@ -16,71 +21,95 @@ public sealed class VeilingService : IVeilingService
         _db = db;
     }
 
-    public async Task<Result<VeilingProduct>> GetCurrentProductAsync(int veilingId)
+    public async Task<Result<PublicVeilingDto>> LoadPublicAsync(int veilingId)
     {
         var veiling = await _db.Veilingen
-            .Include(v => v.CurrentVeilingProduct)
-                .ThenInclude(p => p.Product)
-            .Include(v => v.CurrentVeilingProduct)
-                .ThenInclude(p => p.Aanvoerder)
+            .Include(v => v.VeilingProducten)
+                .ThenInclude(vp => vp.Product)
+            .Include(v => v.VeilingProducten)
+                .ThenInclude(vp => vp.Aanvoerder)
+            .Include(v => v.VeilingProducten)
+                .ThenInclude(vp => vp.Bids)
+                    .ThenInclude(b => b.Koper)
+                    .ThenInclude(k => k.Gebruiker)
             .FirstOrDefaultAsync(v => v.Id == veilingId);
 
         if (veiling == null)
-            return Result<VeilingProduct>.Fail("Veiling niet gevonden.");
+            return Result<PublicVeilingDto>.Fail("Veiling niet gevonden.");
 
-        if (veiling.CurrentVeilingProduct == null)
-            return Result<VeilingProduct>.Fail("Geen actief product.");
+        var current = veiling.VeilingProducten
+            .FirstOrDefault(p => p.Status == VeilingProductStatus.Active);
 
-        return Result<VeilingProduct>.Ok(veiling.CurrentVeilingProduct);
-    }
-
-    public async Task<Result<List<VeilingProduct>>> GetQueueAsync(int veilingId)
-    {
-        var producten = await _db.VeilingProducten
-            .Include(p => p.Product)
-            .Include(p => p.Aanvoerder)
-            .Where(p => p.VeilingId == veilingId && p.Status == VeilingProductStatus.Queued)
+        var queue = veiling.VeilingProducten
+            .Where(p => p.Status == VeilingProductStatus.Queued)
             .OrderBy(p => p.Volgorde)
-            .ToListAsync();
+            .ToList();
 
-        return Result<List<VeilingProduct>>.Ok(producten);
+        var bids = current?.Bids
+                        .OrderByDescending(b => b.PlacedAtUtc)
+                        .ToList()
+                    ?? new List<Bid>();
+
+        var dto = new PublicVeilingDto
+        {
+            CurrentProduct = current?.ToPublicDto(),
+            Queue = queue.Select(p => p.ToPublicDto()).ToList(),
+            Bids = bids.Select(b => b.ToPublicDto()).ToList(),
+            TimeLeftMs = 0,
+            CurrentPrice = current?.HuidigePrijs ?? 0m,
+            HighestBidderId = bids.FirstOrDefault()?.KoperId
+        };
+
+        return Result<PublicVeilingDto>.Ok(dto);
     }
 
-    public async Task<Result<Bid>> PlaceBidAsync(int veilingId, int koperId, decimal amount)
+    public async Task<Result<BidResultDto>> PlaceBidAsync(int veilingId, int koperId)
     {
         var veiling = await _db.Veilingen
-            .Include(v => v.CurrentVeilingProduct)
+            .Include(v => v.VeilingProducten)
+                .ThenInclude(vp => vp.Bids)
             .FirstOrDefaultAsync(v => v.Id == veilingId);
 
         if (veiling == null)
-            return Result<Bid>.Fail("Veiling niet gevonden.");
+            return Result<BidResultDto>.Fail("Veiling niet gevonden.");
 
-        var current = veiling.CurrentVeilingProduct;
-        if (current == null || current.Status != VeilingProductStatus.Active)
-            return Result<Bid>.Fail("Bieden is niet mogelijk.");
+        if (veiling.Status != VeilingStatus.Running)
+            return Result<BidResultDto>.Fail("Veiling is niet actief.");
+
+        var current = veiling.VeilingProducten
+            .FirstOrDefault(p => p.Status == VeilingProductStatus.Active);
+
+        if (current == null)
+            return Result<BidResultDto>.Fail("Er is momenteel geen actief product.");
 
         var koper = await _db.Kopers
             .Include(k => k.Gebruiker)
             .FirstOrDefaultAsync(k => k.Id == koperId);
 
         if (koper == null)
-            return Result<Bid>.Fail("Koper niet gevonden.");
+            return Result<BidResultDto>.Fail("Koper niet gevonden.");
 
         var bid = new Bid
         {
-            VeilingId = veilingId,
+            VeilingId = veiling.Id,
             VeilingProductId = current.Id,
-            KoperId = koper.Id,
             PlacedByGebruikerId = koper.GebruikerId,
-            Amount = amount,
-            Source = BidSource.Buyer
+            KoperId = koperId,
+            Amount = current.HuidigePrijs,
+            PlacedAtUtc = DateTime.UtcNow
         };
 
         current.Bids.Add(bid);
-        current.HuidigePrijs = amount;
-
         await _db.SaveChangesAsync();
 
-        return Result<Bid>.Ok(bid);
+        var resultDto = new BidResultDto
+        {
+            Accepted = true,
+            Message = "Bod geplaatst.",
+            NewPrice = bid.Amount,
+            HighestBidderId = koperId
+        };
+
+        return Result<BidResultDto>.Ok(resultDto);
     }
 }
