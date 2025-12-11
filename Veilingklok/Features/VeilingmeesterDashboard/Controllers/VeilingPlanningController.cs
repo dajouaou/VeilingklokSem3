@@ -47,7 +47,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                     Soort = a.Soort,
                     Hoeveelheid = a.Hoeveelheid,
                     MinimumPrijs = a.MinimumPrijs,
-                    AanvoerderNaam = a.Aanvoerder.Naam,
+                    AanvoerderNaam = a.Aanvoerder != null ? a.Aanvoerder.Naam : "(Onbekend)",
                     Veildatum = a.Veildatum
                 })
                 .ToListAsync();
@@ -112,22 +112,30 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
         [HttpGet("gepland")]
         public async Task<IActionResult> GetGeplande()
         {
-            var list = await _db.Veilingen
-                .Include(v => v.Producten)                   // voorkomt NullReference
+            var veilingen = await _db.Veilingen
                 .Where(v => v.Status == VeilingStatus.Gepland)
                 .OrderBy(v => v.Datum)
                 .ThenBy(v => v.StartTijd)
-                .Select(v => new GeplandeVeilingListItemDto
-                {
-                    Id = v.Id,
-                    Veildatum = v.Datum.ToString("yyyy-MM-dd"),
-                    StartTijd = v.StartTijd.ToString(@"hh\:mm"),
-                    AantalProducten = v.Producten.Count     // hier crashte hij
-                })
                 .ToListAsync();
+
+            var list = veilingen.Select(v => new GeplandeVeilingListItemDto
+            {
+                Id = v.Id,
+                Veildatum = (v.Datum != default ? v.Datum : DateTime.Now).ToString("yyyy-MM-dd"),
+                StartTijd = v.StartTijd != null
+                    ? v.StartTijd.ToString(@"hh\:mm")
+                    : "Onbekend",
+
+                AantalProducten = _db.VeilingProducten
+                    .Where(p => p.VeilingId == v.Id)
+                    .Count()
+            })
+            .ToList();
 
             return Ok(list);
         }
+
+
 
 
     }

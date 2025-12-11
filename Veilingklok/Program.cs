@@ -15,6 +15,9 @@ using Veilingklok.Infrastructure.Database.Seed; // Seeder
 using Veilingklok.Infrastructure.Repositories;
 using Veilingklok.Infrastructure.SignalR.Hubs;
 using System.Globalization;
+using Veilingklok.Infrastructure.SignalR.Broadcasters;
+using Veilingklok.Features.Veiling.Services;
+
 
 
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
@@ -81,6 +84,10 @@ builder.Services.AddScoped<IGebruikerRepository, GebruikerRepository>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<IVeilingBroadcastService, VeilingBroadcastService>();
+
+builder.Services.AddHostedService<PrijsMechanismeService>();
+
 
 // JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -169,6 +176,6 @@ app.UseAuthorization();
 // Endpoints
 app.MapControllers();
 app.MapHealthChecks("/health");
-app.MapHub<AuctionHub>("/hubs/auction");
+app.MapHub<AuctionHub>("/hub/veiling");
 
 app.Run();
