@@ -32,10 +32,10 @@ public class AanvoerderDashboardController : ControllerBase
     }
 
     [HttpGet("aanmeldingen")]
-    public async Task<ActionResult<List<AanmeldingListItemDto>>> GetAanmeldingen([FromQuery] DateTime? veildatum)
+    public async Task<ActionResult<List<AanmeldingListItemDto>>> GetAanmeldingen([FromQuery] DateTime? leverdatum)
     {
         var gebruikerId = GetGebruikerId();
-        return Ok(await _service.GetAanmeldingenAsync(gebruikerId, veildatum));
+        return Ok(await _service.GetAanmeldingenAsync(gebruikerId, leverdatum));
     }
 
     [HttpPost("aanmeldingen")]
@@ -111,10 +111,10 @@ public class AanvoerderDashboardController : ControllerBase
     }
 
     [HttpGet("statistieken")]
-    public async Task<ActionResult<AanvoerderStatsDto>> GetStats([FromQuery] DateTime? veildatum)
+    public async Task<ActionResult<AanvoerderStatsDto>> GetStats([FromQuery] DateTime? leverdatum)
     {
         var gebruikerId = GetGebruikerId();
-        return Ok(await _service.GetStatsAsync(gebruikerId, veildatum));
+        return Ok(await _service.GetStatsAsync(gebruikerId, leverdatum));
     }
 
     [HttpGet("veildagen")]

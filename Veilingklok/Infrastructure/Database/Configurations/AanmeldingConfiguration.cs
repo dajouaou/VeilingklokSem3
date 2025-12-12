@@ -22,6 +22,9 @@ public class AanmeldingConfiguration : IEntityTypeConfiguration<Aanmelding>
         builder.Property(x => x.MinimumPrijs)
             .HasPrecision(18, 2);
 
+        builder.Property(x => x.LeverDatum)
+            .IsRequired();
+
         builder.HasOne(x => x.Aanvoerder)
             .WithMany(a => a.Aanmeldingen)
             .HasForeignKey(x => x.AanvoerderId)

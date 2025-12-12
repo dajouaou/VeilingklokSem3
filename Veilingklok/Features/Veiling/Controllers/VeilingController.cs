@@ -20,7 +20,7 @@ namespace Veilingklok.Features.Veiling.Controllers
         [HttpPost("start")]
         public async Task<IActionResult> Start([FromBody] StartVeilingDto dto)
         {
-            var overzicht = await _service.StartVeilingAsync(dto.Veildatum, dto.StartTijd);
+            var overzicht = await _service.StartVeilingAsync(dto.Veildatum, dto.LeverDatum, dto.StartTijd);
             return Ok(overzicht);
         }
 
@@ -50,16 +50,6 @@ namespace Veilingklok.Features.Veiling.Controllers
         {
             await _service.StopAsync(id);
             return NoContent();
-        }
-
-        [HttpPost("{id}/bod")]
-        public async Task<IActionResult> PlaatsBod(int id, [FromBody] BodPlaatsenDto dto)
-        {
-            // TODO: koperId uit token halen
-            int koperId = 999;
-
-            var bod = await _service.PlaatsBodAsync(id, dto, koperId);
-            return Ok(bod);
         }
 
         [HttpGet("dagen")]

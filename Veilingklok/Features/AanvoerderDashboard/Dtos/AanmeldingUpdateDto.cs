@@ -20,7 +20,7 @@ public class AanmeldingUpdateDto
     public KlokLocatie KlokLocatie { get; set; }
 
     [Required]
-    public DateTime Veildatum { get; set; }
+    public DateTime LeverDatum { get; set; }
     public IFormFile? Foto { get; set; }
     public string? Beschrijving { get; set; }
 

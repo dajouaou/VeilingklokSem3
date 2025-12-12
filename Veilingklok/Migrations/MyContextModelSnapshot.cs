@@ -38,6 +38,9 @@ namespace Veilingklok.Migrations
                     b.Property<int>("KlokLocatie")
                         .HasColumnType("INTEGER");
 
+                    b.Property<DateTime>("LeverDatum")
+                        .HasColumnType("TEXT");
+
                     b.Property<decimal>("MinimumPrijs")
                         .HasPrecision(18, 2)
                         .HasColumnType("TEXT");
@@ -53,9 +56,6 @@ namespace Veilingklok.Migrations
 
                     b.Property<string>("Steellengte")
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("Veildatum")
                         .HasColumnType("TEXT");
 
                     b.Property<int?>("VeilingProductId")
@@ -321,6 +321,7 @@ namespace Veilingklok.Migrations
 
                     b.Property<string>("Naam")
                         .IsRequired()
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -328,7 +329,7 @@ namespace Veilingklok.Migrations
                     b.HasIndex("GebruikerId")
                         .IsUnique();
 
-                    b.ToTable("Veilingmeesters");
+                    b.ToTable("Veilingmeesters", (string)null);
                 });
 
             modelBuilder.Entity("Aanmelding", b =>
@@ -440,7 +441,7 @@ namespace Veilingklok.Migrations
                     b.HasOne("Gebruiker", "Gebruiker")
                         .WithOne("Veilingmeester")
                         .HasForeignKey("Veilingklok.Core.Entities.Veilingmeester", "GebruikerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Gebruiker");

@@ -15,7 +15,7 @@ public class Aanmelding
     public decimal MinimumPrijs { get; set; }
 
     public KlokLocatie KlokLocatie { get; set; }
-    public DateTime Veildatum { get; set; }
+    public DateTime LeverDatum { get; set; }
 
     public string? FotoUrl { get; set; }
     public int? VeilingProductId { get; set; }

@@ -1,10 +1,10 @@
 const API_BASE = "https://localhost:56418";
 
-export async function fetchAanmeldingen({ token, veildatum }) {
+export async function fetchAanmeldingen({ token, leverdatum }) {
     let url = `${API_BASE}/api/aanvoerder/dashboard/aanmeldingen`;
 
-    if (veildatum && veildatum.trim() !== "") {
-        url += `?veildatum=${veildatum}`;
+    if (leverdatum) {
+        url += `?leverdatum=${leverdatum}`;
     }
 
     const res = await fetch(url, {
@@ -16,15 +16,17 @@ export async function fetchAanmeldingen({ token, veildatum }) {
 }
 
 
+
 export async function createAanmelding({ token, data }) {
     const formData = new FormData();
+
     formData.append("Soort", data.soort);
     formData.append("Potmaat", data.potmaat ?? "");
     formData.append("Steellengte", data.steellengte ?? "");
     formData.append("Hoeveelheid", data.hoeveelheid);
     formData.append("MinimumPrijs", data.minimumPrijs);
     formData.append("KlokLocatie", data.klokLocatie);
-    formData.append("Veildatum", new Date(data.veildatum).toISOString());
+    formData.append("LeverDatum", data.leverdatum);
 
     if (data.fotoFile) {
         formData.append("Foto", data.fotoFile);
@@ -43,11 +45,12 @@ export async function createAanmelding({ token, data }) {
 }
 
 
-export async function fetchAanvoerderStats({ token, veildatum }) {
+
+export async function fetchAanvoerderStats({ token, leverdatum }) {
     let url = `${API_BASE}/api/aanvoerder/dashboard/statistieken`;
 
-    if (veildatum && veildatum.trim() !== "") {
-        url += `?veildatum=${veildatum}`;
+    if (leverdatum) {
+        url += `?leverdatum=${leverdatum}`;
     }
 
     const res = await fetch(url, {
@@ -58,6 +61,7 @@ export async function fetchAanvoerderStats({ token, veildatum }) {
     return res.json();
 }
 
+
 export async function updateAanmelding({ token, id, data }) {
     const formData = new FormData();
 
@@ -67,7 +71,7 @@ export async function updateAanmelding({ token, id, data }) {
     formData.append("Hoeveelheid", data.hoeveelheid);
     formData.append("MinimumPrijs", data.minimumPrijs);
     formData.append("KlokLocatie", data.klokLocatie);
-    formData.append("Veildatum", data.veildatum);
+    formData.append("LeverDatum", data.leverdatum);
 
     if (data.fotoFile) {
         formData.append("Foto", data.fotoFile);
@@ -82,6 +86,7 @@ export async function updateAanmelding({ token, id, data }) {
     if (!res.ok) throw new Error("Kon aanmelding niet wijzigen.");
     return res.json();
 }
+
 
 
 export async function deleteAanmelding({ token, id }) {

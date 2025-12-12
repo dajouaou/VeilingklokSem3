@@ -16,7 +16,7 @@ namespace Veilingklok.Features.VeilingPublic.Services
         public async Task<List<string>> GetBeschikbareVeildagenAsync()
         {
             var dagen = await _db.Aanmeldingen
-                .Select(a => a.Veildatum.Date)
+                .Select(a => a.LeverDatum.Date)
                 .Distinct()
                 .OrderBy(d => d)
                 .ToListAsync();

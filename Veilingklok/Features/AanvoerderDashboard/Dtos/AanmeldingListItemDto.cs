@@ -10,7 +10,7 @@
     public decimal MinimumPrijs { get; set; }
 
     public string KlokLocatie { get; set; } = string.Empty;
-    public DateTime Veildatum { get; set; }
+    public DateTime LeverDatum { get; set; }
 
     public string? FotoUrl { get; set; }
 

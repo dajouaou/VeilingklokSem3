@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Entities;
 using Veilingklok.Core.Enums;
-using Veilingklok.Infrastructure.Database;
 using Veilingklok.Features.VeilingmeesterDashboard.Dtos;
+using Veilingklok.Infrastructure.Database;
 using VeilingEntity = Veilingklok.Core.Entities.Veiling;
 
 namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
@@ -26,7 +27,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
         public async Task<IActionResult> GetVeildagen()
         {
             var dagen = await _db.Aanmeldingen
-                .Select(a => a.Veildatum.Date)
+                .Select(a => a.LeverDatum.Date)
                 .Distinct()
                 .OrderBy(d => d)
                 .ToListAsync();
@@ -34,26 +35,30 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             return Ok(dagen.Select(d => d.ToString("yyyy-MM-dd")));
         }
 
-        // 2️⃣ PRODUCTEN VOOR VEILDAG
         [HttpGet("aanmeldingen")]
-        public async Task<IActionResult> GetAanmeldingenVoorDatum([FromQuery] DateTime veildatum)
+        public async Task<IActionResult> GetAanmeldingen([FromQuery] DateTime leverdatum)
         {
             var items = await _db.Aanmeldingen
                 .Include(a => a.Aanvoerder)
-                .Where(a => a.Veildatum == veildatum.Date)
+                .Where(a =>
+                    a.LeverDatum.Date == leverdatum.Date &&
+                    a.VeilingProductId == null
+                )
                 .Select(a => new VeilingPlanningAanmeldingDto
                 {
                     Id = a.Id,
                     Soort = a.Soort,
                     Hoeveelheid = a.Hoeveelheid,
                     MinimumPrijs = a.MinimumPrijs,
-                    AanvoerderNaam = a.Aanvoerder != null ? a.Aanvoerder.Naam : "(Onbekend)",
-                    Veildatum = a.Veildatum
+                    AanvoerderNaam = a.Aanvoerder!.Naam,
+                    LeverDatum = a.LeverDatum,
                 })
                 .ToListAsync();
 
             return Ok(items);
         }
+
+
 
         [HttpPost("plan")]
         public async Task<ActionResult> PlanVeiling([FromBody] PlanVeilingRequestDto dto)
@@ -118,22 +123,48 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                 .ThenBy(v => v.StartTijd)
                 .ToListAsync();
 
-            var list = veilingen.Select(v => new GeplandeVeilingListItemDto
+            if (!veilingen.Any())
+                return Ok(new List<GeplandeVeilingListItemDto>());
+
+            var productCounts = await _db.VeilingProducten
+                .GroupBy(p => p.VeilingId)
+                .Select(g => new
+                {
+                    VeilingId = g.Key,
+                    Aantal = g.Count()
+                })
+                .ToListAsync();
+
+            var result = veilingen.Select(v =>
             {
-                Id = v.Id,
-                Veildatum = (v.Datum != default ? v.Datum : DateTime.Now).ToString("yyyy-MM-dd"),
-                StartTijd = v.StartTijd != null
-                    ? v.StartTijd.ToString(@"hh\:mm")
-                    : "Onbekend",
+                var count = productCounts
+                    .FirstOrDefault(x => x.VeilingId == v.Id)?.Aantal ?? 0;
 
-                AantalProducten = _db.VeilingProducten
-                    .Where(p => p.VeilingId == v.Id)
-                    .Count()
-            })
-            .ToList();
+                return new GeplandeVeilingListItemDto
+                {
+                    Id = v.Id,
+                    Veildatum = v.Datum.ToString("yyyy-MM-dd"),
+                    StartTijd = v.StartTijd.ToString(@"hh\:mm"),
+                    AantalProducten = count
+                };
+            }).ToList();
 
-            return Ok(list);
+            return Ok(result);
         }
+
+        [HttpGet("leverdata")]
+        public async Task<IActionResult> GetLeverdata()
+        {
+            var data = await _db.Aanmeldingen
+                .Select(a => a.LeverDatum.Date)
+                .Distinct()
+                .OrderBy(d => d)
+                .ToListAsync();
+
+            return Ok(data.Select(d => d.ToString("yyyy-MM-dd")));
+        }
+
+
 
 
 

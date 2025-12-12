@@ -43,7 +43,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             string? fotoUrl)
         {
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
-            var datum = dto.Veildatum.Date;
+            var datum = dto.LeverDatum.Date;
 
             if (datum.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
                 throw new ArgumentException("Zaterdag en zondag zijn geen geldige veildagen.");
@@ -64,10 +64,11 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 Hoeveelheid = dto.Hoeveelheid,
                 MinimumPrijs = dto.MinimumPrijs,
                 KlokLocatie = dto.KlokLocatie,
-                Veildatum = datum,
+                LeverDatum = datum,
                 FotoUrl = fotoUrl,
                 Beschrijving = dto.Beschrijving
             };
+
 
             _db.Aanmeldingen.Add(entity);
             await _db.SaveChangesAsync();
@@ -95,7 +96,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             entity.Hoeveelheid = dto.Hoeveelheid;
             entity.MinimumPrijs = dto.MinimumPrijs;
             entity.KlokLocatie = dto.KlokLocatie;
-            entity.Veildatum = dto.Veildatum.Date;
+            entity.LeverDatum = dto.LeverDatum.Date;
             entity.Beschrijving = dto.Beschrijving;
 
             if (fotoUrl != null)
@@ -131,7 +132,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 .Where(a => a.AanvoerderId == aanvoerder.Id);
 
             if (veildatum.HasValue)
-                query = query.Where(a => a.Veildatum == veildatum.Value.Date);
+                query = query.Where(a => a.LeverDatum == veildatum.Value.Date);
 
             var list = await query.ToListAsync();
 
@@ -156,7 +157,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 .Where(a => a.AanvoerderId == aanvoerder.Id);
 
             if (veildatum.HasValue)
-                query = query.Where(a => a.Veildatum == veildatum.Value.Date);
+                query = query.Where(a => a.LeverDatum == veildatum.Value.Date);
 
             var list = await query.ToListAsync();
 
@@ -189,7 +190,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
                 Hoeveelheid = a.Hoeveelheid,
                 MinimumPrijs = a.MinimumPrijs,
                 KlokLocatie = a.KlokLocatie.ToString(),
-                Veildatum = a.Veildatum,
+                LeverDatum = a.LeverDatum,
                 FotoUrl = a.FotoUrl,
                 IsVerkocht = isVerkocht,
                 VerkoopPrijs = verkoopPrijs,

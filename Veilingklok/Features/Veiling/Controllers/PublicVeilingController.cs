@@ -19,7 +19,7 @@ namespace Veilingklok.Features.Veiling.Controllers
         public async Task<ActionResult<List<string>>> GetPublicVeildagen()
         {
             var dagen = await _db.Aanmeldingen
-                .Select(a => a.Veildatum.Date)
+                .Select(a => a.LeverDatum.Date)
                 .Distinct()
                 .OrderBy(d => d)
                 .ToListAsync();

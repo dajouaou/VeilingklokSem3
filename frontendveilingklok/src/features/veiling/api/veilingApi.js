@@ -55,9 +55,9 @@ export function fetchVeilingDagen(token) {
     return apiGet("/api/veilingmeester/planning/veildagen", token);
 }
 
-export function fetchAanmeldingenVoorDatum(token, veildatum) {
+export function fetchAanmeldingenVoorDatum(token, leverdatum) {
     return apiGet(
-        `/api/veilingmeester/planning/aanmeldingen?veildatum=${encodeURIComponent(veildatum)}`,
+        `/api/veilingmeester/planning/aanmeldingen?leverdatum=${encodeURIComponent(leverdatum)}`,
         token
     );
 }

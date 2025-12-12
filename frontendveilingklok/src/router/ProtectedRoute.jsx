@@ -7,7 +7,7 @@ export default function ProtectedRoute({ allowedRoles, children }) {
 
     // Auth laden (token = null)
     if (token === null) {
-        return <div>Loading...</div>;
+        return <div>Authenticatie wordt gecontroleerd...</div>;
     }
 
     // Niet ingelogd

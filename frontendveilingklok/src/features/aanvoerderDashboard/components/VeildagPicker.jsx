@@ -2,54 +2,48 @@ import React from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-// Feestdagen toevoegen
+// Feestdagen
 const FEESTDAGEN = [
-    "2025-01-01", // Nieuwjaarsdag
-    "2025-04-18", // Goede Vrijdag
-    "2025-04-20", // Pasen
-    "2025-04-21", // Tweede Paasdag
-    "2025-05-29", // Hemelvaartsdag
-    "2025-06-08", // Pinksteren
-    "2025-06-09", // Tweede Pinksterdag
-    "2025-12-25", // Kerst
-    "2025-12-26"  // Tweede Kerstdag
+    "2025-01-01",
+    "2025-04-18",
+    "2025-04-20",
+    "2025-04-21",
+    "2025-05-29",
+    "2025-06-08",
+    "2025-06-09",
+    "2025-12-25",
+    "2025-12-26"
 ];
 
 export default function VeildagPicker({ value, onChange, highlightedDates = [] }) {
-    const selectedDate = value ? new Date(value) : null;
 
-    // disable weekend + feestdagen
     const isDayBlocked = (date) => {
         const iso = date.toISOString().split("T")[0];
 
-        // weekend
-        if (date.getDay() === 0 || date.getDay() === 6) return true;
+        if (date.getDay() === 0 || date.getDay() === 6) return false;
+        if (FEESTDAGEN.includes(iso)) return false;
 
-        // feestdagen
-        if (FEESTDAGEN.includes(iso)) return true;
-
-        return false;
+        return true;
     };
 
-    // highlight datums waar al producten op staan
-    const highlight = highlightedDates.map((d) => new Date(d));
+    const highlight = highlightedDates
+        .filter(d => d)
+        .map(d => new Date(d));
 
     return (
         <DatePicker
-            selected={selectedDate}
+            selected={value}
             onChange={(date) => {
                 if (!date) return;
-                const iso = date.toISOString().substring(0, 10);
-                onChange(iso);
+                onChange(date); 
             }}
             className="form-control"
-            placeholderText="Kies een veildatum"
-            dateFormat="yyyy-MM-dd"cd 
-            filterDate={(date) => !isDayBlocked(date)}
+            placeholderText="Kies een leverdatum"
+            dateFormat="yyyy-MM-dd"
+            filterDate={isDayBlocked}
             highlightDates={highlight}
             popperPlacement="bottom-start"
             wrapperClassName="w-100"
         />
-
     );
 }

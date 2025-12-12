@@ -30,7 +30,7 @@ export default function AanvoerderDashboard() {
         hoeveelheid: "",
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
-        veildatum: "",
+        leverdatum: null, // date object (niet string)
         fotoFile: null,  
     });
 
@@ -48,8 +48,8 @@ export default function AanvoerderDashboard() {
 
         try {
             const [aanmeldingen, statsDto] = await Promise.all([
-                fetchAanmeldingen({ token, veildatum: filterDate || undefined }),
-                fetchAanvoerderStats({ token, veildatum: filterDate || undefined }),
+                fetchAanmeldingen({ token, leverdatum: filterDate || undefined }),
+                fetchAanvoerderStats({ token, leverdatum: filterDate || undefined }),
             ]);
 
             setItems(aanmeldingen);
@@ -72,8 +72,8 @@ export default function AanvoerderDashboard() {
         setFormError("");
         setFormSuccess("");
 
-        if (!form.soort || !form.hoeveelheid || !form.minimumPrijs || !form.veildatum) {
-            setFormError("Vul minimaal soort, hoeveelheid, minimumprijs en veildatum in.");
+        if (!form.soort || !form.hoeveelheid || !form.minimumPrijs || !form.leverdatum) {
+            setFormError("Vul minimaal soort, hoeveelheid, minimumprijs en leverdatum in.");
             return;
         }
 
@@ -84,7 +84,7 @@ export default function AanvoerderDashboard() {
             hoeveelheid: Number(form.hoeveelheid),
             minimumPrijs: Number(form.minimumPrijs),
             klokLocatie: form.klokLocatie,
-            veildatum: form.veildatum,
+            leverdatum: form.leverdatum.toISOString(),
             fotoFile: form.fotoFile,
             beschrijving: form.beschrijving || "",
         };
@@ -97,7 +97,7 @@ export default function AanvoerderDashboard() {
 
             const updatedStats = await fetchAanvoerderStats({
                 token,
-                veildatum: filterDate || undefined
+                leverdatum: filterDate || undefined
             });
             setStats(updatedStats);
 
@@ -109,7 +109,7 @@ export default function AanvoerderDashboard() {
                 hoeveelheid: "",
                 minimumPrijs: "",
                 klokLocatie: "Naaldwijk",
-                veildatum: "",
+                leverdatum: null, //date object (geen string ervan maken pls)
                 fotoFile: null,
             });
         } catch (err) {
@@ -254,16 +254,16 @@ export default function AanvoerderDashboard() {
                                 </div>
 
                                 <div className="col-md-4">
-                                    <label className="form-label">Veildatum *</label>
+                                    <label className="form-label">Leverdatum *</label>
                                     <VeildagPicker
-                                        value={form.veildatum}
-                                        onChange={(value) => setForm((prev) => ({ ...prev, veildatum: value }))}
-                                        highlightedDates={items.map(i => i.veildatum)}
+                                        value={form.leverdatum}
+                                        onChange={(value) => setForm((prev) => ({ ...prev, leverdatum: value }))}
+                                        highlightedDates={items.map(i => i.leverdatum)}
                                     />
                                 </div>
 
                                 <div className="col-md-8">
-                                    <label className="form-label">Foto-URL</label>
+                                    <label className="form-label">Productfoto</label>
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -308,7 +308,7 @@ export default function AanvoerderDashboard() {
 
                 <div className="d-flex gap-2 mb-3">
                     <div>
-                        <label className="form-label mb-1">Filter op veildatum</label>
+                        <label className="form-label mb-1">Filter op leverdatum</label>
                         <input
                             type="date"
                             className="form-control"
@@ -347,7 +347,7 @@ export default function AanvoerderDashboard() {
                                     <th>Hoeveelheid</th>
                                     <th>Min. prijs</th>
                                     <th>Kloklocatie</th>
-                                    <th>Veildatum</th>
+                                    <th>Leverdatum</th>
                                     <th>Aanvoerder</th>
                                     <th>Verkoop</th>
                                 </tr>
@@ -383,7 +383,7 @@ export default function AanvoerderDashboard() {
 
                                         <td>{item.klokLocatie}</td>
 
-                                        <td>{new Date(item.veildatum).toLocaleDateString("nl-NL")}</td>
+                                        <td>{new Date(item.leverDatum).toLocaleDateString("nl-NL")}</td>
 
                                         <td>{item.aanvoerderNaam}</td>
 
