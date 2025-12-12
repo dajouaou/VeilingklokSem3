@@ -253,12 +253,6 @@ export default function VeilingmeesterDashboard() {
                                         <h2>Live klok</h2>
                                     </div>
                                     <LiveKlok lot={lot} />
-                                    <button
-                                        className="btn btn-outline-primary vm-buy-btn"
-                                        onClick={() => placeBid(token, veiling.id)}
-                                    >
-                                        Koop tegen huidige prijs
-                                    </button>
                                 </div>
                             </section>
 

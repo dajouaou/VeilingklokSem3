@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import Navbar from "./../shared/components/Navbar";
 import Footer from "./../shared/components/Footer";
+import { useContext } from "react";
+import { AuthContext } from "../features/auth/AuthContext";
+
 
 const API = "https://localhost:5174";
 
@@ -8,6 +11,8 @@ export default function ActueelBod() {
 
     const [product, setProduct] = useState(null);
     const [prijs, setPrijs] = useState(null);
+    const { token, role } = useContext(AuthContext);
+
 
     async function loadData() {
         try {
@@ -43,14 +48,20 @@ export default function ActueelBod() {
     }, []);
 
     async function neemDezePrijs() {
-        if (!prijs) return;
+        if (!prijs || !token) return;
 
-        await fetch(`${API}/api/veiling-public/actueel/biedingen`, {
+        await fetch(`https://localhost:56418/api/bod`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prijs })
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                prijs
+            })
         });
     }
+
 
     if (!product)
         return (
@@ -86,11 +97,14 @@ export default function ActueelBod() {
                             Laatste prijs: € {prijs?.toFixed(2)}
                         </h5>
 
-                        <button
-                            className="btn btn-dark mt-3"
-                            onClick={neemDezePrijs}>
-                            Neem deze prijs
-                        </button>
+                        {role === "Koper" && (
+                            <button
+                                className="btn btn-dark mt-3"
+                                onClick={neemDezePrijs}
+                            >
+                                Neem deze prijs
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

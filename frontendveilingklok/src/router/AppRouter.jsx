@@ -17,8 +17,15 @@ export default function AppRouter() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Actueel bod openbaar */}
-            <Route path="/actueelbod" element={<ActueelBod />} />
+            <Route
+                path="/actueelbod"
+                element={
+                    <ProtectedRoute allowedRoles={["Koper"]}>
+                        <ActueelBod />
+                    </ProtectedRoute>
+                }
+            />
+
 
             <Route
                 path="/"
