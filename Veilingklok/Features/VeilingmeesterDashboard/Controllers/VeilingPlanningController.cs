@@ -141,37 +141,68 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             return Ok(new { veilingId = veiling.Id });
         }
 
-
-        // 4️⃣ Geplande veilingen
         [HttpGet("gepland")]
         public async Task<IActionResult> GetGeplande()
         {
             var veilingen = await _db.Veilingen
                 .Where(v => v.Status == VeilingStatus.Gepland)
-                .OrderBy(v => v.Datum)
-                .ThenBy(v => v.StartTijd)
-                .ToListAsync();
+                .ToListAsync(); // ⬅️ GEEN OrderBy in SQL
 
             var productCounts = await _db.VeilingProducten
                 .GroupBy(p => p.VeilingId)
                 .Select(g => new { VeilingId = g.Key, Aantal = g.Count() })
                 .ToListAsync();
 
-            var result = veilingen.Select(v =>
-            {
-                var aantal = productCounts
-                    .FirstOrDefault(x => x.VeilingId == v.Id)?.Aantal ?? 0;
-
-                return new GeplandeVeilingListItemDto
+            var result = veilingen
+                .OrderBy(v => v.Datum)      // ✔️ LINQ to Objects
+                .ThenBy(v => v.StartTijd)   // ✔️ nu WEL toegestaan
+                .Select(v =>
                 {
-                    Id = v.Id,
-                    Veildatum = v.Datum.ToString("yyyy-MM-dd"),
-                    StartTijd = v.StartTijd.ToString(@"hh\:mm"),
-                    AantalProducten = aantal
-                };
-            }).ToList();
+                    var aantal = productCounts
+                        .FirstOrDefault(x => x.VeilingId == v.Id)?.Aantal ?? 0;
+
+                    return new GeplandeVeilingListItemDto
+                    {
+                        Id = v.Id,
+                        Veildatum = v.Datum.ToString("yyyy-MM-dd"),
+                        StartTijd = v.StartTijd.ToString(@"hh\:mm"),
+                        AantalProducten = aantal
+                    };
+                })
+                .ToList();
 
             return Ok(result);
         }
+
+
+
+        [HttpGet("volgende")]
+        public async Task<IActionResult> GetVolgende()
+        {
+            var veilingen = await _db.Veilingen
+                .Where(v => v.Status == VeilingStatus.Gepland)
+                .ToListAsync(); // ⬅️ geen OrderBy in SQL
+
+            var volgende = veilingen
+                .OrderBy(v => v.Datum)
+                .ThenBy(v => v.StartTijd)
+                .FirstOrDefault();
+
+            if (volgende == null)
+                return Ok(null);
+
+            var aantal = await _db.VeilingProducten
+                .CountAsync(p => p.VeilingId == volgende.Id);
+
+            return Ok(new GeplandeVeilingListItemDto
+            {
+                Id = volgende.Id,
+                Veildatum = volgende.Datum.ToString("yyyy-MM-dd"),
+                StartTijd = volgende.StartTijd.ToString(@"hh\:mm"),
+                AantalProducten = aantal
+            });
+        }
+
+
     }
 }

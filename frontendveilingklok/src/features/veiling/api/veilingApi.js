@@ -4,9 +4,26 @@ async function apiGet(url, token) {
     const res = await fetch(`${API_BASE}${url}`, {
         headers: { Authorization: `Bearer ${token}` },
     });
-    if (!res.ok) throw new Error(`GET ${url} mislukt`);
-    return res.json();
+
+    let data = null;
+    try {
+        data = await res.json();
+    } catch {
+        // soms is het plain text / leeg
+    }
+
+    if (!res.ok) {
+        const message =
+            typeof data === "string"
+                ? data
+                : data?.message || data?.title || `GET ${url} mislukt`;
+
+        throw new Error(message);
+    }
+
+    return data;
 }
+
 
 async function apiPost(url, token, body) {
     const res = await fetch(`${API_BASE}${url}`, {
@@ -79,3 +96,7 @@ export function planVeiling(token, body) {
 export function fetchPlannedVeilingen(token) {
     return apiGet("/api/veilingmeester/planning/gepland", token);
 }
+export function fetchVolgendeVeiling(token) {
+    return apiGet("/api/veilingmeester/planning/volgende", token);
+}
+

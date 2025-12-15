@@ -166,34 +166,37 @@ using (var scope = app.Services.CreateScope())
         Console.WriteLine(ex);
     }
 }
-
-app.UseExceptionHandler(errorApp =>
+if (!app.Environment.IsDevelopment())
 {
-    errorApp.Run(async ctx =>
+    app.UseExceptionHandler(errorApp =>
     {
-        ctx.Response.ContentType = "application/json";
-        var feature = ctx.Features.Get<IExceptionHandlerFeature>();
-        var ex = feature?.Error;
-
-        if (ex is ArgumentException)
+        errorApp.Run(async ctx =>
         {
-            ctx.Response.StatusCode = StatusCodes.Status400BadRequest;
+            ctx.Response.ContentType = "application/json";
+            var feature = ctx.Features.Get<IExceptionHandlerFeature>();
+            var ex = feature?.Error;
+
+            if (ex is ArgumentException)
+            {
+                ctx.Response.StatusCode = 400;
+                await ctx.Response.WriteAsJsonAsync(new
+                {
+                    status = 400,
+                    message = ex.Message
+                });
+                return;
+            }
+
+            ctx.Response.StatusCode = 500;
             await ctx.Response.WriteAsJsonAsync(new
             {
-                status = 400,
-                message = ex.Message
+                status = 500,
+                message = "Interne serverfout."
             });
-            return;
-        }
-
-        ctx.Response.StatusCode = StatusCodes.Status500InternalServerError;
-        await ctx.Response.WriteAsJsonAsync(new
-        {
-            status = 500,
-            message = "Interne serverfout."
         });
     });
-});
+}
+
 
 if (app.Environment.IsDevelopment())
 {

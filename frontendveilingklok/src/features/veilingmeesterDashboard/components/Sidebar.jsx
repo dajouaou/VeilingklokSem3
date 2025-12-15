@@ -26,6 +26,11 @@ export default function Sidebar({ logout, active, sidebarOpen, setSidebarOpen })
                     <span className="vm-nav-dot" />
                     Statistieken
                 </a>
+                <a className={active === "gepland" ? "active" : ""} href="/veilingmeester/gepland">
+                    <span className="vm-nav-dot" />
+                    Geplande veilingen
+                </a>
+
             </nav>
 
             <div className="vm-sidebar-footer">
