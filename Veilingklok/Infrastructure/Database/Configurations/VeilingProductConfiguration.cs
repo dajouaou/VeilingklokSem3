@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Veilingklok.Core.Entities;
 
 public class VeilingProductConfiguration : IEntityTypeConfiguration<VeilingProduct>
 {

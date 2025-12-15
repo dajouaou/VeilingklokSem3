@@ -45,11 +45,14 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
             var datum = dto.LeverDatum.Date;
 
-            if (datum.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+            var isTestMode = datum == DateTime.Today;
+
+            if (!isTestMode && datum.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
                 throw new ArgumentException("Zaterdag en zondag zijn geen geldige veildagen.");
 
-            if (Feestdagen.Contains(datum))
+            if (!isTestMode && Feestdagen.Contains(datum))
                 throw new ArgumentException("Deze dag is een feestdag en kan niet gekozen worden.");
+
 
             if (string.IsNullOrWhiteSpace(dto.Potmaat) &&
                 string.IsNullOrWhiteSpace(dto.Steellengte))

@@ -37,15 +37,21 @@ namespace Veilingklok.Features.Veiling.Services
                 .SingleOrDefaultAsync(v => v.Id == veilingId);
 
             if (v == null)
-                throw new ArgumentException("Veiling niet gevonden");
+                throw new ArgumentException("Veiling bestaat niet.");
 
             if (v.Status != VeilingStatus.Gepland)
-                throw new ArgumentException("Veiling is niet gepland");
+                throw new ArgumentException("Veiling is niet gepland.");
+
+            var geplandeStart = v.Datum.Date + v.StartTijd;
+            if (DateTime.Now < geplandeStart)
+                throw new ArgumentException(
+                    $"Deze veiling kan pas gestart worden op {geplandeStart:yyyy-MM-dd HH:mm}"
+                );
 
             var first = v.Producten
                 .OrderBy(p => p.Volgorde)
                 .FirstOrDefault()
-                ?? throw new ArgumentException("Geen producten in veiling");
+                ?? throw new ArgumentException("Geen producten in veiling.");
 
             v.Status = VeilingStatus.Gestart;
             v.HuidigProductId = first.Id;
@@ -55,6 +61,7 @@ namespace Veilingklok.Features.Veiling.Services
 
             return await GetDetailsAsync(v.Id);
         }
+
 
         public async Task<VeilingOverzichtDto> StartVeilingAsync(
      DateTime veilingDatum,

@@ -2,110 +2,72 @@
 using Microsoft.AspNetCore.Mvc;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Veiling.Dtos;
-using Veilingklok.Features.VeilingmeesterDashboard.Dtos;
+using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
 
-namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
+[ApiController]
+[Authorize(Roles = "Veilingmeester")]
+[Route("api/veilingmeester/veilingen")]
+public class VeilingBeheerController : ControllerBase
 {
-    [ApiController]
-    [Authorize(Roles = "Veilingmeester")]
-    [Route("api/veilingmeester/veilingen")]
-    public class VeilingBeheerController : ControllerBase
+    private readonly IVeilingService _service;
+    private readonly IVeilingBroadcastService _broadcast;
+    private readonly MyContext _db;
+
+    public VeilingBeheerController(
+        IVeilingService service,
+        IVeilingBroadcastService broadcast,
+        MyContext db)
     {
-        private readonly IVeilingService _service;
-        private readonly IVeilingBroadcastService _broadcast;
+        _service = service;
+        _broadcast = broadcast;
+        _db = db;
+    }
 
-        public VeilingBeheerController(
-            IVeilingService service,
-            IVeilingBroadcastService broadcast)
+    [HttpGet("actief")]
+    public async Task<ActionResult<VeilingOverzichtDto?>> GetActieve()
+        => Ok(await _service.GetActieveVeilingAsync());
+
+    [HttpPost("{id}/start")]
+    public async Task<ActionResult<VeilingOverzichtDto>> Start(int id)
+    {
+        var entity = await _db.Veilingen.FindAsync(id);
+        if (entity == null)
+            return BadRequest("Veiling bestaat niet.");
+
+        var geplandeStart = entity.Datum.Date + entity.StartTijd;
+        if (DateTime.Now < geplandeStart)
+            return BadRequest($"Veiling kan pas starten op {geplandeStart:yyyy-MM-dd HH:mm}");
+
+        var overzicht = await _service.StartGeplandeVeilingAsync(id);
+
+        if (overzicht.HuidigProduct != null)
         {
-            _service = service;
-            _broadcast = broadcast;
-        }
-
-        [HttpGet("actief")]
-        public async Task<ActionResult<VeilingOverzichtDto?>> GetActieve()
-        {
-            return Ok(await _service.GetActieveVeilingAsync());
-        }
-
-        [HttpPost("{id}/start")]
-        public async Task<ActionResult<VeilingOverzichtDto>> Start(int id)
-        {
-            var overzicht = await _service.StartGeplandeVeilingAsync(id);
-
-            if (overzicht.HuidigProduct != null)
-            {
-                await _broadcast.StuurHuidigProduct(id, overzicht.HuidigProduct);
-                await _broadcast.StuurWachtrij(id, overzicht.Wachtrij);
-            }
-
-            await _broadcast.StuurAuditEvent(id, new AuditEventDto
-            {
-                Gebeurtenis = "Veiling gestart",
-                Tijdstip = DateTime.UtcNow
-            });
-
-            return Ok(overzicht);
-        }
-
-        [HttpPost("{id}/pause")]
-        public async Task<IActionResult> Pause(int id)
-        {
-            await _service.PauseAsync(id);
-
-            var overzicht = await _service.GetDetailsAsync(id);
-
+            await _broadcast.StuurHuidigProduct(id, overzicht.HuidigProduct);
             await _broadcast.StuurWachtrij(id, overzicht.Wachtrij);
-
-            await _broadcast.StuurAuditEvent(id, new AuditEventDto
-            {
-                Gebeurtenis = "Veiling gepauzeerd",
-                Tijdstip = DateTime.UtcNow
-            });
-
-            return NoContent();
         }
 
+        return Ok(overzicht);
+    }
 
-        [HttpPost("{id}/resume")]
-        public async Task<IActionResult> Resume(int id)
-        {
-            await _service.ResumeAsync(id);
+    [HttpPost("{id}/pause")]
+    public async Task<IActionResult> Pause(int id)
+    {
+        await _service.PauseAsync(id);
+        return NoContent();
+    }
 
-            var overzicht = await _service.GetDetailsAsync(id);
+    [HttpPost("{id}/resume")]
+    public async Task<IActionResult> Resume(int id)
+    {
+        await _service.ResumeAsync(id);
+        return NoContent();
+    }
 
-            if (overzicht.HuidigProduct != null)
-            {
-                await _broadcast.StuurHuidigProduct(id, overzicht.HuidigProduct);
-            }
-
-            await _broadcast.StuurWachtrij(id, overzicht.Wachtrij);
-
-            await _broadcast.StuurAuditEvent(id, new AuditEventDto
-            {
-                Gebeurtenis = "Veiling hervat",
-                Tijdstip = DateTime.UtcNow
-            });
-
-            return NoContent();
-        }
-
-        [HttpPost("{id}/stop")]
-        public async Task<IActionResult> Stop(int id)
-        {
-            await _service.StopAsync(id);
-
-            // Na stoppen is de veiling feitelijk leeg / klaar
-            await _broadcast.StuurWachtrij(id, new List<WachtrijItemDto>());
-
-            await _broadcast.StuurAuditEvent(id, new AuditEventDto
-            {
-                Gebeurtenis = "Veiling gestopt",
-                Tijdstip = DateTime.UtcNow
-            });
-
-            return NoContent();
-        }
+    [HttpPost("{id}/stop")]
+    public async Task<IActionResult> Stop(int id)
+    {
+        await _service.StopAsync(id);
+        return NoContent();
     }
 }
