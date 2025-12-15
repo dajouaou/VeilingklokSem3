@@ -1,103 +1,84 @@
-import { useEffect, useState } from "react";
-import Navbar from "./../shared/components/Navbar";
-import Footer from "./../shared/components/Footer";
 import { useContext } from "react";
+import Navbar from "../shared/components/Navbar";
+import Footer from "../shared/components/Footer";
 import { AuthContext } from "../features/auth/AuthContext";
-
-
-const API = "https://localhost:5174";
+import useLiveVeiling from "../features/veilingmeesterDashboard/hooks/useLiveVeiling";
 
 export default function ActueelBod() {
-
-    const [product, setProduct] = useState(null);
-    const [prijs, setPrijs] = useState(null);
     const { token, role } = useContext(AuthContext);
+    const veilingId = 1;
 
+    const { lot, loading } = useLiveVeiling(token, veilingId);
 
-    async function loadData() {
-        try {
-            // haal huidige veiling
-            const res = await fetch(`${API}/api/veiling-public/actueel`);
-            if (!res.ok) return;
-
-            const data = await res.json();
-
-            // als niks actief is -> toon geen fout
-            if (!data?.huidigProduct) return;
-
-            setProduct(data.huidigProduct);
-
-            // biedingen
-            const bodRes = await fetch(`${API}/api/veiling-public/actueel/biedingen`);
-            const bodList = bodRes.ok ? await bodRes.json() : [];
-
-            if (bodList.length > 0)
-                setPrijs(bodList[bodList.length - 1].prijs);
-            else
-                setPrijs(data.huidigProduct.startPrijs);
-
-        } catch (err) {
-            console.log("fout public veiling:", err);
-        }
-    }
-
-    useEffect(() => {
-        loadData();
-        const t = setInterval(loadData, 3000);
-        return () => clearInterval(t);
-    }, []);
+    const currentLot = lot;
+    const currentPrice = lot?.huidigePrijs;
+    const isStopped = !lot;
 
     async function neemDezePrijs() {
-        if (!prijs || !token) return;
+        if (!currentLot || !currentPrice || !token) return;
 
-        await fetch(`https://localhost:56418/api/bod`, {
+        await fetch(`https://localhost:56418/api/bod/${veilingId}`, {
             method: "POST",
             headers: {
-                "Authorization": `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                prijs
+                veilingProductId: currentLot.veilingProductId,
+                prijs: currentPrice
             })
         });
     }
 
-
-    if (!product)
+    if (loading) {
         return (
             <>
                 <Navbar />
-                <div className="container pt-5">Laden...</div>
+                <div className="container py-5">Veiling laden…</div>
                 <Footer />
             </>
         );
+    }
+
+    if (!currentLot) {
+        return (
+            <>
+                <Navbar />
+                <div className="container py-5">Geen actieve veiling</div>
+                <Footer />
+            </>
+        );
+    }
 
     return (
         <>
             <Navbar />
 
             <div className="container py-5">
-                <h2 className="mb-4 fw-bold">Actueel bod</h2>
+                <h2 className="fw-bold mb-4">Actueel bod</h2>
 
                 <div className="row">
                     <div className="col-md-6">
                         <img
-                            src={product.fotoUrl}
-                            alt=""
+                            src={currentLot.fotoUrl}
+                            alt={currentLot.soort}
                             className="img-fluid rounded"
                         />
                     </div>
 
                     <div className="col-md-6">
-                        <span className="badge bg-success">Actief</span>
-                        <h4 className="mt-2">{product.soort}</h4>
-                        <small>Hoeveelheid: {product.hoeveelheid}</small>
+                        <span className="badge bg-success">
+                            {isStopped ? "Afgesloten" : "Actief"}
+                        </span>
+
+                        <h4 className="mt-2">{currentLot.soort}</h4>
+                        <small>Hoeveelheid: {currentLot.hoeveelheid}</small>
 
                         <h5 className="mt-4">
-                            Laatste prijs: € {prijs?.toFixed(2)}
+                            Huidige prijs: € {currentPrice?.toFixed(2)}
                         </h5>
 
-                        {role === "Koper" && (
+                        {role === "Koper" && !isStopped && (
                             <button
                                 className="btn btn-dark mt-3"
                                 onClick={neemDezePrijs}

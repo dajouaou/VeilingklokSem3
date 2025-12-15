@@ -1,5 +1,4 @@
-﻿using Humanizer;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Entities;
@@ -22,7 +21,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             _db = db;
         }
 
-        // 1️⃣ VEILDAGEN OPHALEN
+        // 1️⃣ Leverdatums waar aanmeldingen zijn
         [HttpGet("veildagen")]
         public async Task<IActionResult> GetVeildagen()
         {
@@ -35,13 +34,17 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             return Ok(dagen.Select(d => d.ToString("yyyy-MM-dd")));
         }
 
+        // 2️⃣ Aanmeldingen per leverdatum
         [HttpGet("aanmeldingen")]
-        public async Task<IActionResult> GetAanmeldingen([FromQuery] DateTime leverdatum)
+        public async Task<IActionResult> GetAanmeldingen([FromQuery] string leverdatum)
         {
+            if (!DateTime.TryParse(leverdatum, out var parsedDatum))
+                return BadRequest("Leverdatum ongeldig (yyyy-MM-dd)");
+
             var items = await _db.Aanmeldingen
                 .Include(a => a.Aanvoerder)
                 .Where(a =>
-                    a.LeverDatum.Date == leverdatum.Date &&
+                    a.LeverDatum.Date == parsedDatum.Date &&
                     a.VeilingProductId == null
                 )
                 .Select(a => new VeilingPlanningAanmeldingDto
@@ -51,69 +54,95 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                     Hoeveelheid = a.Hoeveelheid,
                     MinimumPrijs = a.MinimumPrijs,
                     AanvoerderNaam = a.Aanvoerder!.Naam,
-                    LeverDatum = a.LeverDatum,
+                    LeverDatum = a.LeverDatum
                 })
                 .ToListAsync();
 
             return Ok(items);
         }
 
-
-
         [HttpPost("plan")]
-        public async Task<ActionResult> PlanVeiling([FromBody] PlanVeilingRequestDto dto)
+        public async Task<IActionResult> PlanVeiling([FromBody] PlanVeilingRequestDto dto)
         {
-            if (dto.AanmeldingIds == null || dto.AanmeldingIds.Count == 0)
-                return BadRequest(new { message = "Geen producten geselecteerd." });
+            if (!DateTime.TryParse(dto.Leverdatum, out var leverdatum))
+                return BadRequest("Leverdatum ongeldig");
 
-            if (!TimeSpan.TryParse(dto.StartTijd, out var tijd))
-                return BadRequest(new { message = "Starttijd ongeldig." });
+            if (!DateTime.TryParse(dto.Veildatum, out var veildatum))
+                return BadRequest("Veildatum ongeldig");
 
-            // ⭐ NIEUW: check of deze veildatum al gepland is
-            var bestaatAl = await _db.Veilingen
-                .AnyAsync(v => v.Datum == dto.Veildatum.Date && v.Status == VeilingStatus.Gepland);
+            if (!TimeSpan.TryParse(dto.StartTijd, out var startTijd))
+                return BadRequest("Starttijd ongeldig");
 
-            if (bestaatAl)
-                return BadRequest(new { message = "Er bestaat al een geplande veiling voor deze datum." });
+            var veiling = await _db.Veilingen
+                .Include(v => v.Producten)
+                .FirstOrDefaultAsync(v =>
+                    v.Status == VeilingStatus.Gepland &&
+                    v.Datum.Date == veildatum.Date
+                );
 
-            var veiling = new VeilingEntity
+            if (veiling == null)
             {
-                Datum = dto.Veildatum.Date,
-                StartTijd = tijd,
-                Status = VeilingStatus.Gepland
-            };
+                veiling = new VeilingEntity
+                {
+                    Datum = veildatum.Date,
+                    StartTijd = startTijd,
+                    Status = VeilingStatus.Gepland,
+                    Producten = new List<VeilingProduct>()
+                };
 
-            _db.Veilingen.Add(veiling);
-            await _db.SaveChangesAsync();
+                _db.Veilingen.Add(veiling);
+                await _db.SaveChangesAsync();
+            }
 
-            int volgorde = 1;
+            var producten = veiling.Producten ?? new List<VeilingProduct>();
+
+            var bestaandeAanmeldingen = producten
+                .Select(p => p.AanmeldingId)
+                .ToHashSet();
+
+            var dubbeleAanmeldingen = dto.AanmeldingIds
+                .Where(id => bestaandeAanmeldingen.Contains(id))
+                .ToList();
+
+            if (dubbeleAanmeldingen.Any())
+            {
+                return BadRequest("Geselecteerde producten zijn al aangemeld voor de veiling.");
+            }
+
+            int volgorde = producten.Any()
+                ? producten.Max(p => p.Volgorde) + 1
+                : 1;
+
 
             foreach (var id in dto.AanmeldingIds)
             {
-                var a = await _db.Aanmeldingen.FindAsync(id);
-                if (a == null) continue;
+                if (bestaandeAanmeldingen.Contains(id))
+                    continue;
 
-                _db.VeilingProducten.Add(new VeilingProduct
+                var a = await _db.Aanmeldingen.FindAsync(id);
+                if (a == null || a.VeilingProduct != null)
+                    continue;
+
+                var vp = new VeilingProduct
                 {
                     VeilingId = veiling.Id,
                     AanmeldingId = a.Id,
-                    Volgorde = volgorde++,
                     StartPrijs = a.MinimumPrijs,
                     HuidigePrijs = a.MinimumPrijs,
-                    IsVerkocht = false
-                });
+                    Volgorde = volgorde++
+                };
+
+                a.VeilingProduct = vp;
+                _db.VeilingProducten.Add(vp);
             }
 
             await _db.SaveChangesAsync();
 
-            return Ok(new
-            {
-                message = "Veiling gepland.",
-                veilingId = veiling.Id
-            });
+            return Ok(new { veilingId = veiling.Id });
         }
 
 
+        // 4️⃣ Geplande veilingen
         [HttpGet("gepland")]
         public async Task<IActionResult> GetGeplande()
         {
@@ -123,21 +152,14 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                 .ThenBy(v => v.StartTijd)
                 .ToListAsync();
 
-            if (!veilingen.Any())
-                return Ok(new List<GeplandeVeilingListItemDto>());
-
             var productCounts = await _db.VeilingProducten
                 .GroupBy(p => p.VeilingId)
-                .Select(g => new
-                {
-                    VeilingId = g.Key,
-                    Aantal = g.Count()
-                })
+                .Select(g => new { VeilingId = g.Key, Aantal = g.Count() })
                 .ToListAsync();
 
             var result = veilingen.Select(v =>
             {
-                var count = productCounts
+                var aantal = productCounts
                     .FirstOrDefault(x => x.VeilingId == v.Id)?.Aantal ?? 0;
 
                 return new GeplandeVeilingListItemDto
@@ -145,29 +167,11 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                     Id = v.Id,
                     Veildatum = v.Datum.ToString("yyyy-MM-dd"),
                     StartTijd = v.StartTijd.ToString(@"hh\:mm"),
-                    AantalProducten = count
+                    AantalProducten = aantal
                 };
             }).ToList();
 
             return Ok(result);
         }
-
-        [HttpGet("leverdata")]
-        public async Task<IActionResult> GetLeverdata()
-        {
-            var data = await _db.Aanmeldingen
-                .Select(a => a.LeverDatum.Date)
-                .Distinct()
-                .OrderBy(d => d)
-                .ToListAsync();
-
-            return Ok(data.Select(d => d.ToString("yyyy-MM-dd")));
-        }
-
-
-
-
-
-
     }
 }

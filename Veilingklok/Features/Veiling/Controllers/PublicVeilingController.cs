@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veilingklok.Infrastructure.Database;
 
 namespace Veilingklok.Features.Veiling.Controllers
 {
     [ApiController]
+    [AllowAnonymous]
     [Route("api/veiling-public")]
     public class VeilingPublicController : ControllerBase
     {

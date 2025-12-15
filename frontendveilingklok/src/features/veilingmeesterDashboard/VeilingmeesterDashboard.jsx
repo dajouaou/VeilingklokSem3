@@ -8,7 +8,6 @@ import {
     pauseVeiling,
     resumeVeiling,
     stopVeiling,
-    placeBid,
     fetchPlannedVeilingen,
 } from "../veiling/api/veilingApi";
 
@@ -72,54 +71,28 @@ export default function VeilingmeesterDashboard() {
 
     const nextPlanned = planned && planned.length > 0 ? planned[0] : null;
 
-    async function refreshState() {
-        try {
-            const [actief, geplande] = await Promise.all([
-                getActiveVeiling(token).catch(() => null),
-                fetchPlannedVeilingen(token).catch(() => []),
-            ]);
-            setVeiling(actief);
-            setPlanned(geplande || []);
-        } catch (e) {
-            console.error(e);
-        }
-    }
 
     async function handleStart() {
         setError("");
 
         if (!nextPlanned) {
-            setError(
-                "Er is geen geplande veiling beschikbaar. Plan eerst een veiling via 'Veiling plannen'."
-            );
+            setError("Geen geplande veiling beschikbaar.");
             return;
         }
 
-        // optioneel: check of datum vandaag is
-        const todayStr = new Date().toISOString().slice(0, 10);
-        if (nextPlanned.veildatum && nextPlanned.veildatum !== todayStr) {
-            if (
-                !window.confirm(
-                    "Deze veiling staat niet op vandaag. Weet je zeker dat je nu wilt starten?"
-                )
-            ) {
-                return;
-            }
-        }
-
         try {
-            await startVeiling(token, nextPlanned.id);
-            await refreshState();
+            const gestart = await startVeiling(token, nextPlanned.id);
+            setVeiling(gestart);
+            setPlanned(prev => prev.filter(v => v.id !== nextPlanned.id));
         } catch (err) {
-            console.error(err);
             setError("Kon veiling niet starten: " + err.message);
         }
     }
 
+
     async function handlePause() {
         try {
             await pauseVeiling(token, veiling.id);
-            await refreshState();
         } catch {
             setError("Pauzeren mislukt.");
         }
@@ -128,7 +101,6 @@ export default function VeilingmeesterDashboard() {
     async function handleResume() {
         try {
             await resumeVeiling(token, veiling.id);
-            await refreshState();
         } catch {
             setError("Hervatten mislukt.");
         }
@@ -137,11 +109,12 @@ export default function VeilingmeesterDashboard() {
     async function handleStop() {
         try {
             await stopVeiling(token, veiling.id);
-            await refreshState();
+            setVeiling(null); // veiling is voorbij
         } catch {
             setError("Stoppen mislukt.");
         }
     }
+
 
     return (
         <div className="vm-layout">

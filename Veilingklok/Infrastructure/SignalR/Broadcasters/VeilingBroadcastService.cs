@@ -7,10 +7,10 @@ namespace Veilingklok.Infrastructure.SignalR.Broadcasters
 {
     public interface IVeilingBroadcastService
     {
-        Task StuurHuidigProduct(int veilingId, HuidigProductDto dto);
-        Task StuurWachtrij(int veilingId, List<WachtrijItemDto> queue);
+        Task StuurHuidigProduct(int veilingId, HuidigProductDto product);
+        Task StuurWachtrij(int veilingId, List<WachtrijItemDto> wachtrij);
         Task StuurBod(int veilingId, BodDto bod);
-        Task StuurAuditEvent(int veilingId, AuditEventDto evt);
+        Task StuurAuditEvent(int veilingId, AuditEventDto audit);
     }
 
     public class VeilingBroadcastService : IVeilingBroadcastService
@@ -22,20 +22,34 @@ namespace Veilingklok.Infrastructure.SignalR.Broadcasters
             _hub = hub;
         }
 
-        public Task StuurHuidigProduct(int veilingId, HuidigProductDto dto) =>
-            _hub.Clients.Group($"veiling-{veilingId}")
-                .SendAsync("ReceiveCurrentLot", dto);
+        private static string Groep(int veilingId) => $"veiling-{veilingId}";
 
-        public Task StuurWachtrij(int veilingId, List<WachtrijItemDto> queue) =>
-            _hub.Clients.Group($"veiling-{veilingId}")
-                .SendAsync("ReceiveQueue", queue);
+        public Task StuurHuidigProduct(int veilingId, HuidigProductDto product)
+        {
+            return _hub.Clients
+                .Group(Groep(veilingId))
+                .SendAsync("OntvangHuidigProduct", product);
+        }
 
-        public Task StuurBod(int veilingId, BodDto bod) =>
-            _hub.Clients.Group($"veiling-{veilingId}")
-                .SendAsync("ReceiveBid", bod);
+        public Task StuurWachtrij(int veilingId, List<WachtrijItemDto> wachtrij)
+        {
+            return _hub.Clients
+                .Group(Groep(veilingId))
+                .SendAsync("OntvangWachtrij", wachtrij);
+        }
 
-        public Task StuurAuditEvent(int veilingId, AuditEventDto evt) =>
-            _hub.Clients.Group($"veiling-{veilingId}")
-                .SendAsync("ReceiveAudit", evt);
+        public Task StuurBod(int veilingId, BodDto bod)
+        {
+            return _hub.Clients
+                .Group(Groep(veilingId))
+                .SendAsync("OntvangBod", bod);
+        }
+
+        public Task StuurAuditEvent(int veilingId, AuditEventDto audit)
+        {
+            return _hub.Clients
+                .Group(Groep(veilingId))
+                .SendAsync("OntvangAudit", audit);
+        }
     }
 }

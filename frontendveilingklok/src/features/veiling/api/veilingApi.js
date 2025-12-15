@@ -18,13 +18,23 @@ async function apiPost(url, token, body) {
         body: body ? JSON.stringify(body) : null,
     });
 
-    let json = null;
-    try { json = await res.json(); } catch { }
+    let data = null;
+    try {
+        data = await res.json();
+    } catch {
+    }
 
     if (!res.ok) {
-        throw new Error(json?.message || `POST ${url} mislukt`);
+        const message =
+            typeof data === "string"
+                ? data               
+                : data?.message             
+                || `POST ${url} mislukt`;
+
+        throw new Error(message);
     }
-    return json;
+
+    return data;
 }
 
 export function getActiveVeiling(token) {

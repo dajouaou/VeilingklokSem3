@@ -38,12 +38,13 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             {
                 await _broadcast.StuurHuidigProduct(id, overzicht.HuidigProduct);
                 await _broadcast.StuurWachtrij(id, overzicht.Wachtrij);
-                await _broadcast.StuurAuditEvent(id, new AuditEventDto
-                {
-                    Gebeurtenis = "Veiling gestart",
-                    Tijdstip = DateTime.UtcNow
-                });
             }
+
+            await _broadcast.StuurAuditEvent(id, new AuditEventDto
+            {
+                Gebeurtenis = "Veiling gestart",
+                Tijdstip = DateTime.UtcNow
+            });
 
             return Ok(overzicht);
         }
@@ -52,6 +53,10 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
         public async Task<IActionResult> Pause(int id)
         {
             await _service.PauseAsync(id);
+
+            var overzicht = await _service.GetDetailsAsync(id);
+
+            await _broadcast.StuurWachtrij(id, overzicht.Wachtrij);
 
             await _broadcast.StuurAuditEvent(id, new AuditEventDto
             {
@@ -62,10 +67,20 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             return NoContent();
         }
 
+
         [HttpPost("{id}/resume")]
         public async Task<IActionResult> Resume(int id)
         {
             await _service.ResumeAsync(id);
+
+            var overzicht = await _service.GetDetailsAsync(id);
+
+            if (overzicht.HuidigProduct != null)
+            {
+                await _broadcast.StuurHuidigProduct(id, overzicht.HuidigProduct);
+            }
+
+            await _broadcast.StuurWachtrij(id, overzicht.Wachtrij);
 
             await _broadcast.StuurAuditEvent(id, new AuditEventDto
             {
@@ -80,6 +95,9 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
         public async Task<IActionResult> Stop(int id)
         {
             await _service.StopAsync(id);
+
+            // Na stoppen is de veiling feitelijk leeg / klaar
+            await _broadcast.StuurWachtrij(id, new List<WachtrijItemDto>());
 
             await _broadcast.StuurAuditEvent(id, new AuditEventDto
             {
