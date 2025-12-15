@@ -17,6 +17,7 @@ using Veilingklok.Infrastructure.Repositories;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
 using Veilingklok.Infrastructure.SignalR.Hubs;
 
+
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 {
     Console.WriteLine("UNHANDLED EXCEPTION:");
@@ -37,7 +38,7 @@ builder.Services.AddControllers()
     });
 
 builder.Services.AddDbContext<MyContext>(opt =>
-    opt.UseSqlite(config.GetConnectionString("DefaultConnection")));
+    opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddSignalR()
     .AddJsonProtocol(o =>
@@ -98,7 +99,11 @@ builder.Services.AddCors(opt =>
     opt.AddPolicy("AllowFrontend", p =>
         p.WithOrigins(
                 "http://localhost:5173",
-                "https://localhost:5173"
+                "https://localhost:5173",
+                "http://localhost:5174",
+                "https://localhost:5174",
+                "http://localhost:5175",
+                "https://localhost:5175"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
@@ -150,22 +155,22 @@ culture.DateTimeFormat.DateSeparator = "-";
 CultureInfo.DefaultThreadCurrentCulture = culture;
 CultureInfo.DefaultThreadCurrentUICulture = culture;
 
-using (var scope = app.Services.CreateScope())
-{
-    try
-    {
-        var db = scope.ServiceProvider.GetRequiredService<MyContext>();
-        var passwordService = scope.ServiceProvider.GetRequiredService<PasswordService>();
+//using (var scope = app.Services.CreateScope())
+//{
+//    try
+//    {
+//        var db = scope.ServiceProvider.GetRequiredService<MyContext>();
+//        var passwordService = scope.ServiceProvider.GetRequiredService<PasswordService>();
 
-        await db.Database.MigrateAsync();
-        await DbSeeder.SeedAsync(db, passwordService);
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("MIGRATION / SEED ERROR:");
-        Console.WriteLine(ex);
-    }
-}
+//        await db.Database.MigrateAsync();
+//        await DbSeeder.SeedAsync(db, passwordService);
+//    }
+//    catch (Exception ex)
+//    {
+//        Console.WriteLine("MIGRATION / SEED ERROR:");
+//        Console.WriteLine(ex);
+//    }
+//}
 
 app.UseExceptionHandler(errorApp =>
 {
@@ -209,6 +214,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();

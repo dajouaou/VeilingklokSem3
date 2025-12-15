@@ -3,6 +3,7 @@ using Veilingklok.Core.Enums;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Auth.Dtos;
 using Veilingklok.Features.Auth.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Veilingklok.Features.Auth.Controllers
 {
