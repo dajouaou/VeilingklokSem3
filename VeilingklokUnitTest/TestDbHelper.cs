@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Veilingklok.Infrastructure.Database;   // JUISTE namespace voor MyContext
+using Veilingklok.Infrastructure.Database;
 using System;
 
 namespace VeilingklokUnitTest

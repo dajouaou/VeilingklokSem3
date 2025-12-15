@@ -27,7 +27,7 @@ namespace VeilingklokUnitTest
                 Hoeveelheid = 10,
                 MinimumPrijs = 2,
                 AanvoerderId = 1,
-                Veildatum = datum   // ⭐ FIX
+                Veildatum = datum  
             });
 
             db.SaveChanges();
