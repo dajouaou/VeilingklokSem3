@@ -31,7 +31,6 @@
         <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="9.0.6" />
         <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore.Newtonsoft" Version="9.0.6" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
 	</ItemGroup>
 
     <ItemGroup>
