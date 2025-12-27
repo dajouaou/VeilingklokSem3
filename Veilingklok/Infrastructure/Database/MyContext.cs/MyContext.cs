@@ -10,7 +10,7 @@ public class MyContext : DbContext
     public DbSet<Gebruiker> Gebruikers => Set<Gebruiker>();
     public DbSet<Koper> Kopers => Set<Koper>();
     public DbSet<Aanvoerder> Aanvoerders => Set<Aanvoerder>();
-    public DbSet<Veilingmeester> Veilingmeesters => Set<Veilingmeester>();
+    public DbSet<VM> Veilingmeesters => Set<VM>();
     public DbSet<Aanmelding> Aanmeldingen => Set<Aanmelding>();
     public DbSet<Veiling> Veilingen => Set<Veiling>();
     public DbSet<VeilingProduct> VeilingProducten => Set<VeilingProduct>();

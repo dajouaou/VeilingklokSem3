@@ -4,8 +4,10 @@ using Veilingklok.Core.Enums;
 public class Gebruiker
 {
     public int Id { get; set; }
+
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
+
     public string Voornaam { get; set; } = string.Empty;
     public string Achternaam { get; set; } = string.Empty;
 
@@ -14,5 +16,8 @@ public class Gebruiker
 
     public Koper? Koper { get; set; }
     public Aanvoerder? Aanvoerder { get; set; }
-    public Veilingmeester? Veilingmeester { get; set; }
+    public VM? VM { get; set; }
+
+    public string FullName => $"{Voornaam} {Achternaam}".Trim();
+    public string Username => Email;
 }

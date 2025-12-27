@@ -1,10 +1,10 @@
-﻿namespace Veilingklok.Core.Enums
+﻿namespace Veilingklok.Core.Enums;
+
+public enum VeilingStatus
 {
-    public enum VeilingStatus
-    {
-        Gepland = 0,
-        Gestart = 1,
-        Gepauzeerd = 2,
-        Afgesloten = 3
-    }
+    Draft = 0,
+    Scheduled = 1,
+    Running = 2,
+    Paused = 3,
+    Finished = 4
 }

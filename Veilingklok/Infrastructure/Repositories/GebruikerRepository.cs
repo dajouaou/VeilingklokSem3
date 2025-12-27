@@ -37,7 +37,7 @@ public class GebruikerRepository : IGebruikerRepository
             await _context.SaveChangesAsync();
         }
 
-    public async Task CreateVeilingmeesterAsync(Veilingmeester meester)
+    public async Task CreateVeilingmeesterAsync(VM meester)
         {
             _context.Veilingmeesters.Add(meester);
             await _context.SaveChangesAsync();

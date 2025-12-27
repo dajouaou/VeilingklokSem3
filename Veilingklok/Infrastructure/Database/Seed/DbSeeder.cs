@@ -91,7 +91,7 @@ public static class DbSeeder
                     break;
 
                 case UserRole.Veilingmeester:
-                    db.Veilingmeesters.Add(new Veilingmeester
+                    db.Veilingmeesters.Add(new VM
                     {
                         GebruikerId = user.Id,
                         Naam = $"{user.Voornaam} {user.Achternaam}"

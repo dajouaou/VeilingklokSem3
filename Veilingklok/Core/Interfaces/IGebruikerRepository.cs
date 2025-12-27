@@ -1,15 +1,13 @@
-﻿namespace Veilingklok.Core.Interfaces {
+﻿using System.Threading.Tasks;
+using Veilingklok.Core.Entities;
 
- using Veilingklok.Core.Entities;
+namespace Veilingklok.Core.Interfaces;
 
-    public interface IGebruikerRepository
+public interface IGebruikerRepository
 {
     Task<Gebruiker?> GetByEmailAsync(string email);
     Task AddAsync(Gebruiker gebruiker);
     Task CreateKoperAsync(Koper koper);
     Task CreateAanvoerderAsync(Aanvoerder aanvoerder);
-    Task CreateVeilingmeesterAsync(Veilingmeester meester);
-
-    }
-
+    Task CreateVeilingmeesterAsync(VM veilingmeester);
 }

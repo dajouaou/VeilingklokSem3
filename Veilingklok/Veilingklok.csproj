@@ -35,8 +35,6 @@
 
     <ItemGroup>
         <Folder Include="Features\VeilingmeesterDashboard\Commands\" />
-        <Folder Include="Features\VeilingmeesterDashboard\Models\" />
-        <Folder Include="Features\VeilingmeesterDashboard\Services\" />
         <Folder Include="Infrastructure\SignalR\Events\" />
         <Folder Include="Migrations\" />
         <Folder Include="wwwroot\uploads\" />

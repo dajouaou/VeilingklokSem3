@@ -1,13 +1,13 @@
-﻿namespace Veilingklok.Core.Entities
+﻿using Veilingklok.Core.Entities;
+
+public sealed class VM
 {
-    public class Veilingmeester
-    {
-        public int Id { get; set; }                 // PK
-        public int GebruikerId { get; set; }        // FK → Gebruiker
-        public string Naam { get; set; } = string.Empty;
+    public int Id { get; set; }
 
-        // Navigatie
-        public Gebruiker? Gebruiker { get; set; }
+    public int GebruikerId { get; set; }
+    public Gebruiker? Gebruiker { get; set; }
 
-    }
+    public string Naam { get; set; } = string.Empty;
+
+    public List<Veiling> Veilingen { get; set; } = new();
 }

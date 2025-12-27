@@ -4,9 +4,9 @@ using Veilingklok.Core.Entities;
 
 namespace Veilingklok.Infrastructure.Database.Configurations
 {
-    public class VeilingmeesterConfiguration : IEntityTypeConfiguration<Veilingmeester>
+    public class VeilingmeesterConfiguration : IEntityTypeConfiguration<VM>
     {
-        public void Configure(EntityTypeBuilder<Veilingmeester> builder)
+        public void Configure(EntityTypeBuilder<VM> builder)
         {
             builder.ToTable("Veilingmeesters");
 
@@ -20,8 +20,8 @@ namespace Veilingklok.Infrastructure.Database.Configurations
                 .IsUnique();
 
             builder.HasOne(x => x.Gebruiker)
-                .WithOne(g => g.Veilingmeester)
-                .HasForeignKey<Veilingmeester>(x => x.GebruikerId)
+                .WithOne(g => g.VM)
+                .HasForeignKey<VM>(x => x.GebruikerId)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

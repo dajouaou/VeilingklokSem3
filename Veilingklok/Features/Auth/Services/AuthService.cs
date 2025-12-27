@@ -64,7 +64,7 @@ public class AuthService
                 break;
 
             case UserRole.Veilingmeester:
-                await _gebruikerRepo.CreateVeilingmeesterAsync(new Veilingmeester
+                await _gebruikerRepo.CreateVeilingmeesterAsync(new VM
                 {
                     GebruikerId = user.Id,
                     Naam = $"{voornaam} {achternaam}"

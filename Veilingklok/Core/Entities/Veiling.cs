@@ -1,21 +1,29 @@
-﻿using Veilingklok.Core.Enums;
+﻿using System;
+using System.Collections.Generic;
+using Veilingklok.Core.Enums;
 
-namespace Veilingklok.Core.Entities
+namespace Veilingklok.Core.Entities;
+
+public class Veiling
 {
-    public class Veiling
-    {
-        public int Id { get; set; }
-        public DateTime Datum { get; set; }
-        public TimeSpan StartTijd { get; set; }
+    public int Id { get; set; }
+    public string Naam { get; set; } = string.Empty;
+    public KlokLocatie Locatie { get; set; }
 
-        public DateTime? EindTijd { get; set; }
+    public DateTime Datum { get; set; }
+    public TimeSpan StartTijd { get; set; }
 
-        public VeilingStatus Status { get; set; } = VeilingStatus.Gepland;
+    public VeilingStatus Status { get; set; } = VeilingStatus.Scheduled;
 
-        public int? HuidigProductId { get; set; }
-        public VeilingProduct? HuidigProduct { get; set; }
+    public DateTime? StartTijdUtc { get; set; }
+    public DateTime? EindTijdUtc { get; set; }
 
-        public List<VeilingProduct> Producten { get; set; } = new();
-        public List<Bod> Biedingen { get; set; } = new();
-    }
+    public int? CurrentVeilingProductId { get; set; }
+    public VeilingProduct? CurrentVeilingProduct { get; set; }
+
+    public int? VMId { get; set; }
+    public VM? VM { get; set; }
+
+    public List<VeilingProduct> VeilingProducten { get; set; } = new();
+    public List<AuditEntry> AuditEntries { get; set; } = new();
 }
