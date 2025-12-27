@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+//dit aanpassen
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Veiling.Dtos;
