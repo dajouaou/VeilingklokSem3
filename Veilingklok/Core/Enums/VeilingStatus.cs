@@ -3,8 +3,9 @@
 public enum VeilingStatus
 {
     Draft = 0,
-    Scheduled = 1,
-    Running = 2,
-    Paused = 3,
-    Finished = 4
+    Gepland = 1,
+    Scheduled = 2,
+    Running = 3,
+    Paused = 4,
+    Finished = 5
 }
