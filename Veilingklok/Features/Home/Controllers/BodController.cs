@@ -13,14 +13,14 @@ namespace Veilingklok.Features.Home.Controllers
     [Route("api/bod")]
     public class BodController : ControllerBase
     {
-        private readonly IVeilingService _service;
+        private readonly IVeilingService111 _service111;
         private readonly IVeilingBroadcastService _broadcast;
 
         public BodController(
-            IVeilingService service,
+            IVeilingService111 service111,
             IVeilingBroadcastService broadcast)
         {
-            _service = service;
+            _service111 = service111;
             _broadcast = broadcast;
         }
 
@@ -34,10 +34,10 @@ namespace Veilingklok.Features.Home.Controllers
             );
 
             // 1️⃣ Bod plaatsen (businesslogica)
-            var bod = await _service.PlaatsBodAsync(veilingId, dto, koperId);
+            var bod = await _service111.PlaatsBodAsync(veilingId, dto, koperId);
 
             // 2️⃣ Nieuwe veilingstatus ophalen
-            var overzicht = await _service.GetDetailsAsync(veilingId);
+            var overzicht = await _service111.GetDetailsAsync(veilingId);
 
             // 3️⃣ Realtime updates sturen
             await _broadcast.StuurBod(veilingId, bod);

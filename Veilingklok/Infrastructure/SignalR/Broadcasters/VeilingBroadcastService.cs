@@ -1,49 +1,52 @@
-﻿using Microsoft.AspNetCore.SignalR;
-using Veilingklok.Infrastructure.SignalR.Hubs;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.SignalR;
 using Veilingklok.Features.Veiling.Dtos;
 using Veilingklok.Features.VeilingmeesterDashboard.Dtos;
+using Veilingklok.Features.VM.Dtos;
+using Veilingklok.Infrastructure.SignalR.Hubs;
 
-namespace Veilingklok.Infrastructure.SignalR.Broadcasters
+namespace Veilingklok.Infrastructure.SignalR.Broadcasters;
+
+public sealed class VeilingBroadcastService : IVeilingBroadcastService
 {
-    public interface IVeilingBroadcastService
+    private readonly IHubContext<AuctionPublicHub> _publicHub;
+    private readonly IHubContext<AuctionPrivateHub> _privateHub;
+
+    public VeilingBroadcastService(IHubContext<AuctionPublicHub> publicHub, IHubContext<AuctionPrivateHub> privateHub)
     {
-        Task StuurHuidigProduct(int veilingId, HuidigProductDto product);
-        Task StuurWachtrij(int veilingId, List<WachtrijItemDto> wachtrij);
-
-        Task StuurBod(int veilingId, BodDto bod);
-        Task StuurBiedingen(int veilingId, List<BodDto> biedingen);
-
-        Task StuurAuditEvent(int veilingId, AuditEventDto audit);
-        Task StuurAuditEvents(int veilingId, List<AuditEventDto> audits);
+        _publicHub = publicHub;
+        _privateHub = privateHub;
     }
 
-    public class VeilingBroadcastService : IVeilingBroadcastService
+    private static string Groep(int veilingId) => $"veiling-{veilingId}";
+
+    private Task SendToAll(int veilingId, string method, object payload)
     {
-        private readonly IHubContext<AuctionHub> _hub;
-
-        public VeilingBroadcastService(IHubContext<AuctionHub> hub)
-        {
-            _hub = hub;
-        }
-
-        private static string Groep(int veilingId) => $"veiling-{veilingId}";
-
-        public Task StuurHuidigProduct(int veilingId, HuidigProductDto product)
-            => _hub.Clients.Group(Groep(veilingId)).SendAsync("OntvangHuidigProduct", product);
-
-        public Task StuurWachtrij(int veilingId, List<WachtrijItemDto> wachtrij)
-            => _hub.Clients.Group(Groep(veilingId)).SendAsync("OntvangWachtrij", wachtrij);
-
-        public Task StuurBod(int veilingId, BodDto bod)
-            => _hub.Clients.Group(Groep(veilingId)).SendAsync("OntvangBod", bod);
-
-        public Task StuurBiedingen(int veilingId, List<BodDto> biedingen)
-            => _hub.Clients.Group(Groep(veilingId)).SendAsync("OntvangBiedingen", biedingen);
-
-        public Task StuurAuditEvent(int veilingId, AuditEventDto audit)
-            => _hub.Clients.Group(Groep(veilingId)).SendAsync("OntvangAudit", audit);
-
-        public Task StuurAuditEvents(int veilingId, List<AuditEventDto> audits)
-            => _hub.Clients.Group(Groep(veilingId)).SendAsync("OntvangAudits", audits);
+        var group = Groep(veilingId);
+        var a = _publicHub.Clients.Group(group).SendAsync(method, payload);
+        var b = _privateHub.Clients.Group(group).SendAsync(method, payload);
+        return Task.WhenAll(a, b);
     }
+
+    public Task StuurHuidigProduct(int veilingId, HuidigProductDto product)
+        => SendToAll(veilingId, "OntvangHuidigProduct", product);
+
+    public Task StuurWachtrij(int veilingId, List<WachtrijItemDto> wachtrij)
+        => SendToAll(veilingId, "OntvangWachtrij", wachtrij);
+
+    public Task StuurBod(int veilingId, BodDto bod)
+        => SendToAll(veilingId, "OntvangBod", bod);
+
+    public Task StuurBiedingen(int veilingId, List<BodDto> biedingen)
+        => SendToAll(veilingId, "OntvangBiedingen", biedingen);
+
+    public Task StuurAuditEvent(int veilingId, VMAuditDto audit)
+        => _privateHub.Clients.Group(Groep(veilingId)).SendAsync("OntvangAudit", audit);
+
+    public Task StuurAuditEvents(int veilingId, List<VMAuditDto> audits)
+        => _privateHub.Clients.Group(Groep(veilingId)).SendAsync("OntvangAudits", audits);
+
+    public Task StuurTick(int veilingId, TickDto tick)
+        => SendToAll(veilingId, "OntvangTick", tick);
 }

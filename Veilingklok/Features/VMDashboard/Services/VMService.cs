@@ -44,9 +44,7 @@ public sealed class VMService : IVMService
             .ThenByDescending(v => v.Id)
             .FirstOrDefaultAsync();
 
-        return actieve == null
-            ? Result<VMActiveVeilingDto?>.Ok(null)
-            : Result<VMActiveVeilingDto?>.Ok(VMActiveVeilingDto.FromEntity(actieve));
+        return Result<VMActiveVeilingDto?>.Ok(actieve == null ? null : VMActiveVeilingDto.FromEntity(actieve));
     }
 
     public async Task<Result<VMVeilingDashboardDto>> StartVeilingAsync(int veilingId, int actorGebruikerId)
@@ -54,18 +52,18 @@ public sealed class VMService : IVMService
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
         if (veiling.Status == VeilingStatus.Running || veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is al gestart.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is al gestart.", ErrorCode.Conflict);
 
         if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is al beëindigd.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is al beëindigd.", ErrorCode.Conflict);
 
         if (!MagNuStartenUtc(veiling))
         {
             var geplandeStartLocal = GetGeplandeStartLocal(veiling);
-            return Result<VMVeilingDashboardDto>.Fail($"Veiling kan pas starten op {geplandeStartLocal:yyyy-MM-dd HH:mm}");
+            return Result<VMVeilingDashboardDto>.Fail($"Veiling kan pas starten op {geplandeStartLocal:yyyy-MM-dd HH:mm}", ErrorCode.Conflict);
         }
 
         var first = veiling.VeilingProducten
@@ -75,7 +73,7 @@ public sealed class VMService : IVMService
             .FirstOrDefault();
 
         if (first == null)
-            return Result<VMVeilingDashboardDto>.Fail("Geen producten gekoppeld.");
+            return Result<VMVeilingDashboardDto>.Fail("Geen producten gekoppeld.", ErrorCode.Conflict);
 
         first.Status = VeilingProductStatus.Active;
         first.ActivatedAtUtc = DateTime.UtcNow;
@@ -99,10 +97,10 @@ public sealed class VMService : IVMService
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
         if (veiling.Status != VeilingStatus.Running)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is niet running.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is niet running.", ErrorCode.Conflict);
 
         veiling.Status = VeilingStatus.Paused;
         AddAuditEntry(veiling, "Veiling gepauzeerd", actorGebruikerId);
@@ -120,10 +118,10 @@ public sealed class VMService : IVMService
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
         if (veiling.Status != VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is niet gepauzeerd.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is niet gepauzeerd.", ErrorCode.Conflict);
 
         veiling.Status = VeilingStatus.Running;
         AddAuditEntry(veiling, "Veiling hervat", actorGebruikerId);
@@ -141,10 +139,10 @@ public sealed class VMService : IVMService
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
         if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is al beëindigd.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is al beëindigd.", ErrorCode.Conflict);
 
         CloseCurrentIfActive(veiling);
 
@@ -167,13 +165,13 @@ public sealed class VMService : IVMService
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
         if (veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.", ErrorCode.Conflict);
 
         if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.", ErrorCode.Conflict);
 
         var current = CloseCurrentIfActive(veiling);
         var currentVolgorde = current?.Volgorde ?? -1;
@@ -221,20 +219,20 @@ public sealed class VMService : IVMService
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
         if (veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.", ErrorCode.Conflict);
 
         if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.", ErrorCode.Conflict);
 
         if (veiling.CurrentVeilingProductId == null)
-            return Result<VMVeilingDashboardDto>.Fail("Geen actief product.");
+            return Result<VMVeilingDashboardDto>.Fail("Geen actief product.", ErrorCode.Conflict);
 
         var current = veiling.VeilingProducten.FirstOrDefault(p => p.Id == veiling.CurrentVeilingProductId);
         if (current == null || current.Status != VeilingProductStatus.Active)
-            return Result<VMVeilingDashboardDto>.Fail("Geen actief product.");
+            return Result<VMVeilingDashboardDto>.Fail("Geen actief product.", ErrorCode.Conflict);
 
         current.Status = VeilingProductStatus.Sold;
         current.ClosedAtUtc = DateTime.UtcNow;
@@ -262,7 +260,7 @@ public sealed class VMService : IVMService
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
         foreach (var p in veiling.VeilingProducten)
         {
@@ -290,15 +288,15 @@ public sealed class VMService : IVMService
     public async Task<Result<VMVeilingDashboardDto>> ReorderQueueAsync(int veilingId, VMReorderQueueRequest request, int actorGebruikerId)
     {
         if (request.OrderedVeilingProductIds == null || request.OrderedVeilingProductIds.Length == 0)
-            return Result<VMVeilingDashboardDto>.Fail("Geen ids meegegeven.");
+            return Result<VMVeilingDashboardDto>.Fail("Geen ids meegegeven.", ErrorCode.Validation);
 
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
         if (veiling.Status == VeilingStatus.Running || veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Queue reorder kan niet tijdens running/paused.");
+            return Result<VMVeilingDashboardDto>.Fail("Queue reorder kan niet tijdens running/paused.", ErrorCode.Conflict);
 
         var queued = veiling.VeilingProducten
             .Where(p => p.Status == VeilingProductStatus.Queued)
@@ -308,7 +306,7 @@ public sealed class VMService : IVMService
         var incomingIds = request.OrderedVeilingProductIds.ToHashSet();
 
         if (!incomingIds.SetEquals(queuedIds))
-            return Result<VMVeilingDashboardDto>.Fail("Reorder ids matchen niet met de huidige queue.");
+            return Result<VMVeilingDashboardDto>.Fail("Reorder ids matchen niet met de huidige queue.", ErrorCode.Conflict);
 
         var volgorde = 1;
         foreach (var id in request.OrderedVeilingProductIds)
@@ -329,22 +327,22 @@ public sealed class VMService : IVMService
         await using var tx = await _db.Database.BeginTransactionAsync();
 
         var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
         if (veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.", ErrorCode.Conflict);
 
         if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.");
+            return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.", ErrorCode.Conflict);
 
         var product = veiling.VeilingProducten.FirstOrDefault(p => p.Id == veilingProductId);
-        if (product == null) return Result<VMVeilingDashboardDto>.Fail("Product niet gevonden.");
+        if (product == null) return Result<VMVeilingDashboardDto>.Fail("Product niet gevonden.", ErrorCode.NotFound);
 
         var maxVolgorde = veiling.VeilingProducten.Max(p => p.Volgorde);
 
         if (veiling.CurrentVeilingProductId == veilingProductId && product.Status == VeilingProductStatus.Active)
         {
-            product.Status = VeilingProductStatus.Sold;
+            product.Status = VeilingProductStatus.Skipped;
             product.ClosedAtUtc = DateTime.UtcNow;
             veiling.CurrentVeilingProductId = null;
 
@@ -359,7 +357,7 @@ public sealed class VMService : IVMService
         }
 
         if (product.Status != VeilingProductStatus.Queued)
-            return Result<VMVeilingDashboardDto>.Fail("Alleen queued producten kun je skippen.");
+            return Result<VMVeilingDashboardDto>.Fail("Alleen queued producten kun je skippen.", ErrorCode.Conflict);
 
         product.Volgorde = maxVolgorde + 1;
 
@@ -374,199 +372,24 @@ public sealed class VMService : IVMService
     }
 
     public async Task<Result<List<string>>> GetVeildagenAsync()
-    {
-        var dagen = await _db.Aanmeldingen
-            .AsNoTracking()
-            .Select(a => a.LeverDatum.Date)
-            .Distinct()
-            .OrderBy(d => d)
-            .ToListAsync();
-
-        return Result<List<string>>.Ok(dagen.Select(d => d.ToString("yyyy-MM-dd")).ToList());
-    }
+        => Result<List<string>>.Fail("Niet meer via VMService; gebruik planning service.", ErrorCode.Conflict);
 
     public async Task<Result<List<VeilingPlanningAanmeldingDto>>> GetAanmeldingenAsync(string leverdatum)
-    {
-        if (!TryParseDateOnly(leverdatum, out var parsedDatum))
-            return Result<List<VeilingPlanningAanmeldingDto>>.Fail("Leverdatum ongeldig (yyyy-MM-dd)");
-
-        var date = parsedDatum.ToDateTime(TimeOnly.MinValue).Date;
-
-        var items = await _db.Aanmeldingen
-            .AsNoTracking()
-            .Include(a => a.Aanvoerder)
-            .Where(a => a.LeverDatum.Date == date && a.VeilingProductId == null)
-            .Select(a => new VeilingPlanningAanmeldingDto
-            {
-                Id = a.Id,
-                Soort = a.Soort,
-                Hoeveelheid = a.Hoeveelheid,
-                MinimumPrijs = a.MinimumPrijs,
-                AanvoerderNaam = a.Aanvoerder!.Naam,
-                LeverDatum = a.LeverDatum
-            })
-            .ToListAsync();
-
-        return Result<List<VeilingPlanningAanmeldingDto>>.Ok(items);
-    }
+        => Result<List<VeilingPlanningAanmeldingDto>>.Fail("Niet meer via VMService; gebruik planning service.", ErrorCode.Conflict);
 
     public async Task<Result<int>> PlanVeilingAsync(PlanVeilingRequestDto dto, int actorGebruikerId)
-    {
-        if (!TryParseDateOnly(dto.Leverdatum, out var leverdatum))
-            return Result<int>.Fail("Leverdatum ongeldig (yyyy-MM-dd)");
-
-        if (!TryParseDateOnly(dto.Veildatum, out var veildatum))
-            return Result<int>.Fail("Veildatum ongeldig (yyyy-MM-dd)");
-
-        if (!TimeSpan.TryParse(dto.StartTijd, CultureInfo.InvariantCulture, out var startTijd))
-            return Result<int>.Fail("Starttijd ongeldig (HH:mm)");
-
-        if (dto.AanmeldingIds == null || dto.AanmeldingIds.Count == 0)
-            return Result<int>.Fail("Geen aanmelding ids meegegeven.");
-
-        await using var tx = await _db.Database.BeginTransactionAsync();
-
-        var veildatumDate = veildatum.ToDateTime(TimeOnly.MinValue).Date;
-
-        var veiling = await _db.Veilingen
-            .Include(v => v.VeilingProducten)
-            .FirstOrDefaultAsync(v => v.Status == VeilingStatus.Gepland && v.Datum.Date == veildatumDate);
-
-        if (veiling == null)
-        {
-            veiling = new VeilingEntity
-            {
-                Datum = veildatumDate,
-                StartTijd = startTijd,
-                Status = VeilingStatus.Gepland,
-                VeilingProducten = new List<VeilingProduct>(),
-                AuditEntries = new List<AuditEntry>()
-            };
-
-            _db.Veilingen.Add(veiling);
-            await _db.SaveChangesAsync();
-        }
-        else
-        {
-            if (veiling.StartTijd != startTijd)
-                veiling.StartTijd = startTijd;
-        }
-
-        var producten = veiling.VeilingProducten ?? new List<VeilingProduct>();
-        var bestaandeAanmeldingen = producten.Select(p => p.AanmeldingId).ToHashSet();
-
-        var uniqueIncoming = dto.AanmeldingIds.Distinct().ToList();
-        var dubbele = uniqueIncoming.Where(id => bestaandeAanmeldingen.Contains(id)).ToList();
-        if (dubbele.Count > 0)
-            return Result<int>.Fail("Geselecteerde producten zijn al aangemeld voor de veiling.");
-
-        var aanmeldingen = await _db.Aanmeldingen
-            .Where(a => uniqueIncoming.Contains(a.Id))
-            .ToListAsync();
-
-        var missing = uniqueIncoming.Except(aanmeldingen.Select(a => a.Id)).ToList();
-        if (missing.Count > 0)
-            return Result<int>.Fail("Eén of meer aanmeldingen bestaan niet.");
-
-        var alreadyPlanned = aanmeldingen.Where(a => a.VeilingProductId != null).Select(a => a.Id).ToList();
-        if (alreadyPlanned.Count > 0)
-            return Result<int>.Fail("Eén of meer aanmeldingen zijn al gepland.");
-
-        var leverdatumDate = leverdatum.ToDateTime(TimeOnly.MinValue).Date;
-
-        var volgorde = producten.Any() ? producten.Max(p => p.Volgorde) + 1 : 1;
-
-        foreach (var a in aanmeldingen)
-        {
-            if (a.LeverDatum.Date != leverdatumDate)
-                return Result<int>.Fail("Eén of meer aanmeldingen horen niet bij de gekozen leverdatum.");
-
-            var vp = new VeilingProduct
-            {
-                VeilingId = veiling.Id,
-                AanmeldingId = a.Id,
-                StartPrijs = a.MinimumPrijs,
-                HuidigePrijs = a.MinimumPrijs,
-                Volgorde = volgorde++
-            };
-
-            a.VeilingProduct = vp;
-            _db.VeilingProducten.Add(vp);
-        }
-
-        AddAuditEntry(veiling, "Veiling gepland", actorGebruikerId);
-
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
-
-        return Result<int>.Ok(veiling.Id);
-    }
+        => Result<int>.Fail("Niet meer via VMService; gebruik planning service.", ErrorCode.Conflict);
 
     public async Task<Result<List<GeplandeVeilingListItemDto>>> GetGeplandeAsync()
-    {
-        var veilingen = await _db.Veilingen
-            .AsNoTracking()
-            .Where(v => v.Status == VeilingStatus.Gepland)
-            .ToListAsync();
-
-        var productCounts = await _db.VeilingProducten
-            .AsNoTracking()
-            .GroupBy(p => p.VeilingId)
-            .Select(g => new { VeilingId = g.Key, Aantal = g.Count() })
-            .ToListAsync();
-
-        var result = veilingen
-            .OrderBy((VeilingEntity v) => v.Datum)
-            .ThenBy((VeilingEntity v) => v.StartTijd)
-            .Select(v =>
-            {
-                var aantal = productCounts.FirstOrDefault(x => x.VeilingId == v.Id)?.Aantal ?? 0;
-
-                return new GeplandeVeilingListItemDto
-                {
-                    Id = v.Id,
-                    Veildatum = v.Datum.ToString("yyyy-MM-dd"),
-                    StartTijd = v.StartTijd.ToString(@"hh\:mm"),
-                    AantalProducten = aantal
-                };
-            })
-            .ToList();
-
-        return Result<List<GeplandeVeilingListItemDto>>.Ok(result);
-    }
+        => Result<List<GeplandeVeilingListItemDto>>.Fail("Niet meer via VMService; gebruik planning service.", ErrorCode.Conflict);
 
     public async Task<Result<GeplandeVeilingListItemDto?>> GetVolgendeGeplandeAsync()
-    {
-        var veilingen = await _db.Veilingen
-            .AsNoTracking()
-            .Where(v => v.Status == VeilingStatus.Gepland)
-            .ToListAsync();
-
-        var volgende = veilingen
-            .OrderBy((VeilingEntity v) => v.Datum)
-            .ThenBy((VeilingEntity v) => v.StartTijd)
-            .FirstOrDefault();
-
-        if (volgende == null)
-            return Result<GeplandeVeilingListItemDto?>.Ok(null);
-
-        var aantal = await _db.VeilingProducten
-            .AsNoTracking()
-            .CountAsync(p => p.VeilingId == volgende.Id);
-
-        return Result<GeplandeVeilingListItemDto?>.Ok(new GeplandeVeilingListItemDto
-        {
-            Id = volgende.Id,
-            Veildatum = volgende.Datum.ToString("yyyy-MM-dd"),
-            StartTijd = volgende.StartTijd.ToString(@"hh\:mm"),
-            AantalProducten = aantal
-        });
-    }
+        => Result<GeplandeVeilingListItemDto?>.Fail("Niet meer via VMService; gebruik planning service.", ErrorCode.Conflict);
 
     private async Task<Result<VMVeilingDashboardDto>> BuildDashboardResultAsync(int veilingId)
     {
         var veiling = await LoadDashboardVeilingAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.");
+        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
         return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
     }
 
@@ -618,7 +441,7 @@ public sealed class VMService : IVMService
 
         if (current.Status == VeilingProductStatus.Active)
         {
-            current.Status = VeilingProductStatus.Sold;
+            current.Status = VeilingProductStatus.Skipped;
             current.ClosedAtUtc = DateTime.UtcNow;
         }
 
@@ -685,10 +508,5 @@ public sealed class VMService : IVMService
             CreatedAtUtc = DateTime.UtcNow,
             ActorGebruikerId = actorGebruikerId
         });
-    }
-
-    private static bool TryParseDateOnly(string input, out DateOnly date)
-    {
-        return DateOnly.TryParseExact(input, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
     }
 }

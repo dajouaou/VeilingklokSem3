@@ -60,7 +60,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IVeilingBroadcastService, VeilingBroadcastService>();
 builder.Services.AddScoped<IVeilingPublicService, VeilingPublicService>();
-builder.Services.AddHostedService<PrijsMechanismeService>();
+builder.Services.AddHostedService<PrijsMechanismeService111>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

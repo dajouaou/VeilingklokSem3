@@ -1,35 +1,37 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Veilingklok.Core.Entities;
-using Veilingklok.Features.Veiling.Dtos;
-using Veilingklok.Infrastructure.Database;
-using Veilingklok.Infrastructure.SignalR.Broadcasters;
-using Veilingklok.Core.Enums;
+// Veilingklok/Features/Veiling/Services/PrijsMechanismeService.cs
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-namespace Veilingklok.Features.Veiling.Services
+namespace Veilingklok.Features.Veiling.Services;
+
+public sealed class PrijsMechanismeService : BackgroundService
 {
-    public class PrijsMechanismeService : BackgroundService
+    private readonly IServiceScopeFactory _scopeFactory;
+
+    public PrijsMechanismeService(IServiceScopeFactory scopeFactory)
     {
-        private readonly IServiceScopeFactory _scopeFactory;
+        _scopeFactory = scopeFactory;
+    }
 
-        public PrijsMechanismeService(IServiceScopeFactory scopeFactory)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
         {
-            _scopeFactory = scopeFactory;
-        }
+            await Task.Delay(200, stoppingToken);
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
+            using var scope = _scopeFactory.CreateScope();
+            var service = scope.ServiceProvider.GetRequiredService<IAuctionClockService>();
+
             try
             {
-                while (!stoppingToken.IsCancellationRequested)
-                {
-                    await Task.Delay(300, stoppingToken);
-                }
+                await service.TickAsync(stoppingToken);
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                // normale shutdown → NIET crashen
+                return;
             }
         }
-
     }
 }
