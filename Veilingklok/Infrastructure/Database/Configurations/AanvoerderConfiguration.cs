@@ -6,22 +6,18 @@ namespace Veilingklok.Infrastructure.Database.Configurations;
 
 public sealed class AanvoerderConfiguration : IEntityTypeConfiguration<Aanvoerder>
 {
-    public void Configure(EntityTypeBuilder<Aanvoerder> builder)
+    public void Configure(EntityTypeBuilder<Aanvoerder> b)
     {
-        builder.ToTable("Aanvoerders");
+        b.ToTable("Aanvoerders");
+        b.HasKey(x => x.Id);
 
-        builder.HasKey(x => x.Id);
+        b.Property(x => x.Naam).IsRequired().HasMaxLength(200);
 
-        builder.Property(x => x.Naam)
-            .HasMaxLength(128)
-            .IsRequired();
+        b.HasIndex(x => x.GebruikerId).IsUnique();
 
-        builder.HasIndex(x => x.GebruikerId)
-            .IsUnique();
-
-        builder.HasOne(x => x.Gebruiker)
-            .WithOne(g => g.Aanvoerder)
-            .HasForeignKey<Aanvoerder>(x => x.GebruikerId)
-            .OnDelete(DeleteBehavior.Restrict); // ✅ keep
+        b.HasMany(x => x.Aanmeldingen)
+            .WithOne(x => x.Aanvoerder)
+            .HasForeignKey(x => x.AanvoerderId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,33 +1,35 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Veilingklok.Core.Entities;
 
-public class AanmeldingConfiguration : IEntityTypeConfiguration<Aanmelding>
+namespace Veilingklok.Infrastructure.Database.Configurations;
+
+public sealed class AanmeldingConfiguration : IEntityTypeConfiguration<Aanmelding>
 {
-    public void Configure(EntityTypeBuilder<Aanmelding> builder)
+    public void Configure(EntityTypeBuilder<Aanmelding> b)
     {
-        builder.ToTable("Aanmeldingen");
-        builder.HasKey(x => x.Id);
+        b.ToTable("Aanmeldingen");
+        b.HasKey(x => x.Id);
 
-        builder.Property(x => x.Soort)
-            .HasMaxLength(100)
-            .IsRequired();
+        b.Property(x => x.Soort).IsRequired().HasMaxLength(200);
+        b.Property(x => x.Potmaat).HasMaxLength(50);
+        b.Property(x => x.Steellengte).HasMaxLength(50);
 
-        builder.Property(x => x.Potmaat)
-            .HasMaxLength(50);
+        b.Property(x => x.Hoeveelheid).IsRequired();
+        b.Property(x => x.MinimumPrijs).HasColumnType("decimal(18,2)");
 
-        builder.Property(x => x.Steellengte)
-            .HasMaxLength(50);
+        b.Property(x => x.LeverDatum).IsRequired();
+        b.Property(x => x.FotoUrl).HasMaxLength(500);
+        b.Property(x => x.Beschrijving).HasMaxLength(1000);
 
-        builder.Property(x => x.MinimumPrijs)
-            .HasPrecision(18, 2);
+      
+        
+        
+        b.HasOne(x => x.VeilingProduct)
+            .WithOne(x => x.Aanmelding)
+            .HasForeignKey<Aanmelding>(x => x.VeilingProductId)
+            .OnDelete(DeleteBehavior.SetNull);
 
-        builder.Property(x => x.LeverDatum)
-            .IsRequired();
-
-        builder.HasOne(x => x.Aanvoerder)
-            .WithMany(a => a.Aanmeldingen)
-            .HasForeignKey(x => x.AanvoerderId)
-            .OnDelete(DeleteBehavior.Restrict);
+        b.HasIndex(x => new { x.LeverDatum, x.VeilingProductId });
     }
 }
