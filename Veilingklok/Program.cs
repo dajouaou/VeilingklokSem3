@@ -10,13 +10,10 @@ using System.Text.Json.Serialization;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Auth.Services;
 using Veilingklok.Features.Veiling.Services;
-using Veilingklok.Features.VeilingPublic.Services;
 using Veilingklok.Infrastructure.Database;
-using Veilingklok.Infrastructure.Database.Seed;
 using Veilingklok.Infrastructure.Repositories;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
 using Veilingklok.Infrastructure.SignalR.Hubs;
-
 
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 {
@@ -60,7 +57,7 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IVeilingBroadcastService, VeilingBroadcastService>();
 builder.Services.AddScoped<IVeilingPublicService, VeilingPublicService>();
-builder.Services.AddHostedService<PrijsMechanismeService111>();
+builder.Services.AddHostedService<PrijsMechanismeService>();
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -154,23 +151,6 @@ culture.DateTimeFormat.DateSeparator = "-";
 
 CultureInfo.DefaultThreadCurrentCulture = culture;
 CultureInfo.DefaultThreadCurrentUICulture = culture;
-
-//using (var scope = app.Services.CreateScope())
-//{
-//    try
-//    {
-//        var db = scope.ServiceProvider.GetRequiredService<MyContext>();
-//        var passwordService = scope.ServiceProvider.GetRequiredService<PasswordService>();
-
-//        await db.Database.MigrateAsync();
-//        await DbSeeder.SeedAsync(db, passwordService);
-//    }
-//    catch (Exception ex)
-//    {
-//        Console.WriteLine("MIGRATION / SEED ERROR:");
-//        Console.WriteLine(ex);
-//    }
-//}
 
 app.UseExceptionHandler(errorApp =>
 {

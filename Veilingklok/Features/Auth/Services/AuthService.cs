@@ -63,8 +63,8 @@ public class AuthService
                 });
                 break;
 
-            case UserRole.Veilingmeester:
-                await _gebruikerRepo.CreateVeilingmeesterAsync(new VM
+            case UserRole.VM:
+                await _gebruikerRepo.CreateVeilingmeesterAsync(new global::VM
                 {
                     GebruikerId = user.Id,
                     Naam = $"{voornaam} {achternaam}"

@@ -35,7 +35,7 @@ namespace Veilingklok.Features.Auth.Controllers
             {
                 if (dto.Rol != UserRole.Koper &&
                     dto.Rol != UserRole.Aanvoerder &&
-                    dto.Rol != UserRole.Veilingmeester)
+                    dto.Rol != UserRole.VM)
                 {
                     return BadRequest(new { message = "Ongeldige rol." });
                 }

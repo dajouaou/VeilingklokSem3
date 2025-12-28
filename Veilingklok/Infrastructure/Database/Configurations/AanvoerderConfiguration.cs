@@ -15,6 +15,11 @@ public sealed class AanvoerderConfiguration : IEntityTypeConfiguration<Aanvoerde
 
         b.HasIndex(x => x.GebruikerId).IsUnique();
 
+        b.HasOne(x => x.Gebruiker)
+            .WithOne(x => x.Aanvoerder)
+            .HasForeignKey<Aanvoerder>(x => x.GebruikerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         b.HasMany(x => x.Aanmeldingen)
             .WithOne(x => x.Aanvoerder)
             .HasForeignKey(x => x.AanvoerderId)
