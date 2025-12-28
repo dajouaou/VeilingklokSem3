@@ -15,18 +15,19 @@ using Veilingklok.Infrastructure.Repositories;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
 using Veilingklok.Infrastructure.SignalR.Hubs;
 
-AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+AppDomain.CurrentDomain.UnhandledException += (_, e) =>
 {
     Console.WriteLine("UNHANDLED EXCEPTION:");
-    Console.WriteLine(e.ExceptionObject.ToString());
+    Console.WriteLine(e.ExceptionObject?.ToString());
 };
 
 var builder = WebApplication.CreateBuilder(args);
-var config = builder.Configuration;
 
+// Logging
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 
+// Controllers + JSON
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
     {
@@ -34,16 +35,27 @@ builder.Services.AddControllers()
         o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
+// DbContext 
 builder.Services.AddDbContext<MyContext>(opt =>
-    opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+{
+    var cs = builder.Configuration.GetConnectionString("Default");
+    opt.UseSqlServer(cs, sql =>
+    {
+        //  voor Azure SQL 
+        sql.EnableRetryOnFailure();
+    });
+});
 
+// SignalR
 builder.Services.AddSignalR()
     .AddJsonProtocol(o =>
         o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     );
 
+// Health checks
 builder.Services.AddHealthChecks();
 
+// DI scan (Features)
 builder.Services.Scan(scan => scan
     .FromApplicationDependencies()
     .AddClasses(c => c.InNamespaces("Veilingklok.Features"))
@@ -51,6 +63,7 @@ builder.Services.Scan(scan => scan
     .WithScopedLifetime()
 );
 
+// Handmatige DI
 builder.Services.AddScoped<IGebruikerRepository, GebruikerRepository>();
 builder.Services.AddScoped<PasswordService>();
 builder.Services.AddScoped<AuthService>();
@@ -58,6 +71,11 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IVeilingBroadcastService, VeilingBroadcastService>();
 builder.Services.AddScoped<IVeilingPublicService, VeilingPublicService>();
 builder.Services.AddHostedService<PrijsMechanismeService>();
+
+// JWT Auth
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey))
+    throw new InvalidOperationException("Jwt:Key ontbreekt in configuratie.");
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -69,10 +87,11 @@ builder.Services
             ValidateAudience = false,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(config["Jwt:Key"]!)
+                Encoding.UTF8.GetBytes(jwtKey)
             )
         };
 
+        // SignalR token via query string 
         options.Events = new JwtBearerEvents
         {
             OnMessageReceived = context =>
@@ -91,6 +110,7 @@ builder.Services
         };
     });
 
+// CORS
 builder.Services.AddCors(opt =>
 {
     opt.AddPolicy("AllowFrontend", p =>
@@ -108,6 +128,7 @@ builder.Services.AddCors(opt =>
     );
 });
 
+// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -145,13 +166,14 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Culture 
 var culture = (CultureInfo)CultureInfo.InvariantCulture.Clone();
 culture.DateTimeFormat.ShortDatePattern = "yyyy-MM-dd";
 culture.DateTimeFormat.DateSeparator = "-";
-
 CultureInfo.DefaultThreadCurrentCulture = culture;
 CultureInfo.DefaultThreadCurrentUICulture = culture;
 
+// Global exception handler 
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async ctx =>
@@ -194,7 +216,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
