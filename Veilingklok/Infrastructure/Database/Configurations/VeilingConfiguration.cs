@@ -14,7 +14,6 @@ public sealed class VeilingConfiguration : IEntityTypeConfiguration<Veiling>
         b.Property(x => x.Naam).HasMaxLength(200);
         b.Property(x => x.Datum).IsRequired();
         b.Property(x => x.StartTijd).IsRequired();
-
         b.Property(x => x.Status).IsRequired();
 
         b.HasMany(x => x.VeilingProducten)
@@ -27,12 +26,10 @@ public sealed class VeilingConfiguration : IEntityTypeConfiguration<Veiling>
             .HasForeignKey(x => x.VeilingId)
             .OnDelete(DeleteBehavior.Cascade);
 
-
-        
         b.HasOne(x => x.CurrentVeilingProduct)
             .WithMany()
             .HasForeignKey(x => x.CurrentVeilingProductId)
-            .OnDelete(DeleteBehavior.SetNull);
+            .OnDelete(DeleteBehavior.NoAction);
 
         b.HasIndex(x => new { x.Datum, x.StartTijd });
         b.HasIndex(x => x.Status);

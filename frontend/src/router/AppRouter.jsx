@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "../features/auth/pages/AuthPage";
 import VeilingmeesterDashboard from "../features/VMDashboard/pages/VeilingmeesterDashboard.jsx";
+import VeilingPage from "../features/veiling/pages/VeilingPage.jsx";
 
 function getToken() {
     return localStorage.getItem("token") || "";
@@ -121,9 +122,9 @@ export default function AppRouter() {
                 <Route
                     path="/veiling"
                     element={
-                        <RequireAuth>
-                            <Placeholder title="Veiling pagina (koper)" />
-                        </RequireAuth>
+                        <RequireRole allow={["koper"]}>
+                            <VeilingPage />
+                        </RequireRole>
                     }
                 />
 

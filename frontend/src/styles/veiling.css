@@ -1,0 +1,353 @@
+:root {
+    --vk-bg: #fbfbfc;
+    --vk-card: #ffffff;
+    --vk-border: #ececf1;
+    --vk-text: #14151a;
+    --vk-muted: #6b6f7a;
+    --vk-accent: #5b7cff;
+    --vk-accent-soft: rgba(91, 124, 255, 0.12);
+    --vk-ok: rgba(43, 171, 117, 0.12);
+    --vk-err: rgba(235, 87, 87, 0.12);
+    --vk-shadow: 0 10px 30px rgba(16, 24, 40, 0.06);
+    --vk-radius: 18px;
+}
+
+.vk-page {
+    background: var(--vk-bg);
+    min-height: 100vh;
+    padding: 28px;
+    color: var(--vk-text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.vk-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.vk-h1 {
+    font-size: 30px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+}
+
+.vk-sub {
+    margin-top: 6px;
+    color: var(--vk-muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.vk-header__right {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.vk-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--vk-border);
+    color: var(--vk-muted);
+    font-size: 13px;
+}
+
+.vk-alert {
+    border-radius: var(--vk-radius);
+    padding: 12px 14px;
+    border: 1px solid var(--vk-border);
+    margin: 10px 0 16px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.vk-alert--error {
+    background: var(--vk-err);
+}
+
+.vk-alert--ok {
+    background: var(--vk-ok);
+}
+
+.vk-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 18px;
+    align-items: start;
+}
+
+@media (max-width: 980px) {
+    .vk-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.vk-card {
+    background: var(--vk-card);
+    border: 1px solid var(--vk-border);
+    border-radius: var(--vk-radius);
+    box-shadow: var(--vk-shadow);
+    overflow: hidden;
+    margin-bottom: 18px;
+}
+
+.vk-card__head {
+    padding: 16px 18px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.vk-card__title {
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+.vk-card__body {
+    padding: 14px 18px 18px;
+}
+
+.vk-empty {
+    padding: 14px 0;
+}
+
+.vk-empty__title {
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.vk-empty__text {
+    color: var(--vk-muted);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.vk-product {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+@media (max-width: 640px) {
+    .vk-product {
+        grid-template-columns: 1fr;
+    }
+}
+
+.vk-imgwrap {
+    border-radius: 16px;
+    border: 1px solid var(--vk-border);
+    background: rgba(0, 0, 0, 0.02);
+    overflow: hidden;
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vk-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.vk-img__empty {
+    color: var(--vk-muted);
+    font-size: 13px;
+}
+
+.vk-product__name {
+    font-size: 22px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+}
+
+.vk-kv {
+    display: grid;
+    gap: 10px;
+}
+
+.vk-kv__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid var(--vk-border);
+    background: rgba(0, 0, 0, 0.015);
+    color: var(--vk-muted);
+    font-size: 14px;
+}
+
+.vk-strong {
+    color: var(--vk-text);
+    font-weight: 650;
+}
+
+.vk-bid {
+    display: grid;
+    gap: 12px;
+}
+
+.vk-bid__hint {
+    color: var(--vk-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.vk-bid__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+}
+
+@media (max-width: 520px) {
+    .vk-bid__row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.vk-input {
+    border-radius: 14px;
+    border: 1px solid var(--vk-border);
+    padding: 12px 12px;
+    font-size: 14px;
+    outline: none;
+    background: #fff;
+}
+
+.vk-input:focus {
+    border-color: rgba(91, 124, 255, 0.35);
+    box-shadow: 0 0 0 6px var(--vk-accent-soft);
+}
+
+.vk-btn {
+    border-radius: 14px;
+    border: 1px solid var(--vk-border);
+    padding: 12px 14px;
+    background: #fff;
+    color: var(--vk-text);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.vk-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.vk-btn--primary {
+    background: rgba(91, 124, 255, 0.08);
+    border-color: rgba(91, 124, 255, 0.22);
+}
+
+.vk-list {
+    display: grid;
+    gap: 10px;
+}
+
+.vk-list__item {
+    border: 1px solid var(--vk-border);
+    border-radius: 14px;
+    padding: 12px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.015);
+}
+
+.vk-list__title {
+    font-weight: 650;
+    font-size: 14px;
+}
+
+.vk-list__sub {
+    color: var(--vk-muted);
+    font-size: 13px;
+    margin-top: 2px;
+}
+
+.vk-list__right {
+    font-weight: 700;
+}
+
+.vk-queue {
+    display: grid;
+    gap: 14px;
+}
+
+.vk-queue__group {
+    border: 1px solid var(--vk-border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.012);
+}
+
+.vk-queue__grouphead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 12px 12px;
+}
+
+.vk-queue__groupname {
+    font-weight: 700;
+}
+
+.vk-queue__groupsub {
+    color: var(--vk-muted);
+    font-size: 13px;
+}
+
+.vk-queue__items {
+    padding: 10px 12px 12px;
+    display: grid;
+    gap: 10px;
+}
+
+.vk-queueitem {
+    border: 1px solid var(--vk-border);
+    border-radius: 16px;
+    padding: 10px;
+    background: #fff;
+    display: grid;
+    grid-template-columns: 70px 1fr auto;
+    gap: 12px;
+    align-items: center;
+}
+
+.vk-queueitem__thumb .vk-imgwrap {
+    min-height: 52px;
+    height: 52px;
+}
+
+.vk-queueitem__title {
+    font-weight: 650;
+}
+
+.vk-queueitem__sub {
+    color: var(--vk-muted);
+    font-size: 13px;
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+}
+
+.vk-queueitem__right {
+    font-weight: 700;
+}

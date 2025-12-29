@@ -34,10 +34,12 @@ namespace Veilingklok.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Beschrijving")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("FotoUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("Hoeveelheid")
                         .HasColumnType("int");
@@ -49,7 +51,6 @@ namespace Veilingklok.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("MinimumPrijs")
-                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Potmaat")
@@ -58,8 +59,8 @@ namespace Veilingklok.Migrations
 
                     b.Property<string>("Soort")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Steellengte")
                         .HasMaxLength(50)
@@ -70,9 +71,65 @@ namespace Veilingklok.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AanvoerderId");
+                    b.HasIndex("VeilingProductId");
+
+                    b.HasIndex("AanvoerderId", "LeverDatum");
 
                     b.ToTable("Aanmeldingen", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AanvoerderId = 1,
+                            Beschrijving = "Aanmelding A1-1",
+                            FotoUrl = "/AIimg/ai_self_made_pic_1.jpg.png",
+                            Hoeveelheid = 100,
+                            KlokLocatie = 1,
+                            LeverDatum = new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            MinimumPrijs = 1.50m,
+                            Soort = "Roos",
+                            Steellengte = "60cm"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AanvoerderId = 1,
+                            Beschrijving = "Aanmelding A1-2",
+                            FotoUrl = "/AIimg/ai_self_made_pic_2.jpg.png",
+                            Hoeveelheid = 80,
+                            KlokLocatie = 1,
+                            LeverDatum = new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            MinimumPrijs = 1.20m,
+                            Soort = "Tulp",
+                            Steellengte = "40cm"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AanvoerderId = 2,
+                            Beschrijving = "Aanmelding A2-1",
+                            FotoUrl = "/AIimg/ai_self_made_pic_3.jpg.png",
+                            Hoeveelheid = 60,
+                            KlokLocatie = 2,
+                            LeverDatum = new DateTime(2025, 1, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            MinimumPrijs = 2.00m,
+                            Potmaat = "12cm",
+                            Soort = "Orchidee"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            AanvoerderId = 2,
+                            Beschrijving = "Aanmelding A2-2",
+                            FotoUrl = "/AIimg/ai_self_made_pic_4.jpg.png",
+                            Hoeveelheid = 50,
+                            KlokLocatie = 2,
+                            LeverDatum = new DateTime(2025, 1, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            MinimumPrijs = 2.50m,
+                            Soort = "Lelie",
+                            Steellengte = "70cm"
+                        });
                 });
 
             modelBuilder.Entity("Gebruiker", b =>
@@ -85,29 +142,136 @@ namespace Veilingklok.Migrations
 
                     b.Property<string>("Achternaam")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
 
                     b.Property<DateTime>("CreatedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<int>("Rol")
                         .HasColumnType("int");
 
                     b.Property<string>("Voornaam")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Gebruikers");
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Gebruikers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Achternaam = "1",
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "koper1@email.com",
+                            PasswordHash = "DEMO_HASH",
+                            Rol = 1,
+                            Voornaam = "Koper"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Achternaam = "2",
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "koper2@email.com",
+                            PasswordHash = "DEMO_HASH",
+                            Rol = 1,
+                            Voornaam = "Koper"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Achternaam = "1",
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "vm1@email.com",
+                            PasswordHash = "DEMO_HASH",
+                            Rol = 3,
+                            Voornaam = "VM"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Achternaam = "2",
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "vm2@email.com",
+                            PasswordHash = "DEMO_HASH",
+                            Rol = 3,
+                            Voornaam = "VM"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Achternaam = "1",
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "aanvoerder1@email.com",
+                            PasswordHash = "DEMO_HASH",
+                            Rol = 2,
+                            Voornaam = "Aanvoerder"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Achternaam = "2",
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "aanvoerder2@email.com",
+                            PasswordHash = "DEMO_HASH",
+                            Rol = 2,
+                            Voornaam = "Aanvoerder"
+                        });
+                });
+
+            modelBuilder.Entity("VM", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("GebruikerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Naam")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GebruikerId")
+                        .IsUnique();
+
+                    b.ToTable("Veilingmeesters", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            GebruikerId = 3,
+                            Naam = "Veilingmeester 1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            GebruikerId = 4,
+                            Naam = "Veilingmeester 2"
+                        });
                 });
 
             modelBuilder.Entity("Veildag", b =>
@@ -123,7 +287,22 @@ namespace Veilingklok.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Veildagen");
+                    b.HasIndex("Datum")
+                        .IsUnique();
+
+                    b.ToTable("Veildagen", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Datum = new DateTime(2025, 1, 10, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Datum = new DateTime(2025, 1, 11, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Aanvoerder", b =>
@@ -139,8 +318,8 @@ namespace Veilingklok.Migrations
 
                     b.Property<string>("Naam")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -148,9 +327,23 @@ namespace Veilingklok.Migrations
                         .IsUnique();
 
                     b.ToTable("Aanvoerders", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            GebruikerId = 5,
+                            Naam = "Aanvoerder 1"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            GebruikerId = 6,
+                            Naam = "Aanvoerder 2"
+                        });
                 });
 
-            modelBuilder.Entity("Veilingklok.Core.Entities.Bod", b =>
+            modelBuilder.Entity("Veilingklok.Core.Entities.AuditEntry", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -158,13 +351,62 @@ namespace Veilingklok.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ActorGebruikerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("VeilingId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorGebruikerId");
+
+                    b.HasIndex("VeilingId", "CreatedAtUtc");
+
+                    b.ToTable("AuditEntries", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Action = "Seed: Veiling 1 aangemaakt",
+                            ActorGebruikerId = 3,
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            VeilingId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Action = "Seed: Veiling 2 aangemaakt",
+                            ActorGebruikerId = 4,
+                            CreatedAtUtc = new DateTime(2025, 1, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            VeilingId = 2
+                        });
+                });
+
+            modelBuilder.Entity("Veilingklok.Core.Entities.Bid", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("KoperId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Prijs")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("Tijdstip")
+                    b.Property<DateTime>("PlacedAtUtc")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("VeilingId")
@@ -175,13 +417,33 @@ namespace Veilingklok.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("KoperId");
-
-                    b.HasIndex("VeilingId");
-
                     b.HasIndex("VeilingProductId");
 
-                    b.ToTable("Biedingen");
+                    b.HasIndex("KoperId", "PlacedAtUtc");
+
+                    b.HasIndex("VeilingId", "VeilingProductId", "PlacedAtUtc");
+
+                    b.ToTable("Bids", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Amount = 2.10m,
+                            KoperId = 1,
+                            PlacedAtUtc = new DateTime(2025, 1, 12, 9, 5, 10, 0, DateTimeKind.Utc),
+                            VeilingId = 1,
+                            VeilingProductId = 2
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Amount = 3.80m,
+                            KoperId = 2,
+                            PlacedAtUtc = new DateTime(2025, 1, 13, 10, 2, 8, 0, DateTimeKind.Utc),
+                            VeilingId = 2,
+                            VeilingProductId = 4
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Koper", b =>
@@ -197,8 +459,8 @@ namespace Veilingklok.Migrations
 
                     b.Property<string>("Naam")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -206,6 +468,20 @@ namespace Veilingklok.Migrations
                         .IsUnique();
 
                     b.ToTable("Kopers", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            GebruikerId = 1,
+                            Naam = "Koper 1 BV"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            GebruikerId = 2,
+                            Naam = "Koper 2 BV"
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Product", b =>
@@ -220,34 +496,41 @@ namespace Veilingklok.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Beschrijving")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Categorie")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("FotoUrl")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("HoeveelheidStuks")
                         .HasColumnType("int");
 
                     b.Property<string>("KlokLocatie")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("MinimumPrijs")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Naam")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("PotmaatOfSteellengte")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Soort")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("VeilDatum")
                         .HasColumnType("datetime2");
@@ -256,7 +539,69 @@ namespace Veilingklok.Migrations
 
                     b.HasIndex("AanvoerderId");
 
-                    b.ToTable("Producten");
+                    b.ToTable("Producten", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AanvoerderId = 1,
+                            Beschrijving = "Demo product van Aanvoerder 1",
+                            Categorie = "Bloemen",
+                            FotoUrl = "/AIimg/ai_self_made_pic_1.jpg.png",
+                            HoeveelheidStuks = 100,
+                            KlokLocatie = "Naaldwijk",
+                            MinimumPrijs = 1.50m,
+                            Naam = "Product A1-1",
+                            PotmaatOfSteellengte = "60cm",
+                            Soort = "Roos",
+                            VeilDatum = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AanvoerderId = 1,
+                            Beschrijving = "Demo product van Aanvoerder 1",
+                            Categorie = "Bloemen",
+                            FotoUrl = "/AIimg/ai_self_made_pic_2.jpg.png",
+                            HoeveelheidStuks = 80,
+                            KlokLocatie = "Naaldwijk",
+                            MinimumPrijs = 1.20m,
+                            Naam = "Product A1-2",
+                            PotmaatOfSteellengte = "40cm",
+                            Soort = "Tulp",
+                            VeilDatum = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AanvoerderId = 2,
+                            Beschrijving = "Demo product van Aanvoerder 2",
+                            Categorie = "Planten",
+                            FotoUrl = "/AIimg/ai_self_made_pic_3.jpg.png",
+                            HoeveelheidStuks = 60,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 2.00m,
+                            Naam = "Product A2-1",
+                            PotmaatOfSteellengte = "12cm",
+                            Soort = "Orchidee",
+                            VeilDatum = new DateTime(2025, 1, 13, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        },
+                        new
+                        {
+                            Id = 4,
+                            AanvoerderId = 2,
+                            Beschrijving = "Demo product van Aanvoerder 2",
+                            Categorie = "Planten",
+                            FotoUrl = "/AIimg/ai_self_made_pic_4.jpg.png",
+                            HoeveelheidStuks = 50,
+                            KlokLocatie = "Aalsmeer",
+                            MinimumPrijs = 2.50m,
+                            Naam = "Product A2-2",
+                            PotmaatOfSteellengte = "70cm",
+                            Soort = "Lelie",
+                            VeilDatum = new DateTime(2025, 1, 13, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Veiling", b =>
@@ -267,26 +612,68 @@ namespace Veilingklok.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("CurrentVeilingProductId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("Datum")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("EindTijd")
+                    b.Property<DateTime?>("EindTijdUtc")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("HuidigProductId")
+                    b.Property<int>("Locatie")
                         .HasColumnType("int");
+
+                    b.Property<string>("Naam")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<TimeSpan>("StartTijd")
                         .HasColumnType("time");
 
+                    b.Property<DateTime?>("StartTijdUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("VMId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HuidigProductId");
+                    b.HasIndex("CurrentVeilingProductId");
 
-                    b.ToTable("Veilingen");
+                    b.HasIndex("Status");
+
+                    b.HasIndex("VMId");
+
+                    b.HasIndex("Datum", "StartTijd");
+
+                    b.ToTable("Veilingen", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Datum = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Locatie = 1,
+                            Naam = "Veiling 1",
+                            StartTijd = new TimeSpan(0, 9, 0, 0, 0),
+                            Status = 2,
+                            VMId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Datum = new DateTime(2025, 1, 13, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Locatie = 2,
+                            Naam = "Veiling 2",
+                            StartTijd = new TimeSpan(0, 10, 0, 0, 0),
+                            Status = 2,
+                            VMId = 2
+                        });
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.VeilingProduct", b =>
@@ -300,20 +687,44 @@ namespace Veilingklok.Migrations
                     b.Property<int>("AanmeldingId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("AanvoerderId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ActivatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("ClosedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Hoeveelheid")
+                        .HasColumnType("int");
+
                     b.Property<decimal>("HuidigePrijs")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("IsActief")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsVerkocht")
-                        .HasColumnType("bit");
 
                     b.Property<int?>("KoperId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("MinimumPrijs")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<decimal>("StartPrijs")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
 
                     b.Property<int>("VeilingId")
                         .HasColumnType("int");
@@ -326,35 +737,85 @@ namespace Veilingklok.Migrations
                     b.HasIndex("AanmeldingId")
                         .IsUnique();
 
+                    b.HasIndex("AanvoerderId");
+
                     b.HasIndex("KoperId");
 
-                    b.HasIndex("VeilingId");
+                    b.HasIndex("ProductId");
 
-                    b.ToTable("VeilingProducten");
-                });
+                    b.HasIndex("VeilingId", "Status");
 
-            modelBuilder.Entity("Veilingklok.Core.Entities.Veilingmeester", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.HasIndex("VeilingId", "Volgorde");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.ToTable("VeilingProducten", (string)null);
 
-                    b.Property<int>("GebruikerId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Naam")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GebruikerId")
-                        .IsUnique();
-
-                    b.ToTable("Veilingmeesters", (string)null);
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AanmeldingId = 1,
+                            AanvoerderId = 1,
+                            DurationSeconds = 20,
+                            Hoeveelheid = 100,
+                            HuidigePrijs = 3.00m,
+                            MinimumPrijs = 1.50m,
+                            ProductId = 1,
+                            StartPrijs = 3.00m,
+                            Status = 0,
+                            VeilingId = 1,
+                            Volgorde = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            AanmeldingId = 2,
+                            AanvoerderId = 1,
+                            ActivatedAtUtc = new DateTime(2025, 1, 12, 9, 5, 0, 0, DateTimeKind.Utc),
+                            ClosedAtUtc = new DateTime(2025, 1, 12, 9, 5, 12, 0, DateTimeKind.Utc),
+                            DurationSeconds = 20,
+                            Hoeveelheid = 80,
+                            HuidigePrijs = 2.10m,
+                            KoperId = 1,
+                            MinimumPrijs = 1.20m,
+                            ProductId = 2,
+                            StartPrijs = 2.50m,
+                            Status = 2,
+                            VeilingId = 1,
+                            Volgorde = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            AanmeldingId = 3,
+                            AanvoerderId = 2,
+                            DurationSeconds = 20,
+                            Hoeveelheid = 60,
+                            HuidigePrijs = 4.00m,
+                            MinimumPrijs = 2.00m,
+                            ProductId = 3,
+                            StartPrijs = 4.00m,
+                            Status = 0,
+                            VeilingId = 2,
+                            Volgorde = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            AanmeldingId = 4,
+                            AanvoerderId = 2,
+                            ActivatedAtUtc = new DateTime(2025, 1, 13, 10, 2, 0, 0, DateTimeKind.Utc),
+                            ClosedAtUtc = new DateTime(2025, 1, 13, 10, 2, 9, 0, DateTimeKind.Utc),
+                            DurationSeconds = 20,
+                            Hoeveelheid = 50,
+                            HuidigePrijs = 3.80m,
+                            KoperId = 2,
+                            MinimumPrijs = 2.50m,
+                            ProductId = 4,
+                            StartPrijs = 5.00m,
+                            Status = 2,
+                            VeilingId = 2,
+                            Volgorde = 2
+                        });
                 });
 
             modelBuilder.Entity("Aanmelding", b =>
@@ -368,6 +829,17 @@ namespace Veilingklok.Migrations
                     b.Navigation("Aanvoerder");
                 });
 
+            modelBuilder.Entity("VM", b =>
+                {
+                    b.HasOne("Gebruiker", "Gebruiker")
+                        .WithOne("VM")
+                        .HasForeignKey("VM", "GebruikerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Gebruiker");
+                });
+
             modelBuilder.Entity("Veilingklok.Core.Entities.Aanvoerder", b =>
                 {
                     b.HasOne("Gebruiker", "Gebruiker")
@@ -379,24 +851,43 @@ namespace Veilingklok.Migrations
                     b.Navigation("Gebruiker");
                 });
 
-            modelBuilder.Entity("Veilingklok.Core.Entities.Bod", b =>
+            modelBuilder.Entity("Veilingklok.Core.Entities.AuditEntry", b =>
                 {
-                    b.HasOne("Veilingklok.Core.Entities.Koper", "Koper")
+                    b.HasOne("Gebruiker", "ActorGebruiker")
                         .WithMany()
-                        .HasForeignKey("KoperId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("ActorGebruikerId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Veilingklok.Core.Entities.Veiling", "Veiling")
-                        .WithMany("Biedingen")
+                        .WithMany("AuditEntries")
+                        .HasForeignKey("VeilingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ActorGebruiker");
+
+                    b.Navigation("Veiling");
+                });
+
+            modelBuilder.Entity("Veilingklok.Core.Entities.Bid", b =>
+                {
+                    b.HasOne("Veilingklok.Core.Entities.Koper", "Koper")
+                        .WithMany("Bids")
+                        .HasForeignKey("KoperId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Veilingklok.Core.Entities.Veiling", "Veiling")
+                        .WithMany()
                         .HasForeignKey("VeilingId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Veilingklok.Core.Entities.VeilingProduct", "VeilingProduct")
-                        .WithMany("Biedingen")
+                        .WithMany("Bids")
                         .HasForeignKey("VeilingProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Koper");
@@ -422,7 +913,7 @@ namespace Veilingklok.Migrations
                     b.HasOne("Veilingklok.Core.Entities.Aanvoerder", "Aanvoerder")
                         .WithMany()
                         .HasForeignKey("AanvoerderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Aanvoerder");
@@ -430,12 +921,19 @@ namespace Veilingklok.Migrations
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Veiling", b =>
                 {
-                    b.HasOne("Veilingklok.Core.Entities.VeilingProduct", "HuidigProduct")
+                    b.HasOne("Veilingklok.Core.Entities.VeilingProduct", "CurrentVeilingProduct")
                         .WithMany()
-                        .HasForeignKey("HuidigProductId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("CurrentVeilingProductId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.Navigation("HuidigProduct");
+                    b.HasOne("VM", "VM")
+                        .WithMany("Veilingen")
+                        .HasForeignKey("VMId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CurrentVeilingProduct");
+
+                    b.Navigation("VM");
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.VeilingProduct", b =>
@@ -446,32 +944,36 @@ namespace Veilingklok.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("Veilingklok.Core.Entities.Aanvoerder", "Aanvoerder")
+                        .WithMany()
+                        .HasForeignKey("AanvoerderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Veilingklok.Core.Entities.Koper", "Koper")
                         .WithMany()
-                        .HasForeignKey("KoperId");
+                        .HasForeignKey("KoperId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Veilingklok.Core.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Veilingklok.Core.Entities.Veiling", "Veiling")
-                        .WithMany("Producten")
+                        .WithMany("VeilingProducten")
                         .HasForeignKey("VeilingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Aanmelding");
 
+                    b.Navigation("Aanvoerder");
+
                     b.Navigation("Koper");
 
+                    b.Navigation("Product");
+
                     b.Navigation("Veiling");
-                });
-
-            modelBuilder.Entity("Veilingklok.Core.Entities.Veilingmeester", b =>
-                {
-                    b.HasOne("Gebruiker", "Gebruiker")
-                        .WithOne("Veilingmeester")
-                        .HasForeignKey("Veilingklok.Core.Entities.Veilingmeester", "GebruikerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Gebruiker");
                 });
 
             modelBuilder.Entity("Aanmelding", b =>
@@ -485,7 +987,12 @@ namespace Veilingklok.Migrations
 
                     b.Navigation("Koper");
 
-                    b.Navigation("Veilingmeester");
+                    b.Navigation("VM");
+                });
+
+            modelBuilder.Entity("VM", b =>
+                {
+                    b.Navigation("Veilingen");
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Aanvoerder", b =>
@@ -493,16 +1000,21 @@ namespace Veilingklok.Migrations
                     b.Navigation("Aanmeldingen");
                 });
 
+            modelBuilder.Entity("Veilingklok.Core.Entities.Koper", b =>
+                {
+                    b.Navigation("Bids");
+                });
+
             modelBuilder.Entity("Veilingklok.Core.Entities.Veiling", b =>
                 {
-                    b.Navigation("Biedingen");
+                    b.Navigation("AuditEntries");
 
-                    b.Navigation("Producten");
+                    b.Navigation("VeilingProducten");
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.VeilingProduct", b =>
                 {
-                    b.Navigation("Biedingen");
+                    b.Navigation("Bids");
                 });
 #pragma warning restore 612, 618
         }

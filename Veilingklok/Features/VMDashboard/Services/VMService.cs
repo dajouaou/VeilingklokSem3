@@ -49,43 +49,46 @@ public sealed class VMService : IVMService
 
     public async Task<Result<VMVeilingDashboardDto>> StartVeilingAsync(int veilingId, int actorGebruikerId)
     {
-        await using var tx = await _db.Database.BeginTransactionAsync();
-
-        var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
-
-        if (veiling.Status == VeilingStatus.Running || veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is al gestart.", ErrorCode.Conflict);
-
-        if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is al beëindigd.", ErrorCode.Conflict);
-
-        if (!MagNuStartenUtc(veiling))
+        var txResult = await ExecuteInTransactionAsync(async () =>
         {
-            var geplandeStartLocal = GetGeplandeStartLocal(veiling);
-            return Result<VMVeilingDashboardDto>.Fail($"Veiling kan pas starten op {geplandeStartLocal:yyyy-MM-dd HH:mm}", ErrorCode.Conflict);
-        }
+            var veiling = await LoadVeilingForMutationAsync(veilingId);
+            if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
-        var first = veiling.VeilingProducten
-            .Where(p => p.Status == VeilingProductStatus.Queued)
-            .OrderBy(p => p.Volgorde)
-            .ThenBy(p => p.Id)
-            .FirstOrDefault();
+            if (veiling.Status == VeilingStatus.Running || veiling.Status == VeilingStatus.Paused)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is al gestart.", ErrorCode.Conflict);
 
-        if (first == null)
-            return Result<VMVeilingDashboardDto>.Fail("Geen producten gekoppeld.", ErrorCode.Conflict);
+            if (veiling.Status == VeilingStatus.Finished)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is al beëindigd.", ErrorCode.Conflict);
 
-        first.Status = VeilingProductStatus.Active;
-        first.ActivatedAtUtc = DateTime.UtcNow;
+            if (!MagNuStartenUtc(veiling))
+            {
+                var geplandeStartLocal = GetGeplandeStartLocal(veiling);
+                return Result<VMVeilingDashboardDto>.Fail($"Veiling kan pas starten op {geplandeStartLocal:yyyy-MM-dd HH:mm}", ErrorCode.Conflict);
+            }
 
-        veiling.CurrentVeilingProductId = first.Id;
-        veiling.Status = VeilingStatus.Running;
-        veiling.StartTijdUtc ??= DateTime.UtcNow;
+            var first = veiling.VeilingProducten
+                .Where(p => p.Status == VeilingProductStatus.Queued)
+                .OrderBy(p => p.Volgorde)
+                .ThenBy(p => p.Id)
+                .FirstOrDefault();
 
-        AddAuditEntry(veiling, "Veiling gestart", actorGebruikerId);
+            if (first == null)
+                return Result<VMVeilingDashboardDto>.Fail("Geen producten gekoppeld.", ErrorCode.Conflict);
 
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
+            first.Status = VeilingProductStatus.Active;
+            first.ActivatedAtUtc = DateTime.UtcNow;
+
+            veiling.CurrentVeilingProductId = first.Id;
+            veiling.Status = VeilingStatus.Running;
+            veiling.StartTijdUtc ??= DateTime.UtcNow;
+
+            AddAuditEntry(veiling, "Veiling gestart", actorGebruikerId);
+
+            await _db.SaveChangesAsync();
+            return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+        });
+
+        if (!txResult.Success) return txResult;
 
         var dashboard = await BuildDashboardResultAsync(veilingId);
         if (dashboard.Success) await BroadcastDashboardAsync(veilingId, dashboard.Value!);
@@ -94,19 +97,22 @@ public sealed class VMService : IVMService
 
     public async Task<Result<VMVeilingDashboardDto>> PauseVeilingAsync(int veilingId, int actorGebruikerId)
     {
-        await using var tx = await _db.Database.BeginTransactionAsync();
+        var txResult = await ExecuteInTransactionAsync(async () =>
+        {
+            var veiling = await LoadVeilingForMutationAsync(veilingId);
+            if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
-        var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
+            if (veiling.Status != VeilingStatus.Running)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is niet running.", ErrorCode.Conflict);
 
-        if (veiling.Status != VeilingStatus.Running)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is niet running.", ErrorCode.Conflict);
+            veiling.Status = VeilingStatus.Paused;
+            AddAuditEntry(veiling, "Veiling gepauzeerd", actorGebruikerId);
 
-        veiling.Status = VeilingStatus.Paused;
-        AddAuditEntry(veiling, "Veiling gepauzeerd", actorGebruikerId);
+            await _db.SaveChangesAsync();
+            return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+        });
 
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
+        if (!txResult.Success) return txResult;
 
         var dashboard = await BuildDashboardResultAsync(veilingId);
         if (dashboard.Success) await BroadcastDashboardAsync(veilingId, dashboard.Value!);
@@ -115,19 +121,22 @@ public sealed class VMService : IVMService
 
     public async Task<Result<VMVeilingDashboardDto>> ResumeVeilingAsync(int veilingId, int actorGebruikerId)
     {
-        await using var tx = await _db.Database.BeginTransactionAsync();
+        var txResult = await ExecuteInTransactionAsync(async () =>
+        {
+            var veiling = await LoadVeilingForMutationAsync(veilingId);
+            if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
-        var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
+            if (veiling.Status != VeilingStatus.Paused)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is niet gepauzeerd.", ErrorCode.Conflict);
 
-        if (veiling.Status != VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is niet gepauzeerd.", ErrorCode.Conflict);
+            veiling.Status = VeilingStatus.Running;
+            AddAuditEntry(veiling, "Veiling hervat", actorGebruikerId);
 
-        veiling.Status = VeilingStatus.Running;
-        AddAuditEntry(veiling, "Veiling hervat", actorGebruikerId);
+            await _db.SaveChangesAsync();
+            return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+        });
 
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
+        if (!txResult.Success) return txResult;
 
         var dashboard = await BuildDashboardResultAsync(veilingId);
         if (dashboard.Success) await BroadcastDashboardAsync(veilingId, dashboard.Value!);
@@ -136,24 +145,27 @@ public sealed class VMService : IVMService
 
     public async Task<Result<VMVeilingDashboardDto>> StopVeilingAsync(int veilingId, int actorGebruikerId)
     {
-        await using var tx = await _db.Database.BeginTransactionAsync();
+        var txResult = await ExecuteInTransactionAsync(async () =>
+        {
+            var veiling = await LoadVeilingForMutationAsync(veilingId);
+            if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
-        var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
+            if (veiling.Status == VeilingStatus.Finished)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is al beëindigd.", ErrorCode.Conflict);
 
-        if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is al beëindigd.", ErrorCode.Conflict);
+            CloseCurrentIfActive(veiling);
 
-        CloseCurrentIfActive(veiling);
+            veiling.CurrentVeilingProductId = null;
+            veiling.Status = VeilingStatus.Finished;
+            veiling.EindTijdUtc ??= DateTime.UtcNow;
 
-        veiling.CurrentVeilingProductId = null;
-        veiling.Status = VeilingStatus.Finished;
-        veiling.EindTijdUtc ??= DateTime.UtcNow;
+            AddAuditEntry(veiling, "Veiling gestopt", actorGebruikerId);
 
-        AddAuditEntry(veiling, "Veiling gestopt", actorGebruikerId);
+            await _db.SaveChangesAsync();
+            return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+        });
 
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
+        if (!txResult.Success) return txResult;
 
         var dashboard = await BuildDashboardResultAsync(veilingId);
         if (dashboard.Success) await BroadcastDashboardAsync(veilingId, dashboard.Value!);
@@ -162,52 +174,51 @@ public sealed class VMService : IVMService
 
     public async Task<Result<VMVeilingDashboardDto>> ActivateNextProductAsync(int veilingId, int actorGebruikerId)
     {
-        await using var tx = await _db.Database.BeginTransactionAsync();
-
-        var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
-
-        if (veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.", ErrorCode.Conflict);
-
-        if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.", ErrorCode.Conflict);
-
-        var current = CloseCurrentIfActive(veiling);
-        var currentVolgorde = current?.Volgorde ?? -1;
-
-        var next = veiling.VeilingProducten
-            .Where(p => p.Status == VeilingProductStatus.Queued && p.Volgorde > currentVolgorde)
-            .OrderBy(p => p.Volgorde)
-            .ThenBy(p => p.Id)
-            .FirstOrDefault();
-
-        if (next == null)
+        var txResult = await ExecuteInTransactionAsync(async () =>
         {
-            veiling.CurrentVeilingProductId = null;
-            veiling.Status = VeilingStatus.Finished;
-            veiling.EindTijdUtc ??= DateTime.UtcNow;
+            var veiling = await LoadVeilingForMutationAsync(veilingId);
+            if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
-            AddAuditEntry(veiling, "Geen volgende producten, veiling beëindigd", actorGebruikerId);
+            if (veiling.Status == VeilingStatus.Paused)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.", ErrorCode.Conflict);
+
+            if (veiling.Status == VeilingStatus.Finished)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.", ErrorCode.Conflict);
+
+            var current = CloseCurrentIfActive(veiling);
+            var currentVolgorde = current?.Volgorde ?? -1;
+
+            var next = veiling.VeilingProducten
+                .Where(p => p.Status == VeilingProductStatus.Queued && p.Volgorde > currentVolgorde)
+                .OrderBy(p => p.Volgorde)
+                .ThenBy(p => p.Id)
+                .FirstOrDefault();
+
+            if (next == null)
+            {
+                veiling.CurrentVeilingProductId = null;
+                veiling.Status = VeilingStatus.Finished;
+                veiling.EindTijdUtc ??= DateTime.UtcNow;
+
+                AddAuditEntry(veiling, "Geen volgende producten, veiling beëindigd", actorGebruikerId);
+
+                await _db.SaveChangesAsync();
+                return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+            }
+
+            next.Status = VeilingProductStatus.Active;
+            next.ActivatedAtUtc = DateTime.UtcNow;
+
+            veiling.CurrentVeilingProductId = next.Id;
+            veiling.Status = VeilingStatus.Running;
+
+            AddAuditEntry(veiling, "Volgend product geactiveerd", actorGebruikerId);
 
             await _db.SaveChangesAsync();
-            await tx.CommitAsync();
+            return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+        });
 
-            var dashFinal = await BuildDashboardResultAsync(veilingId);
-            if (dashFinal.Success) await BroadcastDashboardAsync(veilingId, dashFinal.Value!);
-            return dashFinal;
-        }
-
-        next.Status = VeilingProductStatus.Active;
-        next.ActivatedAtUtc = DateTime.UtcNow;
-
-        veiling.CurrentVeilingProductId = next.Id;
-        veiling.Status = VeilingStatus.Running;
-
-        AddAuditEntry(veiling, "Volgend product geactiveerd", actorGebruikerId);
-
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
+        if (!txResult.Success) return txResult;
 
         var dashboard = await BuildDashboardResultAsync(veilingId);
         if (dashboard.Success) await BroadcastDashboardAsync(veilingId, dashboard.Value!);
@@ -216,39 +227,42 @@ public sealed class VMService : IVMService
 
     public async Task<Result<VMVeilingDashboardDto>> CloseCurrentProductAsync(int veilingId, int actorGebruikerId)
     {
-        await using var tx = await _db.Database.BeginTransactionAsync();
-
-        var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
-
-        if (veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.", ErrorCode.Conflict);
-
-        if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.", ErrorCode.Conflict);
-
-        if (veiling.CurrentVeilingProductId == null)
-            return Result<VMVeilingDashboardDto>.Fail("Geen actief product.", ErrorCode.Conflict);
-
-        var current = veiling.VeilingProducten.FirstOrDefault(p => p.Id == veiling.CurrentVeilingProductId);
-        if (current == null || current.Status != VeilingProductStatus.Active)
-            return Result<VMVeilingDashboardDto>.Fail("Geen actief product.", ErrorCode.Conflict);
-
-        current.Status = VeilingProductStatus.Sold;
-        current.ClosedAtUtc = DateTime.UtcNow;
-
-        veiling.CurrentVeilingProductId = null;
-
-        if (!HasOpenProducts(veiling))
+        var txResult = await ExecuteInTransactionAsync(async () =>
         {
-            veiling.Status = VeilingStatus.Finished;
-            veiling.EindTijdUtc ??= DateTime.UtcNow;
-        }
+            var veiling = await LoadVeilingForMutationAsync(veilingId);
+            if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
-        AddAuditEntry(veiling, "Huidig product gesloten", actorGebruikerId);
+            if (veiling.Status == VeilingStatus.Paused)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.", ErrorCode.Conflict);
 
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
+            if (veiling.Status == VeilingStatus.Finished)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.", ErrorCode.Conflict);
+
+            if (veiling.CurrentVeilingProductId == null)
+                return Result<VMVeilingDashboardDto>.Fail("Geen actief product.", ErrorCode.Conflict);
+
+            var current = veiling.VeilingProducten.FirstOrDefault(p => p.Id == veiling.CurrentVeilingProductId);
+            if (current == null || current.Status != VeilingProductStatus.Active)
+                return Result<VMVeilingDashboardDto>.Fail("Geen actief product.", ErrorCode.Conflict);
+
+            current.Status = VeilingProductStatus.Sold;
+            current.ClosedAtUtc = DateTime.UtcNow;
+
+            veiling.CurrentVeilingProductId = null;
+
+            if (!HasOpenProducts(veiling))
+            {
+                veiling.Status = VeilingStatus.Finished;
+                veiling.EindTijdUtc ??= DateTime.UtcNow;
+            }
+
+            AddAuditEntry(veiling, "Huidig product gesloten", actorGebruikerId);
+
+            await _db.SaveChangesAsync();
+            return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+        });
+
+        if (!txResult.Success) return txResult;
 
         var dashboard = await BuildDashboardResultAsync(veilingId);
         if (dashboard.Success) await BroadcastDashboardAsync(veilingId, dashboard.Value!);
@@ -257,28 +271,31 @@ public sealed class VMService : IVMService
 
     public async Task<Result<VMVeilingDashboardDto>> ResetVeilingAsync(int veilingId, int actorGebruikerId)
     {
-        await using var tx = await _db.Database.BeginTransactionAsync();
-
-        var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
-
-        foreach (var p in veiling.VeilingProducten)
+        var txResult = await ExecuteInTransactionAsync(async () =>
         {
-            p.Status = VeilingProductStatus.Queued;
-            p.ActivatedAtUtc = null;
-            p.ClosedAtUtc = null;
-            p.HuidigePrijs = p.StartPrijs;
-        }
+            var veiling = await LoadVeilingForMutationAsync(veilingId);
+            if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
-        veiling.CurrentVeilingProductId = null;
-        veiling.StartTijdUtc = null;
-        veiling.EindTijdUtc = null;
-        veiling.Status = VeilingStatus.Scheduled;
+            foreach (var p in veiling.VeilingProducten)
+            {
+                p.Status = VeilingProductStatus.Queued;
+                p.ActivatedAtUtc = null;
+                p.ClosedAtUtc = null;
+                p.HuidigePrijs = p.StartPrijs;
+            }
 
-        AddAuditEntry(veiling, "Veiling gereset", actorGebruikerId);
+            veiling.CurrentVeilingProductId = null;
+            veiling.StartTijdUtc = null;
+            veiling.EindTijdUtc = null;
+            veiling.Status = VeilingStatus.Scheduled;
 
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
+            AddAuditEntry(veiling, "Veiling gereset", actorGebruikerId);
+
+            await _db.SaveChangesAsync();
+            return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+        });
+
+        if (!txResult.Success) return txResult;
 
         var dashboard = await BuildDashboardResultAsync(veilingId);
         if (dashboard.Success) await BroadcastDashboardAsync(veilingId, dashboard.Value!);
@@ -290,32 +307,35 @@ public sealed class VMService : IVMService
         if (request.OrderedVeilingProductIds == null || request.OrderedVeilingProductIds.Length == 0)
             return Result<VMVeilingDashboardDto>.Fail("Geen ids meegegeven.", ErrorCode.Validation);
 
-        await using var tx = await _db.Database.BeginTransactionAsync();
+        var txResult = await ExecuteInTransactionAsync(async () =>
+        {
+            var veiling = await LoadVeilingForMutationAsync(veilingId);
+            if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
-        var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
+            if (veiling.Status == VeilingStatus.Running || veiling.Status == VeilingStatus.Paused)
+                return Result<VMVeilingDashboardDto>.Fail("Queue reorder kan niet tijdens running/paused.", ErrorCode.Conflict);
 
-        if (veiling.Status == VeilingStatus.Running || veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Queue reorder kan niet tijdens running/paused.", ErrorCode.Conflict);
+            var queued = veiling.VeilingProducten
+                .Where(p => p.Status == VeilingProductStatus.Queued)
+                .ToList();
 
-        var queued = veiling.VeilingProducten
-            .Where(p => p.Status == VeilingProductStatus.Queued)
-            .ToList();
+            var queuedIds = queued.Select(x => x.Id).ToHashSet();
+            var incomingIds = request.OrderedVeilingProductIds.ToHashSet();
 
-        var queuedIds = queued.Select(x => x.Id).ToHashSet();
-        var incomingIds = request.OrderedVeilingProductIds.ToHashSet();
+            if (!incomingIds.SetEquals(queuedIds))
+                return Result<VMVeilingDashboardDto>.Fail("Reorder ids matchen niet met de huidige queue.", ErrorCode.Conflict);
 
-        if (!incomingIds.SetEquals(queuedIds))
-            return Result<VMVeilingDashboardDto>.Fail("Reorder ids matchen niet met de huidige queue.", ErrorCode.Conflict);
+            var volgorde = 1;
+            foreach (var id in request.OrderedVeilingProductIds)
+                queued.First(x => x.Id == id).Volgorde = volgorde++;
 
-        var volgorde = 1;
-        foreach (var id in request.OrderedVeilingProductIds)
-            queued.First(x => x.Id == id).Volgorde = volgorde++;
+            AddAuditEntry(veiling, "Queue volgorde aangepast", actorGebruikerId);
 
-        AddAuditEntry(veiling, "Queue volgorde aangepast", actorGebruikerId);
+            await _db.SaveChangesAsync();
+            return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+        });
 
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
+        if (!txResult.Success) return txResult;
 
         var dashboard = await BuildDashboardResultAsync(veilingId);
         if (dashboard.Success) await BroadcastDashboardAsync(veilingId, dashboard.Value!);
@@ -324,47 +344,52 @@ public sealed class VMService : IVMService
 
     public async Task<Result<VMVeilingDashboardDto>> SkipProductAsync(int veilingId, int veilingProductId, int actorGebruikerId)
     {
-        await using var tx = await _db.Database.BeginTransactionAsync();
+        var shouldActivateNext = false;
 
-        var veiling = await LoadVeilingForMutationAsync(veilingId);
-        if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
-
-        if (veiling.Status == VeilingStatus.Paused)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.", ErrorCode.Conflict);
-
-        if (veiling.Status == VeilingStatus.Finished)
-            return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.", ErrorCode.Conflict);
-
-        var product = veiling.VeilingProducten.FirstOrDefault(p => p.Id == veilingProductId);
-        if (product == null) return Result<VMVeilingDashboardDto>.Fail("Product niet gevonden.", ErrorCode.NotFound);
-
-        var maxVolgorde = veiling.VeilingProducten.Max(p => p.Volgorde);
-
-        if (veiling.CurrentVeilingProductId == veilingProductId && product.Status == VeilingProductStatus.Active)
+        var txResult = await ExecuteInTransactionAsync(async () =>
         {
-            product.Status = VeilingProductStatus.Skipped;
-            product.ClosedAtUtc = DateTime.UtcNow;
-            veiling.CurrentVeilingProductId = null;
+            var veiling = await LoadVeilingForMutationAsync(veilingId);
+            if (veiling == null) return Result<VMVeilingDashboardDto>.Fail("Veiling niet gevonden.", ErrorCode.NotFound);
 
-            AddAuditEntry(veiling, "Huidig product geskipt (gesloten)", actorGebruikerId);
+            if (veiling.Status == VeilingStatus.Paused)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is gepauzeerd.", ErrorCode.Conflict);
+
+            if (veiling.Status == VeilingStatus.Finished)
+                return Result<VMVeilingDashboardDto>.Fail("Veiling is beëindigd.", ErrorCode.Conflict);
+
+            var product = veiling.VeilingProducten.FirstOrDefault(p => p.Id == veilingProductId);
+            if (product == null) return Result<VMVeilingDashboardDto>.Fail("Product niet gevonden.", ErrorCode.NotFound);
+
+            var maxVolgorde = veiling.VeilingProducten.Max(p => p.Volgorde);
+
+            if (veiling.CurrentVeilingProductId == veilingProductId && product.Status == VeilingProductStatus.Active)
+            {
+                product.Status = VeilingProductStatus.Skipped;
+                product.ClosedAtUtc = DateTime.UtcNow;
+                veiling.CurrentVeilingProductId = null;
+
+                AddAuditEntry(veiling, "Huidig product geskipt (gesloten)", actorGebruikerId);
+
+                await _db.SaveChangesAsync();
+                shouldActivateNext = true;
+                return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+            }
+
+            if (product.Status != VeilingProductStatus.Queued)
+                return Result<VMVeilingDashboardDto>.Fail("Alleen queued producten kun je skippen.", ErrorCode.Conflict);
+
+            product.Volgorde = maxVolgorde + 1;
+
+            AddAuditEntry(veiling, "Product geskipt (naar achter gezet)", actorGebruikerId);
 
             await _db.SaveChangesAsync();
-            await tx.CommitAsync();
+            return Result<VMVeilingDashboardDto>.Ok(VMVeilingDashboardDto.FromEntity(veiling));
+        });
 
-            var dashboardAfter = await ActivateNextProductAsync(veilingId, actorGebruikerId);
-            if (dashboardAfter.Success) await BroadcastDashboardAsync(veilingId, dashboardAfter.Value!);
-            return dashboardAfter;
-        }
+        if (!txResult.Success) return txResult;
 
-        if (product.Status != VeilingProductStatus.Queued)
-            return Result<VMVeilingDashboardDto>.Fail("Alleen queued producten kun je skippen.", ErrorCode.Conflict);
-
-        product.Volgorde = maxVolgorde + 1;
-
-        AddAuditEntry(veiling, "Product geskipt (naar achter gezet)", actorGebruikerId);
-
-        await _db.SaveChangesAsync();
-        await tx.CommitAsync();
+        if (shouldActivateNext)
+            return await ActivateNextProductAsync(veilingId, actorGebruikerId);
 
         var dashboard = await BuildDashboardResultAsync(veilingId);
         if (dashboard.Success) await BroadcastDashboardAsync(veilingId, dashboard.Value!);
@@ -507,6 +532,19 @@ public sealed class VMService : IVMService
             Action = action,
             CreatedAtUtc = DateTime.UtcNow,
             ActorGebruikerId = actorGebruikerId
+        });
+    }
+
+    private async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action)
+    {
+        var strategy = _db.Database.CreateExecutionStrategy();
+
+        return await strategy.ExecuteAsync(async () =>
+        {
+            await using var tx = await _db.Database.BeginTransactionAsync();
+            var result = await action();
+            await tx.CommitAsync();
+            return result;
         });
     }
 }
