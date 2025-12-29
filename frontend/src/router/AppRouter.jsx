@@ -1,9 +1,10 @@
+// src/app/AppRouter.jsx
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "../features/auth/pages/AuthPage";
 import VeilingmeesterDashboard from "../features/VMDashboard/pages/VeilingmeesterDashboard.jsx";
 import VeilingPage from "../features/veiling/pages/VeilingPage.jsx";
 import AanvoerderDashboardPage from "../features/aanvoerderDashboard/pages/AanvoerderDashboardPage.jsx";
-
+import HomePage from "../features/home/pages/HomePage.jsx";
 
 function getToken() {
     return localStorage.getItem("token") || "";
@@ -49,6 +50,7 @@ function getDisplayNameFromToken(token) {
         p["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] ||
         p["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"];
     if (typeof name === "string") return name.trim();
+
     const first =
         p.given_name ||
         p.GivenName ||
@@ -125,6 +127,15 @@ function Placeholder({ title }) {
     );
 }
 
+function HomeGate() {
+    const token = getToken();
+    if (token) {
+        const role = getRoleFromToken(token);
+        return <Navigate to={routeForRole(role)} replace />;
+    }
+    return <HomePage />;
+}
+
 export default function AppRouter() {
     const token = getToken();
     const aanvoerderNaam = getDisplayNameFromToken(token) || "Aanvoerder";
@@ -132,7 +143,8 @@ export default function AppRouter() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<HomeRedirect />} />
+                <Route path="/" element={<HomeGate />} />
+                <Route path="/go" element={<HomeRedirect />} />
                 <Route path="/login" element={<LoginGate />} />
 
                 <Route

@@ -34,9 +34,6 @@
 	</ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Features\Home\Controllers\" />
-        <Folder Include="Features\Home\Dtos\" />
-        <Folder Include="Features\Home\Services\" />
         <Folder Include="Migrations\" />
         <Folder Include="wwwroot\uploads\" />
     </ItemGroup>
