@@ -5,6 +5,7 @@ import "./index.css";
 import "./styles/dashboard.css";
 import "./styles/auth.css";
 import "./styles/aanvoerder-dashboard.css";
+import "./styles/app-layout.css";
 
 
 

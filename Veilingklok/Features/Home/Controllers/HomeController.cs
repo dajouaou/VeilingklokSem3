@@ -14,7 +14,7 @@ public sealed class HomeController : ControllerBase
     }
 
     [HttpGet("/api/home")]
-    [ProducesResponseType(typeof(HomeDto), 200)]
+    [ProducesResponseType(typeof(HomeDto), StatusCodes.Status200OK)]
     public ActionResult<HomeDto> Get()
     {
         return Ok(_service.GetHome());

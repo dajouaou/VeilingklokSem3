@@ -5,6 +5,8 @@ import VeilingmeesterDashboard from "../features/VMDashboard/pages/Veilingmeeste
 import VeilingPage from "../features/veiling/pages/VeilingPage.jsx";
 import AanvoerderDashboardPage from "../features/aanvoerderDashboard/pages/AanvoerderDashboardPage.jsx";
 import HomePage from "../features/home/pages/HomePage.jsx";
+import AppLayout from "../app/AppLayout";
+import PublicLayout from "../app/PublicLayout";
 
 function getToken() {
     return localStorage.getItem("token") || "";
@@ -143,45 +145,49 @@ export default function AppRouter() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="/" element={<HomeGate />} />
-                <Route path="/go" element={<HomeRedirect />} />
-                <Route path="/login" element={<LoginGate />} />
+                <Route element={<PublicLayout />}>
+                    <Route path="/" element={<HomeGate />} />
+                    <Route path="/login" element={<LoginGate />} />
+                    <Route path="/go" element={<HomeRedirect />} />
+                </Route>
 
-                <Route
-                    path="/vm"
-                    element={
-                        <RequireRole allow={["vm", "veilingmeester"]}>
-                            <VeilingmeesterDashboard />
-                        </RequireRole>
-                    }
-                />
+                <Route element={<AppLayout />}>
+                    <Route
+                        path="/vm"
+                        element={
+                            <RequireRole allow={["vm", "veilingmeester"]}>
+                                <VeilingmeesterDashboard />
+                            </RequireRole>
+                        }
+                    />
 
-                <Route
-                    path="/aanvoerder"
-                    element={
-                        <RequireRole allow={["aanvoerder"]}>
-                            <AanvoerderDashboardPage token={token} aanvoerderNaam={aanvoerderNaam} />
-                        </RequireRole>
-                    }
-                />
+                    <Route
+                        path="/aanvoerder"
+                        element={
+                            <RequireRole allow={["aanvoerder"]}>
+                                <AanvoerderDashboardPage token={token} aanvoerderNaam={aanvoerderNaam} />
+                            </RequireRole>
+                        }
+                    />
 
-                <Route
-                    path="/veiling"
-                    element={
-                        <RequireRole allow={["koper"]}>
-                            <VeilingPage />
-                        </RequireRole>
-                    }
-                />
+                    <Route
+                        path="/veiling"
+                        element={
+                            <RequireRole allow={["koper"]}>
+                                <VeilingPage />
+                            </RequireRole>
+                        }
+                    />
 
-                <Route
-                    path="/aanvoerder-placeholder"
-                    element={
-                        <RequireAuth>
-                            <Placeholder title="Aanvoerder dashboard" />
-                        </RequireAuth>
-                    }
-                />
+                    <Route
+                        path="/aanvoerder-placeholder"
+                        element={
+                            <RequireAuth>
+                                <Placeholder title="Aanvoerder dashboard" />
+                            </RequireAuth>
+                        }
+                    />
+                </Route>
 
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
