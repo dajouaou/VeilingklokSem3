@@ -12,3 +12,4 @@
         public bool IsVerkocht { get; set; }
     }
 }
+

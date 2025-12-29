@@ -9,3 +9,4 @@ namespace Veilingklok.Features.Veiling.Dtos;
         public decimal HuidigePrijs { get; set; }
         public int Hoeveelheid { get; set; }
     }
+

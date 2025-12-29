@@ -12,6 +12,7 @@ public class AanmeldingUpdateDto
 
     [Range(1, int.MaxValue)]
     public int Hoeveelheid { get; set; }
+    
 
     [Range(0.01, double.MaxValue)]
     public decimal MinimumPrijs { get; set; }

@@ -9,5 +9,13 @@
       <jdbc-url>jdbc:sqlite:identifier.sqlite</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="Microsoft SQL Server (JetBrains)" uuid="6dd7138d-cd02-4e7a-b31a-9be2b1660c5a">
+      <driver-ref>sqlserver.jb</driver-ref>
+      <synchronize>true</synchronize>
+      <configured-by-url>true</configured-by-url>
+      <jdbc-driver>com.jetbrains.jdbc.sqlserver.SqlServerDriver</jdbc-driver>
+      <jdbc-url>Server=tcp:veilingklok-sql-sofia.database.windows.net,1433;Database=Veilingklok;User ID=sqladmin;Password=Backend123!;Encrypt=True;TrustServerCertificate=False;</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>

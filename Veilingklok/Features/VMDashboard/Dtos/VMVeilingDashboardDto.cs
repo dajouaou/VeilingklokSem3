@@ -16,6 +16,7 @@ public sealed class VMVeilingDashboardDto
 
     public DateTime Datum { get; set; }
     public TimeSpan StartTijd { get; set; }
+    
 
     public DateTime? StartTijdUtc { get; set; }
     public DateTime? EindTijdUtc { get; set; }

@@ -14,6 +14,7 @@ public sealed class VMQueueItemDto
     public string? FotoUrl { get; set; }
 
     public int? AanvoerderId { get; set; }
+    
     public string AanvoerderNaam { get; set; } = string.Empty;
 
     public int Hoeveelheid { get; set; }
