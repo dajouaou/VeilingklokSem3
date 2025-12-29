@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import AuthPage from "../features/auth/pages/AuthPage";
 import VeilingmeesterDashboard from "../features/VMDashboard/pages/VeilingmeesterDashboard.jsx";
 import VeilingPage from "../features/veiling/pages/VeilingPage.jsx";
+import AanvoerderDashboardPage from "../features/aanvoerderDashboard/pages/AanvoerderDashboardPage.jsx";
+
 
 function getToken() {
     return localStorage.getItem("token") || "";
@@ -32,6 +34,35 @@ function getRoleFromToken(token) {
     if (typeof c === "string") return c.trim();
     if (Array.isArray(c) && typeof c[0] === "string") return c[0].trim();
     return "";
+}
+
+function getDisplayNameFromToken(token) {
+    const p = decodePayload(token);
+    if (!p) return "";
+    const name =
+        p.name ||
+        p.Name ||
+        p.naam ||
+        p.Naam ||
+        p.unique_name ||
+        p["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"] ||
+        p["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"] ||
+        p["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"];
+    if (typeof name === "string") return name.trim();
+    const first =
+        p.given_name ||
+        p.GivenName ||
+        p.voornaam ||
+        p.Voornaam ||
+        p["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"];
+    const last =
+        p.family_name ||
+        p.FamilyName ||
+        p.achternaam ||
+        p.Achternaam ||
+        p["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"];
+    const full = `${String(first || "").trim()} ${String(last || "").trim()}`.trim();
+    return full;
 }
 
 function routeForRole(roleRaw) {
@@ -95,6 +126,9 @@ function Placeholder({ title }) {
 }
 
 export default function AppRouter() {
+    const token = getToken();
+    const aanvoerderNaam = getDisplayNameFromToken(token) || "Aanvoerder";
+
     return (
         <BrowserRouter>
             <Routes>
@@ -113,9 +147,9 @@ export default function AppRouter() {
                 <Route
                     path="/aanvoerder"
                     element={
-                        <RequireAuth>
-                            <Placeholder title="Aanvoerder dashboard" />
-                        </RequireAuth>
+                        <RequireRole allow={["aanvoerder"]}>
+                            <AanvoerderDashboardPage token={token} aanvoerderNaam={aanvoerderNaam} />
+                        </RequireRole>
                     }
                 />
 
@@ -125,6 +159,15 @@ export default function AppRouter() {
                         <RequireRole allow={["koper"]}>
                             <VeilingPage />
                         </RequireRole>
+                    }
+                />
+
+                <Route
+                    path="/aanvoerder-placeholder"
+                    element={
+                        <RequireAuth>
+                            <Placeholder title="Aanvoerder dashboard" />
+                        </RequireAuth>
                     }
                 />
 
