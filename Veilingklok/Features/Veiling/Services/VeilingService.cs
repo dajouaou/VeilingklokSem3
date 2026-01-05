@@ -23,12 +23,16 @@ namespace Veilingklok.Features.Veiling.Services
             var v = await _db.Veilingen
                 .Include(v => v.Producten)
                     .ThenInclude(p => p.Aanmelding)
-                .FirstOrDefaultAsync(v => v.Status == VeilingStatus.Gestart);
+                .FirstOrDefaultAsync(v =>
+                    v.Status == VeilingStatus.Gestart ||
+                    v.Status == VeilingStatus.Gepauzeerd
+                );
 
             if (v == null) return null;
 
             return await GetDetailsAsync(v.Id);
         }
+
 
         public async Task<VeilingOverzichtDto> StartGeplandeVeilingAsync(int veilingId)
         {

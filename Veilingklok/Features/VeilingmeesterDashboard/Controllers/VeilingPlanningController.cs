@@ -27,7 +27,8 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             var today = DateTime.Today;
 
             var dagen = await _db.Aanmeldingen
-                .Where(a => a.LeverDatum.Date >= today && a.VeilingProductId == null)
+                .Include(a => a.VeilingProduct)
+                .Where(a => a.LeverDatum.Date >= today && a.VeilingProduct == null)
                 .Select(a => a.LeverDatum.Date)
                 .Distinct()
                 .OrderBy(d => d)
@@ -35,6 +36,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
             return Ok(dagen.Select(d => d.ToString("yyyy-MM-dd")));
         }
+
 
 
         // 2️⃣ Aanmeldingen per leverdatum
@@ -46,9 +48,10 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
             var items = await _db.Aanmeldingen
                 .Include(a => a.Aanvoerder)
+                .Include(a => a.VeilingProduct)
                 .Where(a =>
                     a.LeverDatum.Date == parsedDatum.Date &&
-                    a.VeilingProductId == null
+                    a.VeilingProduct == null
                 )
                 .Select(a => new VeilingPlanningAanmeldingDto
                 {
@@ -157,9 +160,13 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             var today = DateTime.Today;
             var nowTime = DateTime.Now.TimeOfDay;
 
+            var grace = TimeSpan.FromMinutes(5);
+            var cutoff = nowTime - grace;
+            if (cutoff < TimeSpan.Zero) cutoff = TimeSpan.Zero;
+
             var veilingen = await _db.Veilingen
                 .Where(v => v.Status == VeilingStatus.Gepland &&
-                    (v.Datum > today || (v.Datum == today && v.StartTijd > nowTime)))
+                    (v.Datum > today || (v.Datum == today && v.StartTijd >= cutoff)))
                 .OrderBy(v => v.Datum)
                 .ThenBy(v => v.StartTijd)
                 .ToListAsync();
@@ -187,16 +194,19 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
 
 
-
         [HttpGet("volgende")]
         public async Task<IActionResult> GetVolgende()
         {
             var today = DateTime.Today;
             var nowTime = DateTime.Now.TimeOfDay;
 
+            var grace = TimeSpan.FromMinutes(5);
+            var cutoff = nowTime - grace;
+            if (cutoff < TimeSpan.Zero) cutoff = TimeSpan.Zero;
+
             var volgende = await _db.Veilingen
                 .Where(v => v.Status == VeilingStatus.Gepland &&
-                    (v.Datum > today || (v.Datum == today && v.StartTijd > nowTime)))
+                    (v.Datum > today || (v.Datum == today && v.StartTijd >= cutoff)))
                 .OrderBy(v => v.Datum)
                 .ThenBy(v => v.StartTijd)
                 .FirstOrDefaultAsync();

@@ -87,24 +87,38 @@ export default function VeilingmeesterDashboard() {
             setError(err.message || "Kon veiling niet starten.");
         }
     }
+    async function refreshActiveVeiling() {
+        const actief = await getActiveVeiling(token).catch(() => null);
+        setVeiling(actief);
+    }
 
     async function handlePause() {
         if (!veiling?.id) return;
         try {
             await pauseVeiling(token, veiling.id);
+
+            setVeiling(prev => prev ? { ...prev, isPauze: true, isGepauzeerd: true, status: "Gepauzeerd" } : prev);
+
+            await refreshActiveVeiling();
         } catch {
             setError("Pauzeren mislukt.");
         }
     }
 
+
     async function handleResume() {
         if (!veiling?.id) return;
         try {
             await resumeVeiling(token, veiling.id);
+
+            setVeiling(prev => prev ? { ...prev, isPauze: false, isGepauzeerd: false, status: "Gestart" } : prev);
+
+            await refreshActiveVeiling();
         } catch {
             setError("Hervatten mislukt.");
         }
     }
+
 
     async function handleStop() {
         if (!veiling?.id) return;
