@@ -23,7 +23,9 @@ public class AanmeldingConfiguration : IEntityTypeConfiguration<Aanmelding>
             .HasPrecision(18, 2);
 
         builder.Property(x => x.LeverDatum)
-            .IsRequired();
+             .IsRequired()
+             .HasColumnType("date");
+
 
         builder.HasOne(x => x.Aanvoerder)
             .WithMany(a => a.Aanmeldingen)
