@@ -1,5 +1,6 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../auth/AuthContext.jsx";
+import Sidebar from "./components/Sidebar.jsx";
 
 import {
     fetchAanmeldingen,
@@ -10,8 +11,17 @@ import {
 import VeildagPicker from "./components/VeildagPicker.jsx";
 import AanmeldingenBeheer from "./components/AanmeldingenBeheer.jsx";
 
+
 export default function AanvoerderDashboard() {
-    const { token, role } = useContext(AuthContext);
+    const { token, role, logout } = useContext(AuthContext);
+
+    const fotoInputRef = useRef(null);
+
+    // anchors
+    const sectionNieuwRef = useRef(null);
+    const sectionMijnRef = useRef(null);
+
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [items, setItems] = useState([]);
     const [stats, setStats] = useState(null);
@@ -30,8 +40,9 @@ export default function AanvoerderDashboard() {
         hoeveelheid: "",
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
-        leverdatum: null, // date object (niet string)
-        fotoFile: null,  
+        leverdatum: null,
+        fotoFile: null,
+        beschrijving: "",
     });
 
     const [formError, setFormError] = useState("");
@@ -40,7 +51,18 @@ export default function AanvoerderDashboard() {
     useEffect(() => {
         if (!token || role !== "Aanvoerder") return;
         loadDashboardData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token, role, filterDate]);
+
+    useEffect(() => {
+        if (!formSuccess) return;
+
+        const t = setTimeout(() => {
+            setFormSuccess("");
+        }, 3000);
+
+        return () => clearTimeout(t);
+    }, [formSuccess]);
 
     async function loadDashboardData() {
         setLoading(true);
@@ -63,6 +85,10 @@ export default function AanvoerderDashboard() {
 
     function handleFormChange(e) {
         const { name, value } = e.target;
+
+        if (formSuccess) setFormSuccess("");
+        if (formError) setFormError("");
+
         setForm((prev) => ({ ...prev, [name]: value }));
     }
 
@@ -89,19 +115,19 @@ export default function AanvoerderDashboard() {
             beschrijving: form.beschrijving || "",
         };
 
-
         try {
             const created = await createAanmelding({ token, data: payload });
 
-            setItems(prev => [...prev, created]);
+            setItems((prev) => [...prev, created]);
 
             const updatedStats = await fetchAanvoerderStats({
                 token,
-                leverdatum: filterDate || undefined
+                leverdatum: filterDate || undefined,
             });
             setStats(updatedStats);
 
             setFormSuccess("Product succesvol aangemeld.");
+
             setForm({
                 soort: "",
                 potmaat: "",
@@ -109,18 +135,21 @@ export default function AanvoerderDashboard() {
                 hoeveelheid: "",
                 minimumPrijs: "",
                 klokLocatie: "Naaldwijk",
-                leverdatum: null, //date object (geen string ervan maken pls)
+                leverdatum: null,
                 fotoFile: null,
+                beschrijving: "",
             });
+
+            if (fotoInputRef.current) {
+                fotoInputRef.current.value = "";
+            }
         } catch (err) {
             setFormError(err.message);
         }
     }
 
-
     const filteredItems = items.filter((item) => {
         if (!search) return true;
-
         const term = search.toLowerCase();
         return (
             item.soort.toLowerCase().includes(term) ||
@@ -129,10 +158,57 @@ export default function AanvoerderDashboard() {
         );
     });
 
+    function handleSidebarNavigate(target) {
+        setSidebarOpen(false);
+
+        if (target === "dashboard") {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+        }
+
+        if (target === "nieuw") {
+            sectionNieuwRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+        }
+
+        if (target === "mijn") {
+            sectionMijnRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+        }
+
+        if (target === "beheer") {
+            setBeheerOpen(true);
+            return;
+        }
+    }
+
+    function handleLogout() {
+        // Als je AuthContext een logout() aanbiedt is dit genoeg.
+        // Zo niet: token uit localStorage verwijderen + redirect.
+        if (logout) logout();
+        else {
+            localStorage.removeItem("token");
+            window.location.href = "/login";
+        }
+    }
+
     return (
         <main id="main" className="container py-4">
+            <Sidebar
+                open={sidebarOpen}
+                onClose={() => setSidebarOpen(false)}
+                onNavigate={handleSidebarNavigate}
+                onLogout={handleLogout}
+                userLabel="Aanvoerder"
+            />
+
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 className="h3">Aanvoerdersdashboard</h1>
+                <div className="d-flex align-items-center gap-2">
+                    <button className="btn btn-outline-secondary" onClick={() => setSidebarOpen(true)}>
+                        Menu
+                    </button>
+                    <h1 className="h3 mb-0">Aanvoerdersdashboard</h1>
+                </div>
                 <p className="text-muted mb-0">Beheer je veilingaanmeldingen</p>
             </div>
 
@@ -169,7 +245,7 @@ export default function AanvoerderDashboard() {
                 </section>
             )}
 
-            <section className="mb-5">
+            <section className="mb-5" ref={sectionNieuwRef}>
                 <div className="card shadow-sm border-0">
                     <div className="card-body">
                         <h2 className="h4 mb-3">Nieuw product aanmelden</h2>
@@ -179,7 +255,6 @@ export default function AanvoerderDashboard() {
 
                         <form onSubmit={handleSubmit}>
                             <div className="row g-3">
-
                                 <div className="col-md-6">
                                     <label className="form-label">Soort *</label>
                                     <input
@@ -257,20 +332,31 @@ export default function AanvoerderDashboard() {
                                     <label className="form-label">Leverdatum *</label>
                                     <VeildagPicker
                                         value={form.leverdatum}
-                                        onChange={(value) => setForm((prev) => ({ ...prev, leverdatum: value }))}
-                                        highlightedDates={items.map(i => i.leverdatum)}
+                                        onChange={(value) => {
+                                            if (formSuccess) setFormSuccess("");
+                                            if (formError) setFormError("");
+                                            setForm((prev) => ({ ...prev, leverdatum: value }));
+                                        }}
+                                        highlightedDates={items.map((i) => i.leverDatum)}
                                     />
                                 </div>
 
                                 <div className="col-md-8">
                                     <label className="form-label">Productfoto</label>
                                     <input
+                                        ref={fotoInputRef}
                                         type="file"
                                         accept="image/*"
                                         className="form-control"
-                                        onChange={(e) => setForm(prev => ({ ...prev, fotoFile: e.target.files[0] }))}
+                                        onChange={(e) => {
+                                            if (formSuccess) setFormSuccess("");
+                                            if (formError) setFormError("");
+                                            const file = e.target.files?.[0] ?? null;
+                                            setForm((prev) => ({ ...prev, fotoFile: file }));
+                                        }}
                                     />
                                 </div>
+
                                 <div className="col-12">
                                     <label className="form-label">Beschrijving</label>
                                     <textarea
@@ -281,7 +367,6 @@ export default function AanvoerderDashboard() {
                                         onChange={handleFormChange}
                                     />
                                 </div>
-
                             </div>
 
                             <div className="mt-4 d-flex justify-content-end">
@@ -294,14 +379,11 @@ export default function AanvoerderDashboard() {
                 </div>
             </section>
 
-            <section>
+            <section ref={sectionMijnRef}>
                 <div className="d-flex justify-content-between align-items-center mb-3">
                     <h2 className="h4">Mijn aanmeldingen</h2>
 
-                    <button
-                        className="btn btn-outline-primary"
-                        onClick={() => setBeheerOpen(true)}
-                    >
+                    <button className="btn btn-outline-primary" onClick={() => setBeheerOpen(true)}>
                         Aanmeldingen beheren
                     </button>
                 </div>
@@ -332,9 +414,7 @@ export default function AanvoerderDashboard() {
                 {loadError && <p className="text-danger">{loadError}</p>}
                 {loading && <p>Laden...</p>}
 
-                {!loading && filteredItems.length === 0 && (
-                    <p>Geen aanmeldingen.</p>
-                )}
+                {!loading && filteredItems.length === 0 && <p>Geen aanmeldingen.</p>}
 
                 {!loading && filteredItems.length > 0 && (
                     <div className="table-responsive">
@@ -374,17 +454,11 @@ export default function AanvoerderDashboard() {
                                         </td>
 
                                         <td>{item.soort}</td>
-
                                         <td>{item.potmaat || item.steellengte || "-"}</td>
-
                                         <td>{item.hoeveelheid}</td>
-
                                         <td>{item.minimumPrijs.toFixed(2)}</td>
-
                                         <td>{item.klokLocatie}</td>
-
                                         <td>{new Date(item.leverDatum).toLocaleDateString("nl-NL")}</td>
-
                                         <td>{item.aanvoerderNaam}</td>
 
                                         <td>
@@ -392,15 +466,12 @@ export default function AanvoerderDashboard() {
                                                 <>
                                                     <div>{item.verkoopPrijs?.toFixed(2)} / stuk</div>
                                                     <div className="small text-muted">
-                                                        Totaal: 
-                                                        {item.totaleOpbrengst?.toFixed(2)}
+                                                        Totaal: {item.totaleOpbrengst?.toFixed(2)}
                                                         {item.koperNaam && <> – {item.koperNaam}</>}
                                                     </div>
                                                 </>
                                             ) : (
-                                                <span className="badge bg-secondary">
-                                                    Nog niet verkocht
-                                                </span>
+                                                <span className="badge bg-secondary">Nog niet verkocht</span>
                                             )}
                                         </td>
                                     </tr>
@@ -419,7 +490,6 @@ export default function AanvoerderDashboard() {
                     onUpdated={loadDashboardData}
                 />
             )}
-
         </main>
     );
 }
