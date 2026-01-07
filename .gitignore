@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Veilingklok/Features/Veiling/Dtos/VeilingPublicDto.cs
+/frontendveilingklok/src/features/veiling/hooks/useAuctionHub.js
+/frontendveilingklok/src/features/Veilingen.jsx
+/frontendveilingklok/src/shared/components/PublicLayout.jsx
