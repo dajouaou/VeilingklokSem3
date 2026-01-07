@@ -12,11 +12,17 @@ namespace Veilingklok.Core.Entities
         public int AanmeldingId { get; set; }
         public Aanmelding? Aanmelding { get; set; }
 
-        public decimal StartPrijs { get; set; }
-        public decimal HuidigePrijs { get; set; }
+        // ✅ Klokdata
+        public decimal MaximumPrijs { get; set; }          // door veilingmeester
+        public decimal MinimumPrijs { get; set; }          // uit aanmelding (kopie)
+        public decimal HuidigePrijs { get; set; }          // live prijs
+
+        public decimal DalingPerSeconde { get; set; }      // € per seconde
+        public int ResterendeHoeveelheid { get; set; }     // voor deelverkoop
 
         public bool IsActief { get; set; }
         public bool IsVerkocht { get; set; }
+        public bool IsDoorgedraaid { get; set; }           // minimum bereikt zonder koper
 
         public int Volgorde { get; set; }
 

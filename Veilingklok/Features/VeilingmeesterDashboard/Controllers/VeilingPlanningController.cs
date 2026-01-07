@@ -21,11 +21,14 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             _db = db;
         }
 
-        // 1️⃣ Leverdatums waar aanmeldingen zijn
         [HttpGet("veildagen")]
         public async Task<IActionResult> GetVeildagen()
         {
+            var today = DateTime.Today;
+
             var dagen = await _db.Aanmeldingen
+                .Include(a => a.VeilingProduct)
+                .Where(a => a.LeverDatum.Date >= today && a.VeilingProduct == null)
                 .Select(a => a.LeverDatum.Date)
                 .Distinct()
                 .OrderBy(d => d)
@@ -33,6 +36,8 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
             return Ok(dagen.Select(d => d.ToString("yyyy-MM-dd")));
         }
+
+
 
         // 2️⃣ Aanmeldingen per leverdatum
         [HttpGet("aanmeldingen")]
@@ -43,9 +48,10 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
             var items = await _db.Aanmeldingen
                 .Include(a => a.Aanvoerder)
+                .Include(a => a.VeilingProduct)
                 .Where(a =>
                     a.LeverDatum.Date == parsedDatum.Date &&
-                    a.VeilingProductId == null
+                    a.VeilingProduct == null
                 )
                 .Select(a => new VeilingPlanningAanmeldingDto
                 {
@@ -114,27 +120,34 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                 : 1;
 
 
-            foreach (var id in dto.AanmeldingIds)
+            foreach (var aanmeldingId in dto.AanmeldingIds)
             {
-                if (bestaandeAanmeldingen.Contains(id))
-                    continue;
+                var a = await _db.Aanmeldingen.FindAsync(aanmeldingId);
+                if (a == null || a.VeilingProduct != null) continue;
 
-                var a = await _db.Aanmeldingen.FindAsync(id);
-                if (a == null || a.VeilingProduct != null)
-                    continue;
+                // tijdelijke defaults (pas aan naar wens)
+                var maximumPrijs = a.MinimumPrijs + 1.00m;
+                var daling = 0.10m;
 
                 var vp = new VeilingProduct
                 {
                     VeilingId = veiling.Id,
                     AanmeldingId = a.Id,
-                    StartPrijs = a.MinimumPrijs,
-                    HuidigePrijs = a.MinimumPrijs,
+
+                    MaximumPrijs = maximumPrijs,
+                    MinimumPrijs = a.MinimumPrijs,
+                    HuidigePrijs = maximumPrijs,
+
+                    DalingPerSeconde = daling,
+                    ResterendeHoeveelheid = a.Hoeveelheid,
                     Volgorde = volgorde++
                 };
 
                 a.VeilingProduct = vp;
                 _db.VeilingProducten.Add(vp);
             }
+
+
 
             await _db.SaveChangesAsync();
 
@@ -144,32 +157,37 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
         [HttpGet("gepland")]
         public async Task<IActionResult> GetGeplande()
         {
+            var today = DateTime.Today;
+            var nowTime = DateTime.Now.TimeOfDay;
+
+            var grace = TimeSpan.FromMinutes(5);
+            var cutoff = nowTime - grace;
+            if (cutoff < TimeSpan.Zero) cutoff = TimeSpan.Zero;
+
             var veilingen = await _db.Veilingen
-                .Where(v => v.Status == VeilingStatus.Gepland)
-                .ToListAsync(); // ⬅️ GEEN OrderBy in SQL
+                .Where(v => v.Status == VeilingStatus.Gepland &&
+                    (v.Datum > today || (v.Datum == today && v.StartTijd >= cutoff)))
+                .OrderBy(v => v.Datum)
+                .ThenBy(v => v.StartTijd)
+                .ToListAsync();
 
             var productCounts = await _db.VeilingProducten
                 .GroupBy(p => p.VeilingId)
                 .Select(g => new { VeilingId = g.Key, Aantal = g.Count() })
                 .ToListAsync();
 
-            var result = veilingen
-                .OrderBy(v => v.Datum)      // ✔️ LINQ to Objects
-                .ThenBy(v => v.StartTijd)   // ✔️ nu WEL toegestaan
-                .Select(v =>
-                {
-                    var aantal = productCounts
-                        .FirstOrDefault(x => x.VeilingId == v.Id)?.Aantal ?? 0;
+            var result = veilingen.Select(v =>
+            {
+                var aantal = productCounts.FirstOrDefault(x => x.VeilingId == v.Id)?.Aantal ?? 0;
 
-                    return new GeplandeVeilingListItemDto
-                    {
-                        Id = v.Id,
-                        Veildatum = v.Datum.ToString("yyyy-MM-dd"),
-                        StartTijd = v.StartTijd.ToString(@"hh\:mm"),
-                        AantalProducten = aantal
-                    };
-                })
-                .ToList();
+                return new GeplandeVeilingListItemDto
+                {
+                    Id = v.Id,
+                    Veildatum = v.Datum.ToString("yyyy-MM-dd"),
+                    StartTijd = v.StartTijd.ToString(@"hh\:mm"),
+                    AantalProducten = aantal
+                };
+            }).ToList();
 
             return Ok(result);
         }
@@ -179,20 +197,24 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
         [HttpGet("volgende")]
         public async Task<IActionResult> GetVolgende()
         {
-            var veilingen = await _db.Veilingen
-                .Where(v => v.Status == VeilingStatus.Gepland)
-                .ToListAsync(); // ⬅️ geen OrderBy in SQL
+            var today = DateTime.Today;
+            var nowTime = DateTime.Now.TimeOfDay;
 
-            var volgende = veilingen
+            var grace = TimeSpan.FromMinutes(5);
+            var cutoff = nowTime - grace;
+            if (cutoff < TimeSpan.Zero) cutoff = TimeSpan.Zero;
+
+            var volgende = await _db.Veilingen
+                .Where(v => v.Status == VeilingStatus.Gepland &&
+                    (v.Datum > today || (v.Datum == today && v.StartTijd >= cutoff)))
                 .OrderBy(v => v.Datum)
                 .ThenBy(v => v.StartTijd)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (volgende == null)
                 return Ok(null);
 
-            var aantal = await _db.VeilingProducten
-                .CountAsync(p => p.VeilingId == volgende.Id);
+            var aantal = await _db.VeilingProducten.CountAsync(p => p.VeilingId == volgende.Id);
 
             return Ok(new GeplandeVeilingListItemDto
             {
@@ -202,6 +224,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                 AantalProducten = aantal
             });
         }
+
 
 
     }

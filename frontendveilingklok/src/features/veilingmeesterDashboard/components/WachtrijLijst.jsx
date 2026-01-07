@@ -1,6 +1,5 @@
 export default function WachtrijLijst({ wachtrij }) {
-    if (!wachtrij || wachtrij.length === 0)
-        return <p className="text-muted">Geen producten in de wachtrij.</p>;
+    if (!wachtrij || wachtrij.length === 0) return <p className="text-muted">Geen producten in de wachtrij.</p>;
 
     return (
         <div className="card shadow-sm border-0">
@@ -13,12 +12,9 @@ export default function WachtrijLijst({ wachtrij }) {
                         className="list-group-item d-flex justify-content-between"
                     >
                         <span>
-                            {item.soort} ({item.hoeveelheid} stuks)
+                            {item.soort} ({item.resterendeHoeveelheid} stuks)
                         </span>
-
-                        <span className="text-muted">
-                            Volgorde {item.volgorde}
-                        </span>
+                        <span className="text-muted">Volgorde {item.volgorde}</span>
                     </li>
                 ))}
             </ul>

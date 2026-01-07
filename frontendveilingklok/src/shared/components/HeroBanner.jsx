@@ -1,45 +1,62 @@
 ﻿import { useEffect, useState } from "react";
-
-const API_BASE = "https://localhost:56418";
+import {
+    getPublicActieveVeiling,
+    getPublicVolgendeVeiling,
+} from "../../features/veiling/api/veilingPublicApi";
+import { Link } from "react-router-dom";
 
 export default function HeroBanner() {
     const [data, setData] = useState({
         titel: "Geen actieve veiling",
         beschrijving: "Er is momenteel geen veiling actief.",
         bid: "—",
-        afbeelding: "/images/bloemen.jpg"
+        afbeelding: "/images/bloemen.jpg",
+        link: "/actueelbod",
     });
 
     useEffect(() => {
-        async function loadBanner() {
+        async function load() {
             try {
-                const res = await fetch(
-                    `${API_BASE}/api/veilingmeester/veilingen/actief`
-                );
+                const actief = await getPublicActieveVeiling();
 
-                if (!res.ok) {
-                    // Geen actieve veiling → banner leeg laten
+                if (actief?.huidigProduct) {
+                    const p = actief.huidigProduct;
+                    setData({
+                        titel: p.soort,
+                        beschrijving: `Resterend: ${p.resterendeHoeveelheid} stuks`,
+                        bid: `€${(p.huidigePrijs ?? 0).toFixed(2)}`,
+                        afbeelding: p.fotoUrl || "/images/bloemen.jpg",
+                        link: "/actueelbod",
+                    });
                     return;
                 }
 
-                const veiling = await res.json();
-
-                if (!veiling || !veiling.huidigProduct) return;
-
-                const product = veiling.huidigProduct;
-
-                setData({
-                    titel: product.soort,
-                    beschrijving: `Hoeveelheid: ${product.hoeveelheid}`,
-                    bid: `€${(product.huidigePrijs ?? product.startPrijs).toFixed(2)}`,
-                    afbeelding: product.fotoUrl || "/images/bloemen.jpg"
-                });
+                const volgende = await getPublicVolgendeVeiling();
+                if (volgende) {
+                    setData({
+                        titel: `Volgende veiling #${volgende.id}`,
+                        beschrijving: `${volgende.veildatum} om ${volgende.startTijd} • ${volgende.aantalProducten} producten`,
+                        bid: "—",
+                        afbeelding: "/images/bloemen.jpg",
+                        link: "/actueelbod",
+                    });
+                } else {
+                    // optioneel: reset naar default als er echt niets is
+                    setData((prev) => ({
+                        ...prev,
+                        titel: "Geen actieve veiling",
+                        beschrijving: "Er is momenteel geen veiling actief.",
+                        bid: "—",
+                        afbeelding: "/images/bloemen.jpg",
+                        link: "/actueelbod",
+                    }));
+                }
             } catch (err) {
                 console.error("Kan banner niet laden:", err);
             }
         }
 
-        loadBanner();
+        load();
     }, []);
 
     return (
@@ -57,9 +74,9 @@ export default function HeroBanner() {
                             </div>
                         </div>
 
-                        <a href="/actueelbod" className="btn" id="btn-herobanner">
+                        <Link to={data.link} className="btn" id="btn-herobanner">
                             Bekijk veiling
-                        </a>
+                        </Link>
                     </div>
 
                     <div className="col-md-6 hero-image">

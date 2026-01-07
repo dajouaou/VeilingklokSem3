@@ -77,6 +77,10 @@ export default function PlanVeiling() {
             await planVeiling(token, payload);
             setSuccess("Producten zijn toegevoegd aan de geplande veiling.");
             setSelected([]);
+
+            const items = await fetchAanmeldingenVoorDatum(token, leverdatum);
+            setAvailable(items);
+
         } catch (err) {
             setError(err.message);
         }

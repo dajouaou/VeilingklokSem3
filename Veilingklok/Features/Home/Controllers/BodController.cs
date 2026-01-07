@@ -1,12 +1,14 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Veiling.Dtos;
 using Veilingklok.Features.VeilingmeesterDashboard.Dtos;
+using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
 
-namespace Veilingklok.Features.Home.Controllers
+namespace Veilingklok.Features.Veiling.Controllers
 {
     [ApiController]
     [Authorize(Roles = "Koper")]
@@ -15,54 +17,56 @@ namespace Veilingklok.Features.Home.Controllers
     {
         private readonly IVeilingService _service;
         private readonly IVeilingBroadcastService _broadcast;
+        private readonly MyContext _db;
 
-        public BodController(
-            IVeilingService service,
-            IVeilingBroadcastService broadcast)
+        public BodController(IVeilingService service, IVeilingBroadcastService broadcast, MyContext db)
         {
             _service = service;
             _broadcast = broadcast;
+            _db = db;
         }
 
-        [HttpPost("{veilingId}")]
-        public async Task<ActionResult<BodDto>> PlaatsBod(
-            int veilingId,
-            [FromBody] BodPlaatsenDto dto)
+        [HttpPost("{veilingId:int}")]
+        public async Task<IActionResult> Plaats(int veilingId, [FromBody] BodPlaatsenDto dto)
         {
-            int koperId = int.Parse(
-                User.FindFirstValue(ClaimTypes.NameIdentifier)!
-            );
+            var koperId = await ResolveKoperIdAsync();
+            if (koperId <= 0)
+                return Unauthorized("Kon koper-id niet bepalen uit token.");
 
-            // 1️⃣ Bod plaatsen (businesslogica)
             var bod = await _service.PlaatsBodAsync(veilingId, dto, koperId);
-
-            // 2️⃣ Nieuwe veilingstatus ophalen
             var overzicht = await _service.GetDetailsAsync(veilingId);
 
-            // 3️⃣ Realtime updates sturen
+            // realtime events
             await _broadcast.StuurBod(veilingId, bod);
 
             if (overzicht.HuidigProduct != null)
-            {
-                await _broadcast.StuurHuidigProduct(
-                    veilingId,
-                    overzicht.HuidigProduct
-                );
-            }
+                await _broadcast.StuurHuidigProduct(veilingId, overzicht.HuidigProduct);
 
-            await _broadcast.StuurWachtrij(
-                veilingId,
-                overzicht.Wachtrij
-            );
+            await _broadcast.StuurWachtrij(veilingId, overzicht.Wachtrij);
 
             await _broadcast.StuurAuditEvent(veilingId, new AuditEventDto
             {
-                Gebeurtenis = $"Bod geplaatst: € {bod.Prijs:F2}",
+                Gebeurtenis = $"Koop: VP#{dto.VeilingProductId} voor €{bod.Prijs:0.00} (aantal {(dto.Aantal <= 0 ? "alles" : dto.Aantal.ToString())}).",
                 Tijdstip = DateTime.UtcNow
             });
 
-            // 4️⃣ Bod teruggeven aan caller (optioneel)
             return Ok(bod);
+        }
+
+        private async Task<int> ResolveKoperIdAsync()
+        {
+            // Probeer verschillende claim keys, zodat dit werkt met jouw huidige JWT implementatie.
+            var userIdStr =
+                User.FindFirstValue(ClaimTypes.NameIdentifier) ??
+                User.FindFirstValue("sub") ??
+                User.FindFirstValue("userId") ??
+                User.FindFirstValue("id");
+
+            if (!int.TryParse(userIdStr, out var gebruikerId))
+                return 0;
+
+            var koper = await _db.Kopers.SingleOrDefaultAsync(k => k.GebruikerId == gebruikerId);
+            return koper?.Id ?? 0;
         }
     }
 }

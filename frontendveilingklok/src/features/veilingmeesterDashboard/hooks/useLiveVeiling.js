@@ -11,7 +11,15 @@ export default function useLiveVeiling(token, veilingId) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!token || !veilingId) return;
+        if (!token || !veilingId) {
+        
+              setLot(null);
+              setQueue([]);
+               setBids([]);
+               setAudit([]);
+                setLoading(false);
+                 return;
+             }
 
         setLoading(true);
 

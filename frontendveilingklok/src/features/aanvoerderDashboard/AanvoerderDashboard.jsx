@@ -23,6 +23,14 @@ export default function AanvoerderDashboard() {
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
+    function toYmd(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+    }
+
+
     const [items, setItems] = useState([]);
     const [stats, setStats] = useState(null);
 
@@ -110,7 +118,7 @@ export default function AanvoerderDashboard() {
             hoeveelheid: Number(form.hoeveelheid),
             minimumPrijs: Number(form.minimumPrijs),
             klokLocatie: form.klokLocatie,
-            leverdatum: form.leverdatum.toISOString(),
+            leverdatum: toYmd(form.leverdatum),
             fotoFile: form.fotoFile,
             beschrijving: form.beschrijving || "",
         };

@@ -18,6 +18,7 @@ using Veilingklok.Infrastructure.SignalR.Broadcasters;
 using Veilingklok.Infrastructure.SignalR.Hubs;
 
 
+
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 {
     Console.WriteLine("UNHANDLED EXCEPTION:");
@@ -61,6 +62,8 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IVeilingBroadcastService, VeilingBroadcastService>();
 builder.Services.AddScoped<IVeilingPublicService, VeilingPublicService>();
 builder.Services.AddHostedService<PrijsMechanismeService>();
+builder.Services.AddHostedService<VeilingCleanupService>();
+
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

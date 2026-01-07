@@ -21,6 +21,12 @@ namespace Veilingklok.Infrastructure.Database.Configurations
                 .WithMany() // belangrijk: geen back-reference
                 .HasForeignKey(v => v.HuidigProductId)
                 .OnDelete(DeleteBehavior.Restrict);
+            builder.Property(v => v.Datum)
+    .HasColumnType("date");
+
+            builder.Property(v => v.StartTijd)
+                .HasColumnType("time");
+
         }
     }
 }
