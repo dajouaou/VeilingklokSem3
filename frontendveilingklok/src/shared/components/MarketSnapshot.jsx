@@ -9,7 +9,6 @@ export default function MarketSnapshot() {
                                 <div className="kpi-label">Status</div>
                                 <div className="kpi-value">
                                     <span className="badge-live">LIVE</span>
-                                    <span className="kpi-sub">Realtime updates</span>
                                 </div>
                             </div>
                         </div>
@@ -17,16 +16,15 @@ export default function MarketSnapshot() {
                         <div className="col-md-3">
                             <div className="kpi">
                                 <div className="kpi-label">Online bieders</div>
-                                <div className="kpi-value">—</div>
-                                <div className="kpi-sub">Later via SignalR</div>
+                                <div className="kpi-value">3</div>
                             </div>
                         </div>
 
                         <div className="col-md-3">
                             <div className="kpi">
                                 <div className="kpi-label">Laatste prijs</div>
-                                <div className="kpi-value">—</div>
-                                <div className="kpi-sub">Transactiehistorie</div>
+                                <div className="kpi-value">40.99</div>
+                            
                             </div>
                         </div>
 

@@ -65,10 +65,11 @@ export default function Navbar() {
                             </NavLink>
                         </li>
 
-                        <li className="nav-item ms-lg-2">
-                            <Link className="btn btn-login rounded-pill px-3" to="/login" onClick={closeMobileMenu}>
-                                <i className="bi bi-box-arrow-in-right me-1"></i> Login
-                            </Link>
+
+                        <li className="nav-item">
+                            <NavLink className={navLinkClass} to="/login" onClick={closeMobileMenu}>
+                                Login
+                            </NavLink>
                         </li>
                     </ul>
                 </div>
