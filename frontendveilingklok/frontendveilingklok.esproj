@@ -11,8 +11,10 @@
   <ItemGroup>
     <None Remove="src\features\NewFolder1\**" />
     <None Remove="src\features\NewFolder\**" />
+    <None Remove="src\NewFolder1\**" />
     <TypeScriptConfiguration Remove="src\features\NewFolder1\**" />
     <TypeScriptConfiguration Remove="src\features\NewFolder\**" />
+    <TypeScriptConfiguration Remove="src\NewFolder1\**" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="src\features\veilingmeesterDashboard\api\" />
