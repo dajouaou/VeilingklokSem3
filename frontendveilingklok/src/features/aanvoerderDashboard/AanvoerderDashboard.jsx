@@ -9,6 +9,8 @@ import {
 
 import VeildagPicker from "./components/VeildagPicker.jsx";
 import AanmeldingenBeheer from "./components/AanmeldingenBeheer.jsx";
+import AanvoerderNavbar from "./components/AanvoerderNavbar";
+
 
 export default function AanvoerderDashboard() {
     const { token, role } = useContext(AuthContext);
@@ -138,6 +140,8 @@ export default function AanvoerderDashboard() {
     });
 
     return (
+        <>
+        <AanvoerderNavbar />
         <main id="main" className="container py-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="h3">Aanvoerdersdashboard</h1>
@@ -169,7 +173,9 @@ export default function AanvoerderDashboard() {
                             <div className="card shadow-sm border-0">
                                 <div className="card-body">
                                     <p className="text-muted mb-1">Totale opbrengst</p>
-                                    <p className="fs-4 fw-bold">{stats.totaleOpbrengst.toFixed(2)}</p>
+                                    <p className="fs-4 fw-bold">
+                                        {stats.totaleOpbrengst.toFixed(2)} EUR
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -266,7 +272,7 @@ export default function AanvoerderDashboard() {
                                     <VeildagPicker
                                         value={form.leverdatum}
                                         onChange={(value) => setForm((prev) => ({ ...prev, leverdatum: value }))}
-                                        highlightedDates={items.map(i => i.leverdatum)}
+                                            highlightedDates={items.map(i => i.leverDatum ?? i.leverdatum)}
                                     />
                                 </div>
 
@@ -387,7 +393,7 @@ export default function AanvoerderDashboard() {
 
                                         <td>{item.hoeveelheid}</td>
 
-                                        <td>{item.minimumPrijs.toFixed(2)}</td>
+                                        <td>{item.minimumPrijs.toFixed(2)} EUR</td>
 
                                         <td>{item.klokLocatie}</td>
 
@@ -398,10 +404,9 @@ export default function AanvoerderDashboard() {
                                         <td>
                                             {item.isVerkocht ? (
                                                 <>
-                                                    <div>{item.verkoopPrijs?.toFixed(2)} / stuk</div>
+                                                    <div>{item.verkoopPrijs?.toFixed(2)} EUR / stuk</div>
                                                     <div className="small text-muted">
-                                                        Totaal: 
-                                                        {item.totaleOpbrengst?.toFixed(2)}
+                                                        Totaal: {item.totaleOpbrengst?.toFixed(2)} EUR
                                                         {item.koperNaam && <> – {item.koperNaam}</>}
                                                     </div>
                                                 </>
@@ -429,5 +434,6 @@ export default function AanvoerderDashboard() {
             )}
 
         </main>
+        </>
     );
 }

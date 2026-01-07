@@ -42,7 +42,7 @@
                                 <p className="review-text">{r.text}</p>
 
                                 <div className="review-stars">
-                                    {"?".repeat(r.stars)}
+                                    {"★".repeat(r.stars)}{"☆".repeat(5 - r.stars)}
                                 </div>
                             </div>
                         </div>

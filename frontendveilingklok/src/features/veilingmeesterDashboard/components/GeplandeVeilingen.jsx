@@ -2,7 +2,8 @@ import { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../../auth/AuthContext";
 import { fetchPlannedVeilingen } from "../../veiling/api/veilingApi";
 import Sidebar from "./Sidebar";
-
+import Topbar from "./Topbar";
+import "../VeilingmeesterDashboard.css";
 
 export default function GeplandeVeilingen() {
     const { token, logout } = useContext(AuthContext);
@@ -19,41 +20,26 @@ export default function GeplandeVeilingen() {
 
     return (
         <div className="vm-layout">
-            <Sidebar
-                logout={logout}
-                active="gepland"
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
-            />
+            <Sidebar logout={logout} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
             <div className="vm-main">
-                <header className="vm-topbar">
-                    <button
-                        className="vm-hamburger"
-                        onClick={() => setSidebarOpen(true)}
-                    >
-                        ? Menu
-                    </button>
-
-                    <div>
-                        <h1>Geplande veilingen</h1>
-                        <p>Kies welke veiling als volgende gestart wordt</p>
-                    </div>
-                </header>
+                <Topbar title="Geplande veilingen" veiling={null} onMenuClick={() => setSidebarOpen(true)} />
 
                 <main className="vm-main-content">
-                    {error && <div className="alert alert-danger">{error}</div>}
+                    {error && <div className="alert alert-danger vm-alert">{error}</div>}
 
                     {veilingen.length === 0 && (
-                        <p className="text-muted">Geen geplande veilingen.</p>
+                        <div className="vm-card">
+                            <p className="text-muted mb-0">Geen geplande veilingen.</p>
+                        </div>
                     )}
 
-                    {veilingen.map(v => (
+                    {veilingen.map((v) => (
                         <div key={v.id} className="vm-card mb-3">
-                            <strong>Veiling #{v.id}</strong><br />
-                            Datum: {v.veildatum}<br />
-                            Starttijd: {v.startTijd}<br />
-                            Producten: {v.aantalProducten}
+                            <strong>Veiling #{v.id}</strong>
+                            <div className="text-muted small mt-1">
+                                Datum: {v.veildatum} · Starttijd: {v.startTijd} · Producten: {v.aantalProducten}
+                            </div>
                         </div>
                     ))}
                 </main>

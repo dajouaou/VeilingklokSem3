@@ -1,8 +1,18 @@
-export default function Sidebar({ logout, active, sidebarOpen, setSidebarOpen }) {
+﻿import { NavLink, useNavigate } from "react-router-dom";
+import { iconUrl } from "../../../shared/icons/iconUrl.js";
+
+export default function Sidebar({ logout, sidebarOpen, setSidebarOpen }) {
+    const navigate = useNavigate();
+
+    function handleLogout() {
+        logout();
+        navigate("/login", { replace: true });
+    }
+
     return (
         <aside className={`vm-sidebar ${sidebarOpen ? "open" : ""}`}>
-            <button className="vm-sidebar-close" onClick={() => setSidebarOpen(false)}>
-                ?
+            <button className="vm-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Sluit menu">
+                ✖
             </button>
 
             <div className="vm-sidebar-logo">
@@ -14,27 +24,42 @@ export default function Sidebar({ logout, active, sidebarOpen, setSidebarOpen })
             </div>
 
             <nav className="vm-sidebar-nav">
-                <a className={active === "dashboard" ? "active" : ""} href="/veilingmeester">
-                    <span className="vm-nav-dot" />
-                    Dashboard
-                </a>
-                <a className={active === "planning" ? "active" : ""} href="/veilingmeester/plan">
-                    <span className="vm-nav-dot" />
-                    Veiling plannen
-                </a>
-                <a className={active === "statistiek" ? "active" : ""} href="/veilingmeester/statistieken">
-                    <span className="vm-nav-dot" />
-                    Statistieken
-                </a>
-                <a className={active === "gepland" ? "active" : ""} href="/veilingmeester/gepland">
-                    <span className="vm-nav-dot" />
-                    Geplande veilingen
-                </a>
+                <NavLink to="/veilingmeester" end onClick={() => setSidebarOpen(false)}>
+                    {({ isActive }) => (
+                        <>
+                            <img src={iconUrl("nav/dashboard.svg")} alt="" width="18" height="18" />
+                            <span className={isActive ? "active" : ""}>Dashboard</span>
+                        </>
+                    )}
+                </NavLink>
 
+                <NavLink to="/veilingmeester/plan" onClick={() => setSidebarOpen(false)}>
+                    <img src={iconUrl("nav/plan.svg")} alt="" width="18" height="18" />
+                    Veiling plannen
+                </NavLink>
+
+                <NavLink to="/veilingmeester/gepland" onClick={() => setSidebarOpen(false)}>
+                    <img src={iconUrl("nav/calendar.svg")} alt="" width="18" height="18" />
+                    Geplande veilingen
+                </NavLink>
+
+                <NavLink to="/veilingmeester/archief" onClick={() => setSidebarOpen(false)}>
+                    <img src={iconUrl("nav/archive.svg")} alt="" width="18" height="18" />
+                    Archief
+                </NavLink>
             </nav>
 
             <div className="vm-sidebar-footer">
-                <button className="vm-logout-btn" onClick={logout}>Uitloggen</button>
+                <button className="vm-logout-btn" onClick={handleLogout}>
+                    <img
+                        src={iconUrl("ui/logout.svg")}
+                        alt=""
+                        width="18"
+                        height="18"
+                        style={{ marginRight: 8, verticalAlign: "middle" }}
+                    />
+                    Uitloggen
+                </button>
             </div>
         </aside>
     );

@@ -233,7 +233,7 @@ export default function VeilingmeesterDashboard() {
 
                             <section className="vm-grid-2">
                                 <WachtrijLijst wachtrij={queue} />
-                                <div>
+                                <div className="vm-stack">
                                     <BiedingenLijst biedingen={bids} />
                                     <AuditLijst audit={audit} />
                                 </div>

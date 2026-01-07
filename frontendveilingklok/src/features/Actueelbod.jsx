@@ -11,58 +11,56 @@ export default function ActueelBod() {
     const { token, role } = useContext(AuthContext);
 
     const [veilingId, setVeilingId] = useState(null);
-    const [initLot, setInitLot] = useState(null); // ✅ fallback als SignalR nog niets stuurde
+    const [initLot, setInitLot] = useState(null);
     const [loadingInit, setLoadingInit] = useState(true);
     const [error, setError] = useState("");
 
     const [aantal, setAantal] = useState(0);
 
-    // 1) haal actuele veiling + huidig product op (public)
+    // ✅ altijd blijven pollen (ook als er eerst geen veiling is)
     useEffect(() => {
-        async function load() {
-            setError("");
-            setLoadingInit(true);
+        let alive = true;
 
+        async function load() {
             try {
                 const actief = await getPublicActieveVeiling();
+                if (!alive) return;
+
                 setVeilingId(actief?.id ?? null);
                 setInitLot(actief?.huidigProduct ?? null);
-            } catch (e) {
-                console.error(e);
-                setError("Kon actieve veiling niet ophalen.");
-                setVeilingId(null);
-                setInitLot(null);
+            } catch {
+                // stil
             } finally {
-                setLoadingInit(false);
+                if (alive) setLoadingInit(false);
             }
         }
 
         load();
+        const interval = setInterval(load, 3000);
+        return () => {
+            alive = false;
+            clearInterval(interval);
+        };
     }, []);
 
-    // 2) live data via SignalR (jouw hook)
+    // live data via SignalR (jouw hook)
     const { lot: liveLot, loading: liveLoading } = useLiveVeiling(token, veilingId);
 
-    // ✅ kies liveLot als die er is, anders initLot
     const lot = liveLot ?? initLot;
 
-    // reset aantal bij nieuw product
     useEffect(() => {
         setAantal(0);
     }, [lot?.veilingProductId]);
 
     const currentPrice = lot?.huidigePrijs ?? 0;
-
     const maxAantal = useMemo(() => lot?.resterendeHoeveelheid ?? 0, [lot]);
 
     async function koop() {
         if (!token || role !== "Koper") return;
         if (!veilingId || !lot?.veilingProductId) return;
 
-        // 0 = alles (jouw backend conventie)
         const koopAantal = Number(aantal) <= 0 ? 0 : Number(aantal);
 
-        // simpele client-side guard
         if (koopAantal < 0) {
             alert("Aantal kan niet negatief zijn.");
             return;
@@ -81,8 +79,8 @@ export default function ActueelBod() {
                 },
                 body: JSON.stringify({
                     veilingProductId: lot.veilingProductId,
-                    prijs: currentPrice,  // prijs vastleggen op dit moment
-                    aantal: koopAantal,   // 0 => alles
+                    prijs: currentPrice,
+                    aantal: koopAantal, // 0 => alles
                 }),
             });
 
@@ -95,7 +93,7 @@ export default function ActueelBod() {
                 throw new Error(msg);
             }
 
-            // ✅ na succesvolle koop: refresh init state (handig als je net in pauze/zonder events zat)
+            // refresh init state
             try {
                 const actief = await getPublicActieveVeiling();
                 setInitLot(actief?.huidigProduct ?? null);
@@ -105,7 +103,6 @@ export default function ActueelBod() {
         }
     }
 
-    // UI states
     if (loadingInit || liveLoading) {
         return (
             <>
@@ -136,14 +133,11 @@ export default function ActueelBod() {
         );
     }
 
-    // ✅ veiling bestaat maar huidig product ontbreekt (bv. net afgesloten / net doordraai overgang)
     if (!lot) {
         return (
             <>
                 <Navbar />
-                <div className="container py-5">
-                    Veiling is actief, maar er is momenteel geen huidig product.
-                </div>
+                <div className="container py-5">Veiling is actief, maar er is momenteel geen huidig product.</div>
                 <Footer />
             </>
         );
@@ -168,7 +162,7 @@ export default function ActueelBod() {
                         <h4 className="mt-2">{lot.soort}</h4>
                         <small>Resterend: {lot.resterendeHoeveelheid} stuks</small>
 
-                        <h5 className="mt-4">Huidige prijs: € {currentPrice.toFixed(2)}</h5>
+                        <h5 className="mt-4">Huidige prijs: {currentPrice.toFixed(2)} EUR</h5>
 
                         {role === "Koper" && (
                             <>

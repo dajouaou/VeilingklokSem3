@@ -157,7 +157,7 @@ export default function PlanVeiling() {
                                             <div>
                                                 <b>{item.soort}</b> ({item.hoeveelheid})
                                                 <div className="small text-muted">
-                                                    Min €{item.minimumPrijs.toFixed(2)}
+                                                    Min {item.minimumPrijs.toFixed(2)} EUR
                                                 </div>
                                             </div>
                                             <button

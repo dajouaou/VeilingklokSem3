@@ -36,7 +36,6 @@ namespace Veilingklok.Features.Veiling.Controllers
             return dagen.Select(d => d.ToString("yyyy-MM-dd")).ToList();
         }
 
-        // ✅ Actieve veiling (Gestart of Gepauzeerd) — altijd 200 (null of dto)
         [HttpGet("actief")]
         [Produces("application/json")]
         public async Task<IActionResult> GetActief()
@@ -110,8 +109,6 @@ namespace Veilingklok.Features.Veiling.Controllers
         }
 
 
-
-        // ✅ NIEUW: volgende geplande veiling (voor banner / homepage)
         [HttpGet("volgende")]
         public async Task<ActionResult<GeplandeVeilingListItemDto?>> GetVolgende()
         {

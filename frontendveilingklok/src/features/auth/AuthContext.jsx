@@ -1,17 +1,23 @@
-import { createContext, useState, useEffect } from "react";
+import { createContext, useEffect, useState } from "react";
 
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-    const [token, setToken] = useState(localStorage.getItem("token"));
-    const [role, setRole] = useState(localStorage.getItem("role"));
+    const [token, setToken] = useState(undefined); 
+    const [role, setRole] = useState(undefined);
 
+    useEffect(() => {
+        const t = localStorage.getItem("token");
+        const r = localStorage.getItem("role");
+        setToken(t || null);
+        setRole(r || null);
+    }, []);
 
-    function login(token, role) {
-        setToken(token);
-        setRole(role);
-        localStorage.setItem("token", token);
-        localStorage.setItem("role", role);
+    function login(newToken, newRole) {
+        setToken(newToken);
+        setRole(newRole);
+        localStorage.setItem("token", newToken);
+        localStorage.setItem("role", newRole);
     }
 
     function logout() {

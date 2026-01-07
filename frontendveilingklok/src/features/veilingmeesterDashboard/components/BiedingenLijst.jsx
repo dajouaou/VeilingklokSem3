@@ -10,10 +10,8 @@ export default function BiedingenLijst({ biedingen }) {
                 {biedingen.map((b, i) => (
                     <li key={b.id || i} className="list-group-item d-flex justify-content-between">
                         <span>
-                            € {b.prijs?.toFixed(2)}
-                            {b.koperNaam && (
-                                <span className="text-muted ms-2">({b.koperNaam})</span>
-                            )}
+                            {b.prijs?.toFixed(2)} EUR
+                            {b.koperNaam ? <span className="text-muted ms-2">({b.koperNaam})</span> : null}
                         </span>
 
                         <span className="text-muted">

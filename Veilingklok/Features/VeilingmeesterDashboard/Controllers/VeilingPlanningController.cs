@@ -127,7 +127,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
                 // tijdelijke defaults (pas aan naar wens)
                 var maximumPrijs = a.MinimumPrijs + 1.00m;
-                var daling = 0.10m;
+                var daling = 0.05m;
 
                 var vp = new VeilingProduct
                 {
