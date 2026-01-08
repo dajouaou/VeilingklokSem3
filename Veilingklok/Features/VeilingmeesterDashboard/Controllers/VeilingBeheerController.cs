@@ -4,6 +4,8 @@ using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Veiling.Dtos;
 using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
+using Microsoft.EntityFrameworkCore;
+using Veilingklok.Core.Enums;
 
 [ApiController]
 [Authorize(Roles = "Veilingmeester")]
@@ -70,4 +72,64 @@ public class VeilingBeheerController : ControllerBase
         await _service.StopAsync(id);
         return NoContent();
     }
+    [HttpGet("archief")]
+    public async Task<ActionResult<List<VeilingArchiefDto>>> GetArchief()
+    {
+        var veilingen = await _db.Veilingen
+            .AsNoTracking()
+            .Where(v => v.Status == VeilingStatus.Afgesloten)
+            .Include(v => v.Producten)
+                .ThenInclude(p => p.Aanmelding)
+            .Include(v => v.Producten)
+                .ThenInclude(p => p.Transacties)
+                    .ThenInclude(t => t.Koper)
+            .OrderByDescending(v => v.Datum)
+            .ThenByDescending(v => v.StartTijd)
+            .ToListAsync();
+
+        var result = veilingen.Select(v =>
+        {
+            // eindtijd bepalen:
+            // 1) als je AfgeslotenOpUtc hebt -> gebruik die
+            // 2) anders: laatste transactie
+            DateTime? eindUtc = null;
+
+            if (v.AfgeslotenOpUtc != null)
+                eindUtc = v.AfgeslotenOpUtc;
+            else
+            {
+                eindUtc = v.Producten?
+                    .SelectMany(p => p.Transacties ?? new())
+                    .Select(t => (DateTime?)t.Tijdstip)
+                    .Max();
+            }
+
+            return new VeilingArchiefDto
+            {
+                Id = v.Id,
+                Veildatum = v.Datum.ToString("yyyy-MM-dd"),
+                StartTijd = v.StartTijd.ToString(@"hh\:mm"),
+                EindTijd = eindUtc.HasValue
+    ? eindUtc.Value.ToLocalTime().ToString("HH:mm")
+    : "",
+                AantalProducten = v.Producten?.Count ?? 0,
+
+                Transacties = (v.Producten ?? new())
+                    .SelectMany(p => p.Transacties ?? new())
+                    .OrderBy(t => t.Tijdstip)
+                    .Select(t => new VeilingTransactieDto
+                    {
+                        Soort = t.VeilingProduct?.Aanmelding?.Soort ?? "",
+                        KoperNaam = t.Koper != null? $"{t.Koper.Voornaam} {t.Koper.Achternaam}": "",
+                        Aantal = t.Aantal,
+                        Prijs = t.Prijs,
+                        Tijdstip = t.Tijdstip
+                    })
+                    .ToList()
+            };
+        }).ToList();
+
+        return Ok(result);
+    }
+
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veilingklok.Infrastructure.Database;
 
@@ -11,9 +12,11 @@ using Veilingklok.Infrastructure.Database;
 namespace Veilingklok.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20260108195258_AddTransactie")]
+    partial class AddTransactie
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -142,7 +145,7 @@ namespace Veilingklok.Migrations
 
                     b.HasIndex("VeilingProductId");
 
-                    b.ToTable("Transacties");
+                    b.ToTable("Transactie");
                 });
 
             modelBuilder.Entity("Veildag", b =>
@@ -304,9 +307,6 @@ namespace Veilingklok.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime?>("AfgeslotenOpUtc")
-                        .HasColumnType("datetime2");
 
                     b.Property<DateTime>("Datum")
                         .HasColumnType("date");

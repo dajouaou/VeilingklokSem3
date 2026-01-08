@@ -17,5 +17,7 @@ namespace Veilingklok.Core.Entities
 
         public List<VeilingProduct> Producten { get; set; } = new();
         public List<Bod> Biedingen { get; set; } = new();
+        public DateTime? AfgeslotenOpUtc { get; set; }
+
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veilingklok.Infrastructure.Database;
 
@@ -11,9 +12,11 @@ using Veilingklok.Infrastructure.Database;
 namespace Veilingklok.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20260108193919_TransactiesArchief")]
+    partial class TransactiesArchief
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -108,41 +111,6 @@ namespace Veilingklok.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Gebruikers");
-                });
-
-            modelBuilder.Entity("Transactie", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Aantal")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("KoperId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Prijs")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("Tijdstip")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("VeilingId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("VeilingProductId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("KoperId");
-
-                    b.HasIndex("VeilingProductId");
-
-                    b.ToTable("Transacties");
                 });
 
             modelBuilder.Entity("Veildag", b =>
@@ -305,9 +273,6 @@ namespace Veilingklok.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("AfgeslotenOpUtc")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime>("Datum")
                         .HasColumnType("date");
 
@@ -419,23 +384,6 @@ namespace Veilingklok.Migrations
                         .IsRequired();
 
                     b.Navigation("Aanvoerder");
-                });
-
-            modelBuilder.Entity("Transactie", b =>
-                {
-                    b.HasOne("Gebruiker", "Koper")
-                        .WithMany()
-                        .HasForeignKey("KoperId");
-
-                    b.HasOne("Veilingklok.Core.Entities.VeilingProduct", "VeilingProduct")
-                        .WithMany("Transacties")
-                        .HasForeignKey("VeilingProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Koper");
-
-                    b.Navigation("VeilingProduct");
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Aanvoerder", b =>
@@ -573,8 +521,6 @@ namespace Veilingklok.Migrations
             modelBuilder.Entity("Veilingklok.Core.Entities.VeilingProduct", b =>
                 {
                     b.Navigation("Biedingen");
-
-                    b.Navigation("Transacties");
                 });
 #pragma warning restore 612, 618
         }

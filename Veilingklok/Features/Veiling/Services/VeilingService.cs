@@ -220,13 +220,18 @@ namespace Veilingklok.Features.Veiling.Services
 
         public async Task StopAsync(int veilingId)
         {
-            var v = await _db.Veilingen.FindAsync(veilingId)
-                ?? throw new ArgumentException("Veiling niet gevonden");
+            var veiling = await _db.Veilingen.FirstOrDefaultAsync(v => v.Id == veilingId);
+            if (veiling == null) throw new Exception("Veiling niet gevonden");
 
-            v.Status = VeilingStatus.Afgesloten;
-            v.EindTijd = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
+            if (veiling.Status != VeilingStatus.Afgesloten)
+            {
+                veiling.Status = VeilingStatus.Afgesloten;
+                veiling.AfgeslotenOpUtc = DateTime.UtcNow;  
+                await _db.SaveChangesAsync();
+            }
+
         }
+
 
         public async Task<BodDto> PlaatsBodAsync(int veilingId, BodPlaatsenDto dto, int koperId)
         {
@@ -265,6 +270,18 @@ namespace Veilingklok.Features.Veiling.Services
             };
 
             _db.Biedingen.Add(bod);
+
+            var transactie = new Transactie
+            {
+                VeilingId = veilingId,
+                VeilingProductId = product.Id,
+                KoperId = koperId,
+                Aantal = koopAantal,
+                Prijs = dto.Prijs,
+                Tijdstip = DateTime.UtcNow
+            };
+
+            _db.Transacties.Add(transactie);
 
             // voorraad aanpassen
             product.ResterendeHoeveelheid -= koopAantal;
@@ -306,8 +323,14 @@ namespace Veilingklok.Features.Veiling.Services
                 else
                 {
                     veiling.Status = VeilingStatus.Afgesloten;
-                    veiling.EindTijd = DateTime.UtcNow;
+
+                    // zet eindtijd maar 1x
+                    if (veiling.AfgeslotenOpUtc == null)
+                        veiling.AfgeslotenOpUtc = DateTime.UtcNow;
+
+                    veiling.HuidigProductId = null; // optioneel, maar netjes
                 }
+
             }
 
             await _db.SaveChangesAsync();

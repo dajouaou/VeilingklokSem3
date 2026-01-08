@@ -47,7 +47,7 @@ export default function Archief() {
                                 <div>
                                     <h5 className="mb-1">Veiling #{v.id}</h5>
                                     <div className="text-muted small">
-                                        Veildatum: {v.veildatum} · Start: {v.startTijd} · Einde: {v.eindTijd || "-"}
+                                        Veildatum: {v.veildatum} · Start: {v.startTijd} · Einde: {v.eindTijd}
                                     </div>
                                 </div>
                                 <div className="badge bg-secondary">{v.aantalProducten} producten</div>
@@ -73,7 +73,7 @@ export default function Archief() {
                                             {v.transacties.map((t, idx) => (
                                                 <tr key={idx}>
                                                     <td>{t.soort}</td>
-                                                    <td>{t.koperNaam || "-"}</td>
+                                                    <td>{t.koperNaam}</td>
                                                     <td>{t.aantal}</td>
                                                     <td>{t.prijs?.toFixed(2)} EUR</td>
                                                     <td>{t.tijdstip ? new Date(t.tijdstip).toLocaleString("nl-NL") : "-"}</td>

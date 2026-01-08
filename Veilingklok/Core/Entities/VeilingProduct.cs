@@ -30,5 +30,7 @@ namespace Veilingklok.Core.Entities
         public Koper? Koper { get; set; }
 
         public List<Bod> Biedingen { get; set; } = new();
+        public List<Transactie> Transacties { get; set; } = new();
+
     }
 }
