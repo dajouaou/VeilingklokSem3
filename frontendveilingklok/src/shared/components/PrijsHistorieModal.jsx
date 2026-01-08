@@ -1,13 +1,8 @@
+// /src/shared/components/PrijsHistorieModal.jsx
 import { useEffect, useState } from "react";
 import { fetchPrijsHistorie } from "/src/features/veiling/api/prijsHistorieApi";
 
-export default function PrijsHistorieModal({
-    open,
-    onClose,
-    token,
-    soort,
-    aanvoerderId
-}) {
+export default function PrijsHistorieModal({ open, onClose, token, soort, aanvoerderId }) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState(null);
     const [error, setError] = useState("");
@@ -51,9 +46,8 @@ export default function PrijsHistorieModal({
         >
             <div className="modal-dialog modal-lg" role="document" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-content">
-
                     <div className="modal-header">
-                        <h5 className="modal-title">Prijshistorie – {soort || "-"}</h5>
+                        <h5 className="modal-title">Prijshistorie - {soort || "-"}</h5>
                         <button className="btn-close" onClick={onClose} aria-label="Sluiten" />
                     </div>
 
@@ -111,7 +105,7 @@ export default function PrijsHistorieModal({
 
                                         {!aanvoerderId && (
                                             <div className="alert alert-warning py-2">
-                                                AanvoerderId ontbreekt in “lot”. Voeg dit toe in de backend DTO om dit blok te vullen.
+                                                AanvoerderId ontbreekt in “lot”. Voeg dit toe aan je backend DTO.
                                             </div>
                                         )}
 
@@ -162,7 +156,6 @@ export default function PrijsHistorieModal({
                     <div className="modal-footer">
                         <button className="btn btn-secondary" onClick={onClose}>Sluiten</button>
                     </div>
-
                 </div>
             </div>
         </div>

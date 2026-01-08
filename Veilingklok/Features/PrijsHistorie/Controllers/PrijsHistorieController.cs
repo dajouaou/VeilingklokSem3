@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿// /Features/PrijsHistorie/Controllers/PrijsHistorieController.cs
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Veilingklok.Features.PrijsHistorie.Services;
 
 namespace Veilingklok.Features.PrijsHistorie.Controllers
 {
     [ApiController]
-    [Authorize(Roles = "Koper")]
+    [Authorize(Roles = "Koper,Aanvoerder,Veilingmeester")]
     [Route("api/prijshistorie")]
     public class PrijsHistorieController : ControllerBase
     {

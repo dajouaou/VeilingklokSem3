@@ -1,4 +1,5 @@
-﻿import { useContext, useEffect, useMemo, useState } from "react";
+﻿// /src/features/veiling/ActueelBod.jsx
+import { useContext, useEffect, useMemo, useState } from "react";
 import Navbar from "../shared/components/Navbar";
 import Footer from "../shared/components/Footer";
 import { AuthContext } from "./auth/AuthContext";

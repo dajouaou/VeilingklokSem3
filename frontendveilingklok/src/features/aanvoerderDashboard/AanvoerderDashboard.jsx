@@ -407,7 +407,7 @@ export default function AanvoerderDashboard() {
                                                     <div>{item.verkoopPrijs?.toFixed(2)} EUR / stuk</div>
                                                     <div className="small text-muted">
                                                         Totaal: {item.totaleOpbrengst?.toFixed(2)} EUR
-                                                        {item.koperNaam && <> – {item.koperNaam}</>}
+                                                        {item.koperNaam && <> {" \u2013 "} {item.koperNaam}</>}
                                                     </div>
                                                 </>
                                             ) : (

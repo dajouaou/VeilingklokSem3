@@ -2,7 +2,9 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Veilingklok.Core.Entities;
 
-public class AanmeldingConfiguration : IEntityTypeConfiguration<Aanmelding>
+namespace Veilingklok.Infrastructure.Database.Configurations;
+
+public sealed class AanmeldingConfiguration : IEntityTypeConfiguration<Aanmelding>
 {
     public void Configure(EntityTypeBuilder<Aanmelding> builder)
     {
@@ -23,9 +25,8 @@ public class AanmeldingConfiguration : IEntityTypeConfiguration<Aanmelding>
             .HasPrecision(18, 2);
 
         builder.Property(x => x.LeverDatum)
-             .IsRequired()
-             .HasColumnType("date");
-
+            .IsRequired()
+            .HasColumnType("date");
 
         builder.HasOne(x => x.Aanvoerder)
             .WithMany(a => a.Aanmeldingen)

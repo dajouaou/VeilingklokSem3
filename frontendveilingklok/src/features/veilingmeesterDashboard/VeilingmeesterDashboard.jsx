@@ -167,11 +167,12 @@ export default function VeilingmeesterDashboard() {
                                 <h2>Volgende geplande veiling</h2>
                                 {volgende ? (
                                     <p className="mb-0">
-                                        Veiling #{volgende.id} op{" "}
-                                        <strong>{volgende.veildatum}</strong> om{" "}
-                                        <strong>{volgende.startTijd}</strong> –{" "}
+                                        Veiling #{volgende.id} {" - "}
+                                        <strong>{volgende.veildatum}</strong> {" - "}
+                                        <strong>{volgende.startTijd}</strong> {" - "}
                                         {volgende.aantalProducten} producten
                                     </p>
+
                                 ) : (
                                     <p className="mb-0 text-muted">
                                         Geen geplande veiling beschikbaar.

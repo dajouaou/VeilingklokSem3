@@ -24,7 +24,8 @@ public class MyContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(MyContext).Assembly);
+        base.OnModelCreating(modelBuilder);
     }
+
 }
