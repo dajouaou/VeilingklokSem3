@@ -13,6 +13,7 @@ export default function ActueelBod() {
 
     const [veilingId, setVeilingId] = useState(null);
     const [initLot, setInitLot] = useState(null);
+    const [wachtrij, setWachtrij] = useState([]);
     const [loadingInit, setLoadingInit] = useState(true);
     const [error, setError] = useState("");
 
@@ -29,8 +30,9 @@ export default function ActueelBod() {
 
                 setVeilingId(actief?.id ?? null);
                 setInitLot(actief?.huidigProduct ?? null);
+                setWachtrij(actief?.wachtrij ?? []);
             } catch {
-                // stil
+                setError("Kan actieve veiling niet laden");
             } finally {
                 if (alive) setLoadingInit(false);
             }
@@ -53,7 +55,10 @@ export default function ActueelBod() {
     }, [lot?.veilingProductId]);
 
     const currentPrice = lot?.huidigePrijs ?? 0;
-    const maxAantal = useMemo(() => lot?.resterendeHoeveelheid ?? 0, [lot]);
+    const maxAantal = useMemo(
+        () => lot?.resterendeHoeveelheid ?? 0,
+        [lot]
+    );
 
     async function koop() {
         if (!token || role !== "Koper") return;
@@ -61,10 +66,6 @@ export default function ActueelBod() {
 
         const koopAantal = Number(aantal) <= 0 ? 0 : Number(aantal);
 
-        if (koopAantal < 0) {
-            alert("Aantal kan niet negatief zijn.");
-            return;
-        }
         if (koopAantal > maxAantal) {
             alert(`Aantal is te hoog. Max is ${maxAantal}.`);
             return;
@@ -84,19 +85,8 @@ export default function ActueelBod() {
                 }),
             });
 
-            if (!res.ok) {
-                let msg = "Kopen mislukt";
-                try {
-                    const err = await res.json();
-                    msg = err?.message || msg;
-                } catch { }
-                throw new Error(msg);
-            }
+            if (!res.ok) throw new Error("Kopen mislukt");
 
-            try {
-                const actief = await getPublicActieveVeiling();
-                setInitLot(actief?.huidigProduct ?? null);
-            } catch { }
         } catch (e) {
             alert(e.message);
         }
@@ -112,33 +102,11 @@ export default function ActueelBod() {
         );
     }
 
-    if (error) {
-        return (
-            <>
-                <Navbar />
-                <div className="container py-5 text-danger">{error}</div>
-                <Footer />
-            </>
-        );
-    }
-
-    if (!veilingId) {
+    if (!veilingId || !lot) {
         return (
             <>
                 <Navbar />
                 <div className="container py-5">Geen actieve veiling</div>
-                <Footer />
-            </>
-        );
-    }
-
-    if (!lot) {
-        return (
-            <>
-                <Navbar />
-                <div className="container py-5">
-                    Veiling is actief, maar er is momenteel geen huidig product.
-                </div>
                 <Footer />
             </>
         );
@@ -151,6 +119,7 @@ export default function ActueelBod() {
             <div className="container py-5">
                 <h2 className="fw-bold mb-4">Actueel bod</h2>
 
+                {/* HUIDIG PRODUCT */}
                 <div className="row">
                     <div className="col-md-6">
                         <img
@@ -161,23 +130,19 @@ export default function ActueelBod() {
                     </div>
 
                     <div className="col-md-6">
-                        <h4 className="mt-2">{lot.soort}</h4>
-                        <small>Resterend: {lot.resterendeHoeveelheid} stuks</small>
+                        <h4>{lot.soort}</h4>
+                        <small>Resterend: {lot.resterendeHoeveelheid}</small>
 
-                        <button
-                            type="button"
-                            className="btn btn-outline-secondary btn-sm mt-2"
-                            onClick={() => setShowHistorie(true)}
-                        >
-                            Prijshistorie bekijken
-                        </button>
-
-                        <h5 className="mt-4">Huidige prijs: {currentPrice.toFixed(2)} EUR</h5>
+                        <h5 className="mt-4">
+                            Huidige prijs: €{currentPrice.toFixed(2)}
+                        </h5>
 
                         {role === "Koper" && (
                             <>
                                 <div className="mt-3">
-                                    <label className="form-label">Aantal (0 = alles)</label>
+                                    <label className="form-label">
+                                        Aantal (0 = alles)
+                                    </label>
                                     <input
                                         type="number"
                                         className="form-control"
@@ -186,27 +151,55 @@ export default function ActueelBod() {
                                         value={aantal}
                                         onChange={(e) => setAantal(e.target.value)}
                                     />
-                                    <div className="form-text">
-                                        Max: {maxAantal}. Laat op 0 staan om alles te kopen.
-                                    </div>
                                 </div>
 
-                                <button className="btn btn-dark mt-3" onClick={koop}>
+                                <button
+                                    className="btn btn-dark mt-3"
+                                    onClick={koop}
+                                >
                                     Koop voor deze prijs
                                 </button>
                             </>
                         )}
                     </div>
                 </div>
-            </div>
 
-            <PrijsHistorieModal
-                open={showHistorie}
-                onClose={() => setShowHistorie(false)}
-                token={token}
-                soort={lot?.soort || ""}
-                aanvoerderId={lot?.aanvoerderId}
-            />
+                {/* VOLGENDE VEILINGEN */}
+                {wachtrij.length > 0 && (
+                    <div className="mt-5">
+                        <h4 className="fw-bold mb-3">Volgende veilingen</h4>
+
+                        <div className="row">
+                            {wachtrij.map((item) => (
+                                <div
+                                    key={item.veilingProductId}
+                                    className="col-md-4 mb-3"
+                                >
+                                    <div className="card h-100">
+                                        <img
+                                            src={item.fotoUrl || "/images/bloemen.jpg"}
+                                            className="card-img-top"
+                                            alt={item.soort}
+                                        />
+                                        <div className="card-body">
+                                            <h6 className="mb-1">
+                                                #{item.volgorde} – {item.soort}
+                                            </h6>
+                                            <small className="text-muted">
+                                                Resterend: {item.resterendeHoeveelheid}
+                                            </small>
+                                            <br />
+                                            <small className="text-muted">
+                                                Startprijs: €{item.maximumPrijs.toFixed(2)}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
 
             <Footer />
         </>
