@@ -9,7 +9,7 @@
                         {
                             naam: "Doa",
                             rol: "Bloemenliefhebber",
-                            img: "/src/images/woman4.jpg",
+                            img: "/src/images/woman1.jpg",
                             text: "Geweldige service en mooie kwaliteit bloemen. Elke veiling is spannend en overzichtelijk!",
                             stars: 5
                         },
