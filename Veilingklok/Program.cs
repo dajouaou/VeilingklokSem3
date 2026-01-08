@@ -16,6 +16,10 @@ using Veilingklok.Infrastructure.Database.Seed;
 using Veilingklok.Infrastructure.Repositories;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
 using Veilingklok.Infrastructure.SignalR.Hubs;
+using Veilingklok.Features.PrijsHistorie.Services;
+
+
+
 
 
 
@@ -40,6 +44,7 @@ builder.Services.AddControllers()
 
 builder.Services.AddDbContext<MyContext>(opt =>
     opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IPrijsHistorieService, PrijsHistorieService>();
 
 builder.Services.AddSignalR()
     .AddJsonProtocol(o =>

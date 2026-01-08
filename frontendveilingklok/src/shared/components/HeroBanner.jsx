@@ -31,12 +31,12 @@ export default function HeroBanner() {
         async function load() {
             try {
                 const actief = await getPublicActieveVeiling();
+
                 if (!alive) return;
 
                 if (actief?.huidigProduct) {
                     const p = actief.huidigProduct;
                     setVolgendeVeiling(null);
-
                     setData({
                         titel: p.soort,
                         beschrijving: `Resterend: ${p.resterendeHoeveelheid} stuks`,
@@ -53,7 +53,6 @@ export default function HeroBanner() {
                 if (volgende) {
                     setVolgendeVeiling(volgende);
                     const tekst = getCountdown(volgende.veildatum, volgende.startTijd);
-
                     setData({
                         titel: `Volgende veiling #${volgende.id}`,
                         beschrijving: `Start over ${tekst} • ${volgende.aantalProducten} producten`,
@@ -72,9 +71,7 @@ export default function HeroBanner() {
                     afbeelding: "/images/bloemen.jpg",
                     link: "/actueelbod",
                 });
-            } catch (err) {
-                console.error("Kan banner niet laden:", err);
-            }
+            } catch { }
         }
 
         load();
@@ -85,6 +82,7 @@ export default function HeroBanner() {
             clearInterval(interval);
         };
     }, []);
+
 
     // countdown live update elke seconde
     useEffect(() => {
@@ -127,7 +125,7 @@ export default function HeroBanner() {
 
                         <Link to={data.link} className="btn" id="btn-herobanner">
                             Bekijk veiling
-                        </Link>
+                        </Link> 
                     </div>
 
                     <div className="col-md-6 hero-image">

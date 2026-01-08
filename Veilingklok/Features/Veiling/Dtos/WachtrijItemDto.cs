@@ -12,5 +12,7 @@
         public decimal MinimumPrijs { get; set; }
 
         public int ResterendeHoeveelheid { get; set; }
-    }
+        public int AanvoerderId { get; set; }
+        public string AanvoerderNaam { get; set; } = "";
+}
 }

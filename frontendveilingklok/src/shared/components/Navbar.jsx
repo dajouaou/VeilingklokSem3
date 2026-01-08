@@ -7,7 +7,7 @@ export default function Navbar() {
 
                 {/* LOGO */}
                 <Link className="navbar-brand d-flex align-items-center gap-2 fw-bold" to="/">
-                    <img src="/images/royal floraholland logo new.png" alt="Veilingklok Logo" className="header-logo" />
+                    <img src="\src\Images\royal floraholland logo new.png" alt="Veilingklok Logo" className="header-logo" />
                 </Link>
 
                 <button className="navbar-toggler shadow-none border-0" type="button"

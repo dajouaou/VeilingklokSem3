@@ -4,6 +4,7 @@ import Footer from "../shared/components/Footer";
 import { AuthContext } from "./auth/AuthContext";
 import useLiveVeiling from "./veilingmeesterDashboard/hooks/useLiveVeiling";
 import { getPublicActieveVeiling } from "./veiling/api/veilingPublicApi";
+import PrijsHistorieModal from "../shared/components/PrijsHistorieModal";
 
 const API_BASE = "https://localhost:56418";
 
@@ -16,8 +17,8 @@ export default function ActueelBod() {
     const [error, setError] = useState("");
 
     const [aantal, setAantal] = useState(0);
+    const [showHistorie, setShowHistorie] = useState(false);
 
-    // ✅ altijd blijven pollen (ook als er eerst geen veiling is)
     useEffect(() => {
         let alive = true;
 
@@ -37,15 +38,14 @@ export default function ActueelBod() {
 
         load();
         const interval = setInterval(load, 3000);
+
         return () => {
             alive = false;
             clearInterval(interval);
         };
     }, []);
 
-    // live data via SignalR (jouw hook)
     const { lot: liveLot, loading: liveLoading } = useLiveVeiling(token, veilingId);
-
     const lot = liveLot ?? initLot;
 
     useEffect(() => {
@@ -80,7 +80,7 @@ export default function ActueelBod() {
                 body: JSON.stringify({
                     veilingProductId: lot.veilingProductId,
                     prijs: currentPrice,
-                    aantal: koopAantal, // 0 => alles
+                    aantal: koopAantal,
                 }),
             });
 
@@ -93,7 +93,6 @@ export default function ActueelBod() {
                 throw new Error(msg);
             }
 
-            // refresh init state
             try {
                 const actief = await getPublicActieveVeiling();
                 setInitLot(actief?.huidigProduct ?? null);
@@ -137,7 +136,9 @@ export default function ActueelBod() {
         return (
             <>
                 <Navbar />
-                <div className="container py-5">Veiling is actief, maar er is momenteel geen huidig product.</div>
+                <div className="container py-5">
+                    Veiling is actief, maar er is momenteel geen huidig product.
+                </div>
                 <Footer />
             </>
         );
@@ -146,6 +147,7 @@ export default function ActueelBod() {
     return (
         <>
             <Navbar />
+
             <div className="container py-5">
                 <h2 className="fw-bold mb-4">Actueel bod</h2>
 
@@ -161,6 +163,14 @@ export default function ActueelBod() {
                     <div className="col-md-6">
                         <h4 className="mt-2">{lot.soort}</h4>
                         <small>Resterend: {lot.resterendeHoeveelheid} stuks</small>
+
+                        <button
+                            type="button"
+                            className="btn btn-outline-secondary btn-sm mt-2"
+                            onClick={() => setShowHistorie(true)}
+                        >
+                            Prijshistorie bekijken
+                        </button>
 
                         <h5 className="mt-4">Huidige prijs: {currentPrice.toFixed(2)} EUR</h5>
 
@@ -189,6 +199,15 @@ export default function ActueelBod() {
                     </div>
                 </div>
             </div>
+
+            <PrijsHistorieModal
+                open={showHistorie}
+                onClose={() => setShowHistorie(false)}
+                token={token}
+                soort={lot?.soort || ""}
+                aanvoerderId={lot?.aanvoerderId}
+            />
+
             <Footer />
         </>
     );
