@@ -47,7 +47,7 @@ export default function Footer() {
 
                 <div className="footer-bottom py-3 border-top text-center text-md-start px-5">
                     <small className="text-muted">
-                        © 2025 Royal FloraHolland —
+                        <a href="#">  &copy; 2025 Royal FloraHolland </a> |
                         <a href="#"> Privacyverklaring</a> |
                         <a href="#"> Cookieverklaring</a> |
                         <a href="#"> CVD</a> |

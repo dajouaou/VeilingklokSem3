@@ -15,7 +15,7 @@ public class MyContext : DbContext
     public DbSet<Veiling> Veilingen => Set<Veiling>();
     public DbSet<VeilingProduct> VeilingProducten => Set<VeilingProduct>();
     public DbSet<Bod> Biedingen => Set<Bod>();
-    public DbSet<Veildag> Veildagen { get; set; }
+    public DbSet<Veildag> Veildagen => Set<Veildag>();
     public DbSet<Product> Producten => Set<Product>();
 
 
@@ -23,7 +23,8 @@ public class MyContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(MyContext).Assembly);
+        base.OnModelCreating(modelBuilder);
     }
+
 }

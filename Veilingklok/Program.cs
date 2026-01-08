@@ -22,7 +22,6 @@ using Veilingklok.Features.PrijsHistorie.Services;
 
 
 
-
 AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
 {
     Console.WriteLine("UNHANDLED EXCEPTION:");

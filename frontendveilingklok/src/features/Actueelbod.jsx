@@ -1,4 +1,5 @@
-﻿import { useContext, useEffect, useMemo, useState } from "react";
+﻿// /src/features/veiling/ActueelBod.jsx
+import { useContext, useEffect, useMemo, useState } from "react";
 import Navbar from "../shared/components/Navbar";
 import Footer from "../shared/components/Footer";
 import { AuthContext } from "./auth/AuthContext";
@@ -61,14 +62,8 @@ export default function ActueelBod() {
 
         const koopAantal = Number(aantal) <= 0 ? 0 : Number(aantal);
 
-        if (koopAantal < 0) {
-            alert("Aantal kan niet negatief zijn.");
-            return;
-        }
-        if (koopAantal > maxAantal) {
-            alert(`Aantal is te hoog. Max is ${maxAantal}.`);
-            return;
-        }
+        if (koopAantal < 0) return alert("Aantal kan niet negatief zijn.");
+        if (koopAantal > maxAantal) return alert(`Aantal is te hoog. Max is ${maxAantal}.`);
 
         try {
             const res = await fetch(`${API_BASE}/api/bod/${veilingId}`, {
@@ -93,6 +88,7 @@ export default function ActueelBod() {
                 throw new Error(msg);
             }
 
+            // refresh (optioneel)
             try {
                 const actief = await getPublicActieveVeiling();
                 setInitLot(actief?.huidigProduct ?? null);
@@ -164,13 +160,16 @@ export default function ActueelBod() {
                         <h4 className="mt-2">{lot.soort}</h4>
                         <small>Resterend: {lot.resterendeHoeveelheid} stuks</small>
 
-                        <button
-                            type="button"
-                            className="btn btn-outline-secondary btn-sm mt-2"
-                            onClick={() => setShowHistorie(true)}
-                        >
-                            Prijshistorie bekijken
-                        </button>
+                        {/* POPUP los proces */}
+                        <div className="mt-2">
+                            <button
+                                type="button"
+                                className="btn btn-outline-secondary btn-sm"
+                                onClick={() => setShowHistorie(true)}
+                            >
+                                Prijshistorie bekijken
+                            </button>
+                        </div>
 
                         <h5 className="mt-4">Huidige prijs: {currentPrice.toFixed(2)} EUR</h5>
 
@@ -205,7 +204,7 @@ export default function ActueelBod() {
                 onClose={() => setShowHistorie(false)}
                 token={token}
                 soort={lot?.soort || ""}
-                aanvoerderId={lot?.aanvoerderId}
+                aanvoerderId={lot?.aanvoerderId} // moet in je lot DTO zitten
             />
 
             <Footer />
