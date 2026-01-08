@@ -164,10 +164,10 @@ export default function ActueelBod() {
                     </div>
                 </div>
 
-                {/* VOLGENDE VEILINGEN */}
+                //volgende veilingen
                 {wachtrij.length > 0 && (
                     <div className="mt-5">
-                        <h4 className="fw-bold mb-3">Volgende veilingen</h4>
+                        <h4 className="fw-bold mb-3">VOLGENDE PRODUCTEN</h4>
 
                         <div className="row">
                             {wachtrij.map((item) => (
