@@ -18,5 +18,8 @@
         public bool IsActief { get; set; }
         public bool IsVerkocht { get; set; }
         public bool IsDoorgedraaid { get; set; }
+        public int AanvoerderId { get; set; }
+        public string AanvoerderNaam { get; set; } = "";
+
     }
 }

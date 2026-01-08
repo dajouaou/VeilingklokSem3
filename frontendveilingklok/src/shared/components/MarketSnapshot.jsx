@@ -38,7 +38,7 @@ export default function MarketSnapshot() {
                     </div>
                 </div>
 
-              
+
             </div>
         </section>
     );

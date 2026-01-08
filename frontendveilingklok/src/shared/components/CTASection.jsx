@@ -9,16 +9,16 @@ export default function CTASection() {
                         <div className="col-md-8">
                             <h3 className="fw-bold mb-2">Klaar om live te bieden?</h3>
                             <p className="text-muted mb-0">
-                                Log in om direct mee te doen, of ga naar het veilingoverzicht om de actuele partij te bekijken.
+                                Ga naar het 'Actueel Bod'-pagina om te bieden.
                             </p>
                         </div>
 
                         <div className="col-md-4 d-flex gap-2 justify-content-md-end">
                             <Link to="/actueelbod" className="btn btn-outline-dark rounded-pill px-4">
-                                Bekijk veiling
+                                Actueel Bod
                             </Link>
                             <Link to="/login" className="btn btn-dark rounded-pill px-4">
-                                Inloggen
+                                Uitloggen
                             </Link>
                         </div>
                     </div>

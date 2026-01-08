@@ -35,8 +35,8 @@ export default function Navbar() {
         <nav className="navbar navbar-expand-lg bg-white sticky-top nav-elevated py-2">
             <div className="container">
                 {/* LOGO */}
-                <Link className="navbar-brand d-flex align-items-center" to="/" aria-label="Ga naar home">
-                    <img src={logo} alt="Royal FloraHolland" className="header-logo" />
+                <Link className="navbar-brand d-flex align-items-center gap-2 fw-bold" to="/">
+                    <img src="/images/royal floraholland logo new.png" alt="Veilingklok Logo" className="header-logo" />
                 </Link>
 
                 <button

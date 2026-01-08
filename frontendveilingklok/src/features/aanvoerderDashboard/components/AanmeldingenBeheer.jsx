@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+ï»¿import React, { useRef, useState } from "react";
 import { updateAanmelding, deleteAanmelding } from "../api/aanvoerderApi";
 
 export default function AanmeldingenBeheer({ items, onClose, token, onUpdated }) {
@@ -18,7 +18,7 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
         hoeveelheid: "",
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
-        leverdatum: "", // yyyy-mm-dd voor <input type="date">
+        leverdatum: "", // âœ… FIX
         fotoFile: null,
         beschrijving: "",
     });
@@ -36,19 +36,20 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
     }
 
     function startEdit(item) {
-        clearMessages();
+        setEditing(item.id);
 
-        setEditingId(item.id);
+        const ld = (item.leverDatum ?? item.leverdatum ?? "").toString();
+        const leverdatumYmd = ld.includes("T") ? ld.split("T")[0] : ld;
 
-        // FIX: item heeft leverDatum (niet veildatum of leverdatum)
         setForm({
-            soort: item.soort ?? "",
-            potmaat: item.potmaat ?? "",
-            steellengte: item.steellengte ?? "",
-            hoeveelheid: item.hoeveelheid ?? "",
-            minimumPrijs: item.minimumPrijs ?? "",
-            klokLocatie: item.klokLocatie ?? "Naaldwijk",
-            leverdatum: toDateInputValue(item.leverDatum),
+            soort: item.soort,
+            potmaat: item.potmaat || "",
+            steellengte: item.steellengte || "",
+            hoeveelheid: item.hoeveelheid,
+            minimumPrijs: item.minimumPrijs,
+            klokLocatie: item.klokLocatie,
+            leverdatum: leverdatumYmd, // âœ… FIX
+            beschrijving: item.beschrijving || "",
             fotoFile: null,
             beschrijving: item.beschrijving ?? "",
         });
@@ -110,17 +111,9 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
         }
     }
 
-    async function doDelete() {
-        clearMessages();
-
-        try {
-            await deleteAanmelding({ token, id: confirmDeleteId });
-            await onUpdated();
-            setConfirmDeleteId(null);
-            setSuccess("Aanmelding verwijderd.");
-        } catch (err) {
-            setError(err?.message || "Verwijderen mislukt.");
-        }
+    function handleFormChange(e) {
+        const { name, value } = e.target;
+        setForm((prev) => ({ ...prev, [name]: value }));
     }
 
     return (
@@ -133,53 +126,23 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                     </div>
 
                     <div className="modal-body">
-                        {error && <div className="alert alert-danger">{error}</div>}
-                        {success && <div className="alert alert-success">{success}</div>}
+                        <table className="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Soort</th>
+                                    <th>Hoeveelheid</th>
+                                    <th>Min. prijs</th>
+                                    <th>Beschrijving</th>
+                                    <th>Acties</th>
+                                </tr>
+                            </thead>
 
-                        <div className="table-responsive">
-                            <table className="table table-hover align-middle">
-                                <thead className="table-light">
-                                    <tr>
-                                        <th>Soort</th>
-                                        <th>Hoeveelheid</th>
-                                        <th>Min. prijs</th>
-                                        <th>Klok</th>
-                                        <th>Leverdatum</th>
-                                        <th>Foto</th>
-                                        <th>Beschrijving</th>
-                                        <th style={{ width: 180 }}>Acties</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-                                    {items.map((item) => (
-                                        <tr key={item.id}>
-                                            <td>{item.soort}</td>
-                                            <td>{item.hoeveelheid}</td>
-                                            <td>€{item.minimumPrijs?.toFixed?.(2) ?? "-"}</td>
-                                            <td>{item.klokLocatie}</td>
-                                            <td>
-                                                {item.leverDatum
-                                                    ? new Date(item.leverDatum).toLocaleDateString("nl-NL")
-                                                    : "-"}
-                                            </td>
-
-                                            <td>
-                                                {item.fotoUrl ? (
-                                                    <img
-                                                        src={item.fotoUrl}
-                                                        alt={item.soort}
-                                                        style={{
-                                                            width: 56,
-                                                            height: 56,
-                                                            objectFit: "cover",
-                                                            borderRadius: 8,
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <span className="text-muted">-</span>
-                                                )}
-                                            </td>
+                            <tbody>
+                                {items.map((a) => (
+                                    <tr key={a.id}>
+                                        <td>{a.soort}</td>
+                                        <td>{a.hoeveelheid}</td>
+                                        <td>{a.minimumPrijs.toFixed(2)} EUR</td>
 
                                             <td>
                                                 {item.beschrijving ? (
@@ -194,50 +157,33 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                                                 )}
                                             </td>
 
-                                            <td>
-                                                <button
-                                                    className="btn btn-sm btn-primary me-2"
-                                                    onClick={() => startEdit(item)}
-                                                >
-                                                    Bewerken
-                                                </button>
+                                        <td>
+                                            <button className="btn btn-sm btn-primary me-2" onClick={() => startEdit(a)}>
+                                                Bewerken
+                                            </button>
 
-                                                <button
-                                                    className="btn btn-sm btn-danger"
-                                                    onClick={() => setConfirmDeleteId(item.id)}
-                                                >
-                                                    Verwijderen
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                            <button className="btn btn-sm btn-danger" onClick={() => setConfirmDelete(a.id)}>
+                                                Verwijderen
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
 
                         {editingId && (
                             <div className="mt-4 p-3 border rounded bg-light">
-                                <h5 className="mb-3">Aanmelding bewerken</h5>
+                                <h5>Aanmelding bewerken</h5>
 
-                                <div className="row g-2">
+                                <div className="row g-2 mt-2">
                                     <div className="col-md-4">
                                         <label className="form-label">Soort</label>
-                                        <input
-                                            name="soort"
-                                            className="form-control"
-                                            value={form.soort}
-                                            onChange={handleChange}
-                                        />
+                                        <input name="soort" className="form-control" value={form.soort} onChange={handleFormChange} />
                                     </div>
 
                                     <div className="col-md-4">
                                         <label className="form-label">Potmaat</label>
-                                        <input
-                                            name="potmaat"
-                                            className="form-control"
-                                            value={form.potmaat}
-                                            onChange={handleChange}
-                                        />
+                                        <input name="potmaat" className="form-control" value={form.potmaat} onChange={handleFormChange} />
                                     </div>
 
                                     <div className="col-md-4">
@@ -263,7 +209,7 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                                     </div>
 
                                     <div className="col-md-3">
-                                        <label className="form-label">Minimumprijs (€)</label>
+                                        <label className="form-label">Minimumprijs (EUR)</label>
                                         <input
                                             name="minimumPrijs"
                                             type="number"
@@ -282,7 +228,7 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                                             type="date"
                                             className="form-control"
                                             value={form.leverdatum}
-                                            onChange={handleChange}
+                                            onChange={handleFormChange}
                                         />
                                     </div>
 
@@ -308,11 +254,7 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                                             type="file"
                                             accept="image/*"
                                             className="form-control"
-                                            onChange={(e) => {
-                                                clearMessages();
-                                                const file = e.target.files?.[0] ?? null;
-                                                setForm((prev) => ({ ...prev, fotoFile: file }));
-                                            }}
+                                            onChange={(e) => setForm((prev) => ({ ...prev, fotoFile: e.target.files?.[0] ?? null }))}
                                         />
                                     </div>
 
@@ -329,9 +271,10 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                                 </div>
 
                                 <div className="d-flex justify-content-end gap-2 mt-3">
-                                    <button className="btn btn-secondary" onClick={cancelEdit}>
+                                    <button className="btn btn-secondary" onClick={() => setEditing(null)}>
                                         Annuleren
                                     </button>
+
                                     <button className="btn btn-success" onClick={saveEdit}>
                                         Opslaan
                                     </button>
@@ -343,10 +286,11 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                             <div className="alert alert-danger mt-4">
                                 <h5>Weet je zeker dat je deze aanmelding wilt verwijderen?</h5>
                                 <div className="d-flex justify-content-end gap-2 mt-2">
-                                    <button className="btn btn-secondary" onClick={() => setConfirmDeleteId(null)}>
+                                    <button className="btn btn-secondary" onClick={() => setConfirmDelete(null)}>
                                         Annuleren
                                     </button>
-                                    <button className="btn btn-danger" onClick={doDelete}>
+
+                                    <button className="btn btn-danger" onClick={confirmDeleteAction}>
                                         Verwijderen
                                     </button>
                                 </div>
@@ -361,7 +305,7 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                     <div className="modal-dialog">
                         <div className="modal-content">
                             <div className="modal-header">
-                                <h5 className="modal-title">Beschrijving: {beschrijvingItem.soort}</h5>
+                                <h5 className="modal-title">Beschrijving van {beschrijvingItem.soort}</h5>
                                 <button className="btn-close" onClick={() => setBeschrijvingItem(null)}></button>
                             </div>
 
@@ -369,11 +313,7 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
                                 <p>{beschrijvingItem.beschrijving}</p>
 
                                 {beschrijvingItem.fotoUrl && (
-                                    <img
-                                        src={beschrijvingItem.fotoUrl}
-                                        className="img-fluid rounded mt-3"
-                                        alt="Product"
-                                    />
+                                    <img src={beschrijvingItem.fotoUrl} className="img-fluid rounded mt-3" alt="Product" />
                                 )}
                             </div>
 

@@ -99,4 +99,8 @@ export function fetchPlannedVeilingen(token) {
 export function fetchVolgendeVeiling(token) {
     return apiGet("/api/veilingmeester/planning/volgende", token);
 }
+export function fetchArchiefVeilingen(token) {
+    return apiGet("/api/veilingmeester/veilingen/archief", token);
+}
+
 

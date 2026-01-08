@@ -1,13 +1,12 @@
 ﻿import { useContext } from "react";
-import { AuthContext } from "../features/auth/AuthContext";
 import { Navigate } from "react-router-dom";
+import { AuthContext } from "../features/auth/AuthContext";
 
 export default function ProtectedRoute({ allowedRoles, children }) {
     const { token, role } = useContext(AuthContext);
 
-    // Auth laden (token = null)
-    if (token === null) {
-        return <div>Authenticatie wordt gecontroleerd...</div>;
+    if (token === undefined || role === undefined) {
+        return <div className="container py-5">Authenticatie wordt gecontroleerd…</div>;
     }
 
     // Niet ingelogd

@@ -79,11 +79,18 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             if (!TimeSpan.TryParse(dto.StartTijd, out var startTijd))
                 return BadRequest("Starttijd ongeldig");
 
+            // ✅ voorkom “direct afgesloten” door cleanup service
+            var geplandeStart = veildatum.Date + startTijd;
+            if (geplandeStart <= DateTime.Now.AddMinutes(1))
+                return BadRequest($"Je kunt geen veiling plannen in het verleden. Kies een tijd na {DateTime.Now.AddMinutes(1):yyyy-MM-dd HH:mm}.");
+
+            // ✅ zoek op datum + starttijd (anders overschrijf je onbedoeld of haal je de verkeerde op)
             var veiling = await _db.Veilingen
                 .Include(v => v.Producten)
                 .FirstOrDefaultAsync(v =>
                     v.Status == VeilingStatus.Gepland &&
-                    v.Datum.Date == veildatum.Date
+                    v.Datum.Date == veildatum.Date &&
+                    v.StartTijd == startTijd
                 );
 
             if (veiling == null)
@@ -111,23 +118,19 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                 .ToList();
 
             if (dubbeleAanmeldingen.Any())
-            {
                 return BadRequest("Geselecteerde producten zijn al aangemeld voor de veiling.");
-            }
 
             int volgorde = producten.Any()
                 ? producten.Max(p => p.Volgorde) + 1
                 : 1;
-
 
             foreach (var aanmeldingId in dto.AanmeldingIds)
             {
                 var a = await _db.Aanmeldingen.FindAsync(aanmeldingId);
                 if (a == null || a.VeilingProduct != null) continue;
 
-                // tijdelijke defaults (pas aan naar wens)
                 var maximumPrijs = a.MinimumPrijs + 1.00m;
-                var daling = 0.10m;
+                var daling = 0.05m;
 
                 var vp = new VeilingProduct
                 {
@@ -140,19 +143,18 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
                     DalingPerSeconde = daling,
                     ResterendeHoeveelheid = a.Hoeveelheid,
-                    Volgorde = volgorde++
+                    Volgorde = volgorde++,
                 };
 
                 a.VeilingProduct = vp;
                 _db.VeilingProducten.Add(vp);
             }
 
-
-
             await _db.SaveChangesAsync();
 
             return Ok(new { veilingId = veiling.Id });
         }
+
 
         [HttpGet("gepland")]
         public async Task<IActionResult> GetGeplande()

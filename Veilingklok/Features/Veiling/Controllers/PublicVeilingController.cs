@@ -36,7 +36,6 @@ namespace Veilingklok.Features.Veiling.Controllers
             return dagen.Select(d => d.ToString("yyyy-MM-dd")).ToList();
         }
 
-        // ✅ Actieve veiling (Gestart of Gepauzeerd) — altijd 200 (null of dto)
         [HttpGet("actief")]
         [Produces("application/json")]
         public async Task<IActionResult> GetActief()
@@ -44,6 +43,7 @@ namespace Veilingklok.Features.Veiling.Controllers
             var v = await _db.Veilingen
                 .Include(x => x.Producten)
                     .ThenInclude(p => p.Aanmelding)
+                        .ThenInclude(a => a.Aanvoerder)
                 .FirstOrDefaultAsync(x =>
                     x.Status == VeilingStatus.Gestart ||
                     x.Status == VeilingStatus.Gepauzeerd);
@@ -60,8 +60,6 @@ namespace Veilingklok.Features.Veiling.Controllers
                     Wachtrij = new List<WachtrijItemDto>()
                 });
             }
-
-
 
             var dto = new VeilingOverzichtDto
             {
@@ -87,7 +85,9 @@ namespace Veilingklok.Features.Veiling.Controllers
                     ResterendeHoeveelheid = hp.ResterendeHoeveelheid,
                     IsActief = hp.IsActief,
                     IsVerkocht = hp.IsVerkocht,
-                    IsDoorgedraaid = hp.IsDoorgedraaid
+                    IsDoorgedraaid = hp.IsDoorgedraaid,
+                    AanvoerderId = hp.Aanmelding.AanvoerderId,
+                    AanvoerderNaam = hp.Aanmelding.Aanvoerder?.Naam ?? ""
                 };
             }
 
@@ -102,7 +102,11 @@ namespace Veilingklok.Features.Veiling.Controllers
                     FotoUrl = p.Aanmelding!.FotoUrl,
                     MaximumPrijs = p.MaximumPrijs,
                     MinimumPrijs = p.MinimumPrijs,
-                    ResterendeHoeveelheid = p.ResterendeHoeveelheid
+                    ResterendeHoeveelheid = p.ResterendeHoeveelheid,
+
+                    // Alleen doen als jouw WachtrijItemDto deze velden heeft:
+                    // AanvoerderId = p.Aanmelding!.AanvoerderId,
+                    // AanvoerderNaam = p.Aanmelding!.Aanvoerder!.Naam
                 })
                 .ToList();
 
@@ -111,7 +115,6 @@ namespace Veilingklok.Features.Veiling.Controllers
 
 
 
-        // ✅ NIEUW: volgende geplande veiling (voor banner / homepage)
         [HttpGet("volgende")]
         public async Task<ActionResult<GeplandeVeilingListItemDto?>> GetVolgende()
         {

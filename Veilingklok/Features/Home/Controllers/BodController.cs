@@ -46,7 +46,7 @@ namespace Veilingklok.Features.Veiling.Controllers
 
             await _broadcast.StuurAuditEvent(veilingId, new AuditEventDto
             {
-                Gebeurtenis = $"Koop: VP#{dto.VeilingProductId} voor €{bod.Prijs:0.00} (aantal {(dto.Aantal <= 0 ? "alles" : dto.Aantal.ToString())}).",
+                Gebeurtenis = $"Koop: VP#{dto.VeilingProductId} voor {bod.Prijs:0.00} EUR (aantal {(dto.Aantal <= 0 ? "alles" : dto.Aantal.ToString())}).",
                 Tijdstip = DateTime.UtcNow
             });
 

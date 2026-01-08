@@ -61,10 +61,18 @@ export default function VeilingmeesterDashboard() {
             setLoading(false);
         }
     }, [token, role]);
-
     useEffect(() => {
+        if (!token || role !== "Veilingmeester") return;
+
         loadInit();
-    }, [loadInit]);
+
+        const interval = setInterval(() => {
+            loadInit();
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [token, role, loadInit]);
+
 
     async function handleStart() {
         setError("");
@@ -233,7 +241,7 @@ export default function VeilingmeesterDashboard() {
 
                             <section className="vm-grid-2">
                                 <WachtrijLijst wachtrij={queue} />
-                                <div>
+                                <div className="vm-stack">
                                     <BiedingenLijst biedingen={bids} />
                                     <AuditLijst audit={audit} />
                                 </div>

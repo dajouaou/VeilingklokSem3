@@ -8,6 +8,9 @@ import AanvoerderDashboard from "../features/aanvoerderDashboard/AanvoerderDashb
 import VeilingmeesterDashboard from "../features/veilingmeesterDashboard/VeilingmeesterDashboard";
 import PlanVeiling from "../features/veilingmeesterDashboard/PlanVeiling";
 import GeplandeVeilingen from "../features/veilingmeesterDashboard/components/GeplandeVeilingen";
+import Archief from "../features/veilingmeesterDashboard/Archief";
+
+
 
 
 import ActueelBod from "../features/Actueelbod.jsx";
@@ -73,6 +76,15 @@ export default function AppRouter() {
                     </ProtectedRoute>
                 }
             />
+            <Route
+                path="/veilingmeester/archief"
+                element={
+                    <ProtectedRoute allowedRoles={["Veilingmeester"]}>
+                        <Archief />
+                    </ProtectedRoute>
+                }
+            />
+
 
 
         </Routes>

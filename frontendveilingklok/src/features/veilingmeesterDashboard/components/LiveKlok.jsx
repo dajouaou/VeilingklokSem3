@@ -9,15 +9,16 @@ export default function LiveKlok({ lot }) {
                 </h3>
 
                 <p className="fs-2 fw-bold text-danger mt-3">
-                    € {lot.huidigePrijs?.toFixed(2)}
+                    {lot.huidigePrijs?.toFixed(2)} EUR
                 </p>
 
                 <p className="text-muted mb-1">
-                    Max: € {lot.maximumPrijs?.toFixed(2)} · Min: € {lot.minimumPrijs?.toFixed(2)}
+                    Max: {lot.maximumPrijs?.toFixed(2)} EUR |
+                    Min: {lot.minimumPrijs?.toFixed(2)} EUR
                 </p>
 
                 <p className="text-muted">
-                    Daling: € {lot.dalingPerSeconde?.toFixed(2)} per seconde
+                    Daling: {lot.dalingPerSeconde?.toFixed(2)} EUR per seconde
                 </p>
             </div>
         </div>
