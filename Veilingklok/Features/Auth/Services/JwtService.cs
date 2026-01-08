@@ -20,11 +20,15 @@ namespace Veilingklok.Features.Auth.Services
         public string GenerateToken(Gebruiker gebruiker)
         {
             var claims = new[]
-            {
-        new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
-        new Claim(ClaimTypes.Email, gebruiker.Email),
-        new Claim(ClaimTypes.Role, gebruiker.Rol.ToString())  // ⭐ BELANGRIJK
-    };
+{
+    new Claim(ClaimTypes.NameIdentifier, gebruiker.Id.ToString()),
+    new Claim(ClaimTypes.Email, gebruiker.Email),
+    new Claim(ClaimTypes.Role, gebruiker.Rol.ToString()),
+    new Claim(ClaimTypes.GivenName, gebruiker.Voornaam),
+    new Claim(ClaimTypes.Surname, gebruiker.Achternaam),
+    new Claim(ClaimTypes.Name, $"{gebruiker.Voornaam} {gebruiker.Achternaam}")
+
+        };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_key));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

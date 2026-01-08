@@ -15,6 +15,7 @@
     <TypeScriptConfiguration Remove="src\features\NewFolder\**" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="src\core\context\" />
     <Folder Include="src\features\veilingmeesterDashboard\api\" />
     <Folder Include="src\features\veilingmeesterDashboard\hooks\" />
     <Folder Include="src\features\veilingmeesterDashboard\pages\" />
