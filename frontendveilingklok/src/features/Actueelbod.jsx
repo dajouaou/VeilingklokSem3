@@ -165,7 +165,7 @@ export default function ActueelBod() {
                     </div>
                 </div>
 
-                //volgende veilingen
+                VOLGENDE PRODUCTEN
                 {wachtrij.length > 0 && (
                     <div className="mt-5">
                         <h4 className="fw-bold mb-3">VOLGENDE PRODUCTEN</h4>
