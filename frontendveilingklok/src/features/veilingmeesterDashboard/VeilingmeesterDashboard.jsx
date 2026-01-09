@@ -196,15 +196,16 @@ export default function VeilingmeesterDashboard() {
                     <section className="vm-metrics-grid">
                         <div className="vm-card vm-metric">
                             <p className="label">In wachtrij</p>
-                            <p className="value">{queue.length}</p>
+                            <p className="value">{queue?.length ?? 0}</p>
+
                         </div>
                         <div className="vm-card vm-metric">
                             <p className="label">Laatste biedingen</p>
-                            <p className="value">{bids.length}</p>
+                            <p className="value">{bids?.length ?? 0}</p>
                         </div>
                         <div className="vm-card vm-metric">
                             <p className="label">Log events</p>
-                            <p className="value">{audit.length}</p>
+                            <p className="value">{audit?.length ?? 0}</p>
                         </div>
                         <div className="vm-card vm-metric">
                             <p className="label">Live status</p>

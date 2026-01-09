@@ -28,6 +28,8 @@ namespace Veilingklok.Core.Entities
 
         public int? KoperId { get; set; }
         public Koper? Koper { get; set; }
+        public DateTime? LaatstePrijsUpdateUtc { get; set; }
+
 
         public List<Bod> Biedingen { get; set; } = new();
         public List<Transactie> Transacties { get; set; } = new();

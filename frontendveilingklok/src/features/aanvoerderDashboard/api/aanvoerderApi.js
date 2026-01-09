@@ -27,6 +27,8 @@ export async function createAanmelding({ token, data }) {
     formData.append("MinimumPrijs", data.minimumPrijs);
     formData.append("KlokLocatie", data.klokLocatie);
     formData.append("LeverDatum", data.leverdatum);
+    formData.append("Beschrijving", data.beschrijving ?? "");
+
 
     if (data.fotoFile) {
         formData.append("Foto", data.fotoFile);
@@ -72,6 +74,8 @@ export async function updateAanmelding({ token, id, data }) {
     formData.append("MinimumPrijs", data.minimumPrijs);
     formData.append("KlokLocatie", data.klokLocatie);
     formData.append("LeverDatum", data.leverdatum);
+    formData.append("Beschrijving", data.beschrijving ?? "");
+
 
     if (data.fotoFile) {
         formData.append("Foto", data.fotoFile);
@@ -92,10 +96,22 @@ export async function updateAanmelding({ token, id, data }) {
 export async function deleteAanmelding({ token, id }) {
     const res = await fetch(`${API_BASE}/api/aanvoerder/dashboard/aanmeldingen/${id}`, {
         method: "DELETE",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        }
+        headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!res.ok) throw new Error("Kon aanmelding niet verwijderen.");
+    let data = null;
+    try {
+        data = await res.json();
+    } catch {
+        // empty
+    }
+
+    if (!res.ok) {
+        const msg =
+            typeof data === "string"
+                ? data
+                : data?.message || data?.title || "Kon aanmelding niet verwijderen.";
+
+        throw new Error(msg);
+    }
 }

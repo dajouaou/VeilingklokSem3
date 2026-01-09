@@ -115,14 +115,21 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
             var aanvoerder = await GetAanvoerderForGebruikerAsync(gebruikerId);
 
             var entity = await _db.Aanmeldingen
+                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == id && a.AanvoerderId == aanvoerder.Id);
 
             if (entity == null)
                 throw new ArgumentException("Aanmelding niet gevonden.");
 
-            _db.Aanmeldingen.Remove(entity);
+            
+            if (entity.VeilingProductId != null)
+                throw new ArgumentException("Kan niet verwijderen: deze aanmelding zit al in een geplande veiling.");
+
+            _db.Aanmeldingen.Remove(new Aanmelding { Id = id });
             await _db.SaveChangesAsync();
         }
+
+
 
         public async Task<IReadOnlyList<AanmeldingListItemDto>> GetAanmeldingenAsync(int gebruikerId, DateTime? veildatum)
         {

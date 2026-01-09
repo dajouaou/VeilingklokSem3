@@ -129,8 +129,8 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                 var a = await _db.Aanmeldingen.FindAsync(aanmeldingId);
                 if (a == null || a.VeilingProduct != null) continue;
 
-                var maximumPrijs = a.MinimumPrijs + 1.00m;
-                var daling = 0.05m;
+                var maximumPrijs = a.MinimumPrijs + 5.00m;    // start 5 euro boven min
+                var daling = 0.10m;                         
 
                 var vp = new VeilingProduct
                 {

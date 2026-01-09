@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veilingklok.Infrastructure.Database;
 
@@ -11,9 +12,11 @@ using Veilingklok.Infrastructure.Database;
 namespace Veilingklok.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20260109174442_PrijsDalingVerandering")]
+    partial class PrijsDalingVerandering
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -358,9 +361,6 @@ namespace Veilingklok.Migrations
 
                     b.Property<int?>("KoperId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("LaatstePrijsUpdateUtc")
-                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("MaximumPrijs")
                         .HasColumnType("decimal(18,2)");

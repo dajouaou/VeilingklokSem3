@@ -14,7 +14,7 @@ namespace Veilingklok.Core.Interfaces
         Task ResumeAsync(int veilingId);
         Task StopAsync(int veilingId);
 
-        Task<BodDto> PlaatsBodAsync(int veilingId, BodPlaatsenDto dto, int koperId);
+        Task<BodDto> PlaatsBodAsync(int veilingId, BodPlaatsenDto dto, int koperGebruikerId);
         Task<List<string>> GetVeilingDagenAsync();
     }
 }

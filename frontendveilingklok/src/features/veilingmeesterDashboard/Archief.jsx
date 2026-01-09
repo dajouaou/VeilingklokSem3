@@ -47,7 +47,7 @@ export default function Archief() {
                                 <div>
                                     <h5 className="mb-1">Veiling #{v.id}</h5>
                                     <div className="text-muted small">
-                                        Veildatum: {v.veildatum} · Start: {v.startTijd} · Einde: {v.eindTijd}
+                                        Veildatum: {v.veildatum} {" - "} Start: {v.startTijd} {" - "} Einde: {v.eindTijd}
                                     </div>
                                 </div>
                                 <div className="badge bg-secondary">{v.aantalProducten} producten</div>

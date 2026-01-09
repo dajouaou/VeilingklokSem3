@@ -542,3 +542,17 @@ footer {
     border-radius: 50%;
     object-fit: cover;
 }
+
+.object-fit-cover {
+    object-fit: cover;
+}
+
+.badge-offline {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    color: #111827;
+    font-weight: 700;
+}
+

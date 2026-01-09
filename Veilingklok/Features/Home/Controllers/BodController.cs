@@ -29,14 +29,13 @@ namespace Veilingklok.Features.Veiling.Controllers
         [HttpPost("{veilingId:int}")]
         public async Task<IActionResult> Plaats(int veilingId, [FromBody] BodPlaatsenDto dto)
         {
-            var koperId = await ResolveKoperIdAsync();
-            if (koperId <= 0)
+            var koperGebruikerId = await ResolveKoperGebruikerIdAsync();
+            if (koperGebruikerId <= 0)
                 return Unauthorized("Kon koper-id niet bepalen uit token.");
 
-            var bod = await _service.PlaatsBodAsync(veilingId, dto, koperId);
+            var bod = await _service.PlaatsBodAsync(veilingId, dto, koperGebruikerId);
             var overzicht = await _service.GetDetailsAsync(veilingId);
 
-            // realtime events
             await _broadcast.StuurBod(veilingId, bod);
 
             if (overzicht.HuidigProduct != null)
@@ -53,9 +52,9 @@ namespace Veilingklok.Features.Veiling.Controllers
             return Ok(bod);
         }
 
-        private async Task<int> ResolveKoperIdAsync()
+
+        private async Task<int> ResolveKoperGebruikerIdAsync()
         {
-            // Probeer verschillende claim keys, zodat dit werkt met jouw huidige JWT implementatie.
             var userIdStr =
                 User.FindFirstValue(ClaimTypes.NameIdentifier) ??
                 User.FindFirstValue("sub") ??
@@ -65,8 +64,10 @@ namespace Veilingklok.Features.Veiling.Controllers
             if (!int.TryParse(userIdStr, out var gebruikerId))
                 return 0;
 
-            var koper = await _db.Kopers.SingleOrDefaultAsync(k => k.GebruikerId == gebruikerId);
-            return koper?.Id ?? 0;
+            // check dat deze gebruiker ook echt een koper-profiel heeft
+            var exists = await _db.Kopers.AnyAsync(k => k.GebruikerId == gebruikerId);
+            return exists ? gebruikerId : 0;
         }
+
     }
 }

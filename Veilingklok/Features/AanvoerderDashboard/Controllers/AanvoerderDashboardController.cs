@@ -17,105 +17,169 @@ public class AanvoerderDashboardController : ControllerBase
     private readonly IAanvoerderDashboardService _service;
     private readonly IWebHostEnvironment _env;
 
-    public AanvoerderDashboardController(IAanvoerderDashboardService service,MyContext db, IWebHostEnvironment env)
+    public AanvoerderDashboardController(
+        IAanvoerderDashboardService service,
+        MyContext db,
+        IWebHostEnvironment env)
     {
         _service = service;
         _db = db;
         _env = env;
     }
 
-
-    private int GetGebruikerId()
+    private bool TryGetGebruikerId(out int gebruikerId)
     {
-        var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.Parse(idStr ?? throw new ArgumentException("Geen gebruiker-id in token."));
+        gebruikerId = 0;
+
+        var idStr =
+            User.FindFirstValue(ClaimTypes.NameIdentifier) ??
+            User.FindFirstValue("nameid") ??
+            User.FindFirstValue("sub");
+
+        return int.TryParse(idStr, out gebruikerId);
     }
+
+    private ActionResult UnauthorizedUserId()
+        => Unauthorized("Geen geldige gebruiker-id in token.");
+
+    // -------------------- Aanmeldingen --------------------
 
     [HttpGet("aanmeldingen")]
     public async Task<ActionResult<List<AanmeldingListItemDto>>> GetAanmeldingen([FromQuery] DateTime? leverdatum)
     {
-        var gebruikerId = GetGebruikerId();
-        return Ok(await _service.GetAanmeldingenAsync(gebruikerId, leverdatum));
+        if (!TryGetGebruikerId(out var gebruikerId))
+            return UnauthorizedUserId();
+
+        try
+        {
+            var result = await _service.GetAanmeldingenAsync(gebruikerId, leverdatum);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            // bijv. "Geen aanvoerder-profiel gevonden."
+            return NotFound(ex.Message);
+        }
     }
 
     [HttpPost("aanmeldingen")]
     public async Task<ActionResult<AanmeldingListItemDto>> CreateAanmelding([FromForm] AanmeldingCreateDto dto)
     {
-        var gebruikerId = GetGebruikerId();
+        if (!TryGetGebruikerId(out var gebruikerId))
+            return UnauthorizedUserId();
 
-        string? fotoPad = null;
-
-
-        if (dto.Foto != null && dto.Foto.Length > 0)
+        try
         {
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
+            string? fotoPad = null;
 
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            if (dto.Foto != null && dto.Foto.Length > 0)
             {
-                await dto.Foto.CopyToAsync(stream);
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                await using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.Foto.CopyToAsync(stream);
+                }
+
+                fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
             }
 
-            fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
-
+            var result = await _service.CreateAanmeldingAsync(gebruikerId, dto, fotoPad);
+            return Ok(result);
         }
-
-        var result = await _service.CreateAanmeldingAsync(gebruikerId, dto, fotoPad);
-
-        return Ok(result);
+        catch (ArgumentException ex)
+        {
+            // validatie errors zoals weekend/feestdag/potmaat-steellengte etc
+            return BadRequest(ex.Message);
+        }
     }
-
 
     [HttpPut("aanmeldingen/{id}")]
-    public async Task<ActionResult<AanmeldingListItemDto>> UpdateAanmelding(
-        int id,
-        [FromForm] AanmeldingUpdateDto dto)
+    public async Task<ActionResult<AanmeldingListItemDto>> UpdateAanmelding(int id, [FromForm] AanmeldingUpdateDto dto)
     {
-        var gebruikerId = GetGebruikerId();
+        if (!TryGetGebruikerId(out var gebruikerId))
+            return UnauthorizedUserId();
 
-        string? fotoPad = null;
-
-        if (dto.Foto != null && dto.Foto.Length > 0)
+        try
         {
-            var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-            if (!Directory.Exists(uploadsFolder))
-                Directory.CreateDirectory(uploadsFolder);
+            string? fotoPad = null;
 
-            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
-
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            if (dto.Foto != null && dto.Foto.Length > 0)
             {
-                await dto.Foto.CopyToAsync(stream);
+                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                await using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.Foto.CopyToAsync(stream);
+                }
+
+                fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
             }
 
-            fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+            var updated = await _service.UpdateAanmeldingAsync(gebruikerId, id, dto, fotoPad);
+            return Ok(updated);
         }
+        catch (ArgumentException ex)
+        {
+            // "Aanmelding niet gevonden." of validatie
+            // kies: NotFound als het expliciet "niet gevonden" is, anders BadRequest
+            if (ex.Message.Contains("niet gevonden", StringComparison.OrdinalIgnoreCase))
+                return NotFound(ex.Message);
 
-        var updated = await _service.UpdateAanmeldingAsync(gebruikerId, id, dto, fotoPad);
-
-        return Ok(updated);
+            return BadRequest(ex.Message);
+        }
     }
-
 
     [HttpDelete("aanmeldingen/{id}")]
     public async Task<ActionResult> DeleteAanmelding(int id)
     {
-        var gebruikerId = GetGebruikerId();
-        await _service.DeleteAanmeldingAsync(gebruikerId, id);
-        return NoContent();
+        if (!TryGetGebruikerId(out var gebruikerId))
+            return UnauthorizedUserId();
+
+        try
+        {
+            await _service.DeleteAanmeldingAsync(gebruikerId, id);
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            if (ex.Message.Contains("niet gevonden", StringComparison.OrdinalIgnoreCase))
+                return NotFound(ex.Message);
+
+            return BadRequest(ex.Message);
+        }
     }
+
+    // -------------------- Statistieken --------------------
 
     [HttpGet("statistieken")]
     public async Task<ActionResult<AanvoerderStatsDto>> GetStats([FromQuery] DateTime? leverdatum)
     {
-        var gebruikerId = GetGebruikerId();
-        return Ok(await _service.GetStatsAsync(gebruikerId, leverdatum));
+        if (!TryGetGebruikerId(out var gebruikerId))
+            return UnauthorizedUserId();
+
+        try
+        {
+            var stats = await _service.GetStatsAsync(gebruikerId, leverdatum);
+            return Ok(stats);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
+
+    // -------------------- Veildagen --------------------
 
     [HttpGet("veildagen")]
     public async Task<ActionResult<List<string>>> GetVeildagen()

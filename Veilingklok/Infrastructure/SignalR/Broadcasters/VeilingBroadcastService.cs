@@ -11,6 +11,8 @@ namespace Veilingklok.Infrastructure.SignalR.Broadcasters
         Task StuurWachtrij(int veilingId, List<WachtrijItemDto> wachtrij);
         Task StuurBod(int veilingId, BodDto bod);
         Task StuurAuditEvent(int veilingId, AuditEventDto audit);
+        Task StuurOnlineBieders(int veilingId, int aantal);
+
     }
 
     public class VeilingBroadcastService : IVeilingBroadcastService
@@ -51,5 +53,12 @@ namespace Veilingklok.Infrastructure.SignalR.Broadcasters
                 .Group(Groep(veilingId))
                 .SendAsync("OntvangAudit", audit);
         }
+        public Task StuurOnlineBieders(int veilingId, int aantal)
+        {
+            return _hub.Clients
+                .Group(Groep(veilingId))
+                .SendAsync("OntvangOnlineBieders", aantal);
+        }
+
     }
 }

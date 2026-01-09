@@ -38,7 +38,7 @@ export default function GeplandeVeilingen() {
                         <div key={v.id} className="vm-card mb-3">
                             <strong>Veiling #{v.id}</strong>
                             <div className="text-muted small mt-1">
-                                Datum: {v.veildatum} · Starttijd: {v.startTijd} · Producten: {v.aantalProducten}
+                                + Datum: {v.veildatum} - Starttijd: {v.startTijd} - Producten: {v.aantalProducten}
                             </div>
                         </div>
                     ))}

@@ -1,56 +1,61 @@
-import { useEffect, useState } from "react";
-import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
-
-const HUB_URL = "https://localhost:56418/hub/veiling";
+﻿import { useEffect, useRef, useState } from "react";
+import { createAuctionHubConnection } from "../../../signalr/auctionHubConnection"; // ✅ pas pad aan!
 
 export default function useLiveVeiling(token, veilingId) {
+    const connRef = useRef(null);
+
     const [lot, setLot] = useState(null);
-    const [queue, setQueue] = useState([]);
-    const [bids, setBids] = useState([]);
-    const [audit, setAudit] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [wachtrij, setWachtrij] = useState([]);
+    const [lastBid, setLastBid] = useState(null);
+    const [audit, setAudit] = useState([]); // ✅ array, nooit null
+    const [onlineBieders, setOnlineBieders] = useState(null);
+
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        // ✅ als geen token/veiling: state resetten zodat UI niet crasht / oude data toont
         if (!token || !veilingId) {
-        
-              setLot(null);
-              setQueue([]);
-               setBids([]);
-               setAudit([]);
-                setLoading(false);
-                 return;
-             }
+            setLot(null);
+            setWachtrij([]);
+            setLastBid(null);
+            setAudit([]);
+            setOnlineBieders(null);
+            setLoading(false);
+            return;
+        }
 
+        let alive = true;
         setLoading(true);
 
-        const connection = new HubConnectionBuilder()
-            .withUrl(HUB_URL, {
-                accessTokenFactory: () => token,
-            })
-            .withAutomaticReconnect()
-            .configureLogging(LogLevel.Information)
-            .build();
+        const conn = createAuctionHubConnection(token);
+        connRef.current = conn;
 
-        connection.on("OntvangHuidigProduct", setLot);
-        connection.on("OntvangWachtrij", (wachtrij) =>
-            setQueue(wachtrij ?? [])
-        );
-        connection.on("OntvangBod", (bod) =>
-            setBids(prev => [bod, ...prev])
-        );
-        connection.on("OntvangAudit", (evt) =>
-            setAudit(prev => [evt, ...prev])
-        );
+      
+        const onLot = (dto) => setLot(dto);
+        const onWachtrij = (items) => setWachtrij(items ?? []);
+        const onBod = (bod) => setLastBid(bod);
+        const onAudit = (evt) => setAudit((prev) => [evt, ...prev].slice(0, 50)); // laatste 50
+        const onOnline = (aantal) => setOnlineBieders(aantal);
+
+        conn.on("OntvangHuidigProduct", onLot);
+        conn.on("OntvangWachtrij", onWachtrij);
+        conn.on("OntvangBod", onBod);
+        conn.on("OntvangAudit", onAudit);
+
+      
+        conn.on("OntvangOnlineBieders", onOnline);
 
         async function start() {
             try {
-                await connection.start();
-                await connection.invoke("JoinVeilingGroep", veilingId);
+                await conn.start();
+                if (!alive) return;
+
+                
+                await conn.invoke("JoinVeilingGroep", Number(veilingId));
+
                 setLoading(false);
-            } catch (err) {
-                if (err?.name !== "AbortError") {
-                    console.error("SignalR verbindingsfout:", err);
-                }
+            } catch (e) {
+                console.error("SignalR start error:", e);
                 setLoading(false);
             }
         }
@@ -58,20 +63,37 @@ export default function useLiveVeiling(token, veilingId) {
         start();
 
         return () => {
+            alive = false;
+
+           
+            try {
+                conn.off("OntvangHuidigProduct", onLot);
+                conn.off("OntvangWachtrij", onWachtrij);
+                conn.off("OntvangBod", onBod);
+                conn.off("OntvangAudit", onAudit);
+                conn.off("OntvangOnlineBieders", onOnline);
+            } catch (_) { }
+
             (async () => {
                 try {
-                    await connection.invoke("VerlaatVeilingGroep", veilingId);
+                    if (conn?.state === "Connected") {
+                        await conn.invoke("VerlaatVeilingGroep", Number(veilingId));
+                    }
                 } catch (_) { }
-                await connection.stop();
+
+                try {
+                    await conn.stop();
+                } catch (_) { }
             })();
         };
     }, [token, veilingId]);
 
     return {
         lot,
-        queue,
-        bids,
+        wachtrij,
+        lastBid,
         audit,
+        onlineBieders,
         loading,
     };
 }
