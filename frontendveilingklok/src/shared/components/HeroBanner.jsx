@@ -7,7 +7,7 @@ export default function HeroBanner() {
         titel: "Geen actieve veiling",
         beschrijving: "Er is momenteel geen veiling actief.",
         bid: "-",
-        afbeelding: "/images/bloemen.jpg",
+        afbeelding: "/images/flowerbanner1.jpg",
         link: "/actueelbod",
     });
 
@@ -41,7 +41,7 @@ export default function HeroBanner() {
                         titel: p.soort,
                         beschrijving: `Resterend: ${p.resterendeHoeveelheid} stuks`,
                         bid: `${(p.huidigePrijs ?? 0).toFixed(2)} EUR`,
-                        afbeelding: p.fotoUrl || "/images/bloemen.jpg",
+                        afbeelding: p.fotoUrl || "/images/flowerbanner1.jpg",
                         link: "/actueelbod",
                     });
                     return;
@@ -57,7 +57,7 @@ export default function HeroBanner() {
                         titel: `Volgende veiling #${volgende.id}`,
                         beschrijving: `Start over ${tekst} • ${volgende.aantalProducten} producten`,
                         bid: "-",
-                        afbeelding: "/images/bloemen.jpg",
+                        afbeelding: "/images/flowerbanner1.jpg",
                         link: "/actueelbod",
                     });
                     return;
@@ -68,7 +68,7 @@ export default function HeroBanner() {
                     titel: "Geen actieve veiling",
                     beschrijving: "Er is momenteel geen veiling actief.",
                     bid: "-",
-                    afbeelding: "/images/bloemen.jpg",
+                    afbeelding: "/images/flowerbanner1.jpg",
                     link: "/actueelbod",
                 });
             } catch { }

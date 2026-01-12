@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Veilingklok.Infrastructure.Database;
 
@@ -11,9 +12,11 @@ using Veilingklok.Infrastructure.Database;
 namespace Veilingklok.Migrations
 {
     [DbContext(typeof(MyContext))]
-    partial class MyContextModelSnapshot : ModelSnapshot
+    [Migration("20260112223139_SmallFixDwAbtItQueen")]
+    partial class SmallFixDwAbtItQueen
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -142,7 +145,7 @@ namespace Veilingklok.Migrations
 
                     b.HasIndex("VeilingProductId");
 
-                    b.ToTable("Transacties", (string)null);
+                    b.ToTable("Transacties");
                 });
 
             modelBuilder.Entity("Veildag", b =>
@@ -294,7 +297,7 @@ namespace Veilingklok.Migrations
 
                     b.HasIndex("AanvoerderId");
 
-                    b.ToTable("Producten", (string)null);
+                    b.ToTable("Producten");
                 });
 
             modelBuilder.Entity("Veilingklok.Core.Entities.Veiling", b =>
@@ -428,13 +431,12 @@ namespace Veilingklok.Migrations
                 {
                     b.HasOne("Gebruiker", "Koper")
                         .WithMany()
-                        .HasForeignKey("KoperId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("KoperId");
 
                     b.HasOne("Veilingklok.Core.Entities.VeilingProduct", "VeilingProduct")
                         .WithMany("Transacties")
                         .HasForeignKey("VeilingProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Koper");

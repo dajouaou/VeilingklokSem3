@@ -43,7 +43,7 @@ export default function NextBids() {
                     <div className="row g-4">
                         <div className="col-md-6 col-lg-5">
                             <div className="card card-product h-100">
-                                <img src="/images/bloemen.jpg" className="card-img-top" alt="Veiling" />
+                                <img src="/images/flowerbanner1.jpg" className="card-img-top" alt="Veiling" />
                                 <div className="card-body">
                                     <h5 className="card-title">Veiling #{volgende.id}</h5>
                                     <p className="card-text mb-1">

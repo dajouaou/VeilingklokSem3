@@ -108,9 +108,10 @@ export default function VeilingmeesterDashboard() {
             setVeiling(prev => prev ? { ...prev, isPauze: true, isGepauzeerd: true, status: "Gepauzeerd" } : prev);
 
             await refreshActiveVeiling();
-        } catch {
-            setError("Pauzeren mislukt.");
+        } catch (e) {
+            setError(e.message || "Pauzeren mislukt.");
         }
+
     }
 
 

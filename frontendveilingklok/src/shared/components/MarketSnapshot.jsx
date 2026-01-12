@@ -65,7 +65,7 @@ export default function MarketSnapshot() {
                             <div className="kpi">
                                 <div className="kpi-label">Online bieders</div>
                                 <div className="kpi-value">{biddersText}</div>
-                                <div className="kpi-sub text-muted">Realtime vereist hub-tracking</div>
+                                <div className="kpi-sub text-muted">Realtime motherfuckers!!</div>
                             </div>
                         </div>
 

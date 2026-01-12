@@ -58,6 +58,7 @@ namespace Veilingklok.Features.Veiling.Services
 
             // ✅ activeer + reset klok naar maximum
             first.IsActief = true;
+            first.LaatstePrijsUpdateUtc = DateTime.UtcNow;
             if (first.MaximumPrijs <= 0)
             {
                 // fallback als je planning dit nog niet invult
@@ -140,9 +141,11 @@ namespace Veilingklok.Features.Veiling.Services
         public async Task<VeilingOverzichtDto> GetDetailsAsync(int veilingId)
         {
             var v = await _db.Veilingen
-                .Include(v => v.Producten)
-                    .ThenInclude(p => p.Aanmelding)
-                .SingleAsync(v => v.Id == veilingId);
+     .Include(v => v.Producten)
+         .ThenInclude(p => p.Aanmelding)
+             .ThenInclude(a => a.Aanvoerder)
+     .SingleAsync(v => v.Id == veilingId);
+
 
             var dto = new VeilingOverzichtDto
             {
@@ -171,25 +174,34 @@ namespace Veilingklok.Features.Veiling.Services
 
                     IsActief = hp.IsActief,
                     IsVerkocht = hp.IsVerkocht,
-                    IsDoorgedraaid = hp.IsDoorgedraaid
+                    IsDoorgedraaid = hp.IsDoorgedraaid,
+
+                    AanvoerderId = hp.Aanmelding.AanvoerderId,                 
+                    AanvoerderNaam = hp.Aanmelding.Aanvoerder?.Naam ?? ""   
                 };
+
+
             }
 
             dto.Wachtrij = v.Producten
-                .Where(p => !p.IsActief && !p.IsVerkocht && !p.IsDoorgedraaid)
-                .OrderBy(p => p.Volgorde)
-                .Select(p => new WachtrijItemDto
-                {
-                    VeilingProductId = p.Id,
-                    Volgorde = p.Volgorde,
-                    Soort = p.Aanmelding!.Soort,
-                    FotoUrl = p.Aanmelding!.FotoUrl,
+    .Where(p => !p.IsActief && !p.IsVerkocht && !p.IsDoorgedraaid)
+    .OrderBy(p => p.Volgorde)
+    .Select(p => new WachtrijItemDto
+    {
+        VeilingProductId = p.Id,
+        Volgorde = p.Volgorde,
+        Soort = p.Aanmelding!.Soort,
+        FotoUrl = p.Aanmelding!.FotoUrl,
 
-                    MaximumPrijs = p.MaximumPrijs,
-                    MinimumPrijs = p.MinimumPrijs,
-                    ResterendeHoeveelheid = p.ResterendeHoeveelheid
-                })
-                .ToList();
+        MaximumPrijs = p.MaximumPrijs,
+        MinimumPrijs = p.MinimumPrijs,
+        ResterendeHoeveelheid = p.ResterendeHoeveelheid,
+
+        AanvoerderId = p.Aanmelding!.AanvoerderId,
+        AanvoerderNaam = p.Aanmelding!.Aanvoerder != null ? p.Aanmelding!.Aanvoerder!.Naam : ""
+    })
+    .ToList();
+
 
             return dto;
         }
@@ -208,15 +220,22 @@ namespace Veilingklok.Features.Veiling.Services
 
         public async Task ResumeAsync(int veilingId)
         {
-            var v = await _db.Veilingen.FindAsync(veilingId)
+            var v = await _db.Veilingen
+                .Include(x => x.Producten)
+                .FirstOrDefaultAsync(x => x.Id == veilingId)
                 ?? throw new ArgumentException("Veiling niet gevonden");
 
             if (v.Status != VeilingStatus.Gepauzeerd)
                 throw new ArgumentException("Veiling is niet gepauzeerd.");
 
             v.Status = VeilingStatus.Gestart;
+
+            var hp = v.Producten.SingleOrDefault(p => p.Id == v.HuidigProductId);
+            if (hp != null) hp.LaatstePrijsUpdateUtc = DateTime.UtcNow; // ✅ reset
+
             await _db.SaveChangesAsync();
         }
+
 
         public async Task StopAsync(int veilingId)
         {
@@ -235,6 +254,16 @@ namespace Veilingklok.Features.Veiling.Services
 
         public async Task<BodDto> PlaatsBodAsync(int veilingId, BodPlaatsenDto dto, int koperGebruikerId)
         {
+            // ✅ haal koper-profiel op (Kopers.Id nodig voor VeilingProduct.KoperId)
+            var koperProfiel = await _db.Kopers
+                .AsNoTracking()
+                .SingleOrDefaultAsync(k => k.GebruikerId == koperGebruikerId);
+
+            if (koperProfiel == null)
+                throw new ArgumentException("Je hebt geen koper-profiel.");
+
+            var koperId = koperProfiel.Id;
+
             var veiling = await _db.Veilingen
                 .Include(v => v.Producten)
                     .ThenInclude(p => p.Aanmelding)
@@ -245,18 +274,13 @@ namespace Veilingklok.Features.Veiling.Services
 
             var product = veiling.Producten.Single(p => p.Id == dto.VeilingProductId);
 
-            if (!product.IsActief)
-                throw new ArgumentException("Product is niet actief.");
-
-            if (product.IsVerkocht || product.IsDoorgedraaid)
-                throw new ArgumentException("Product is niet meer beschikbaar.");
+            if (!product.IsActief) throw new ArgumentException("Product is niet actief.");
+            if (product.IsVerkocht || product.IsDoorgedraaid) throw new ArgumentException("Product is niet meer beschikbaar.");
 
             var koopAantal = dto.Aantal <= 0 ? product.ResterendeHoeveelheid : dto.Aantal;
-
             if (koopAantal <= 0 || koopAantal > product.ResterendeHoeveelheid)
                 throw new ArgumentException("Ongeldig aantal.");
 
-            // prijs vastleggen op koopmoment
             if (dto.Prijs <= 0) dto.Prijs = product.HuidigePrijs;
             product.HuidigePrijs = dto.Prijs;
 
@@ -264,7 +288,12 @@ namespace Veilingklok.Features.Veiling.Services
             {
                 VeilingId = veilingId,
                 VeilingProductId = product.Id,
-                KoperId = koperGebruikerId,          // ✅ Gebruiker.Id
+
+                // ⚠️ kies één betekenis:
+                // Als Bod.KoperId een "Kopers.Id" is: zet koperId
+                // Als Bod.KoperId een "Gebruikers.Id" is: zet koperGebruikerId
+                KoperId = koperId,
+
                 Prijs = dto.Prijs,
                 Aantal = koopAantal
             };
@@ -274,25 +303,25 @@ namespace Veilingklok.Features.Veiling.Services
             {
                 VeilingId = veilingId,
                 VeilingProductId = product.Id,
-                KoperId = koperGebruikerId,          // ✅ Gebruiker.Id (matches jouw Transactie model)
+
+                // ✅ Transactie.KoperId wijst naar Gebruiker (jouw model heeft Gebruiker? Koper)
+                KoperId = koperGebruikerId,
+
                 Aantal = koopAantal,
                 Prijs = dto.Prijs,
                 Tijdstip = DateTime.UtcNow
             };
             _db.Transacties.Add(transactie);
 
-            // voorraad aanpassen
             product.ResterendeHoeveelheid -= koopAantal;
 
-            // ✅ LET OP:
-            // Alleen doen als product.KoperId óók een GebruikerId is.
-            // Als jouw VeilingProduct.KoperId naar "Kopers.Id" wijst, moet dit anders.
-            product.KoperId = koperGebruikerId;
+            // ✅ DIT is de belangrijkste fix:
+            product.KoperId = koperId; // ✅ Kopers.Id
 
             if (product.ResterendeHoeveelheid > 0)
             {
-                // deelverkoop → klok reset naar maximumprijs
                 product.HuidigePrijs = product.MaximumPrijs;
+                product.LaatstePrijsUpdateUtc = DateTime.UtcNow; // ✅ reset timer
             }
             else
             {
@@ -307,45 +336,36 @@ namespace Veilingklok.Features.Veiling.Services
                 if (volgende != null)
                 {
                     volgende.IsActief = true;
-
-                    if (volgende.MaximumPrijs <= 0)
-                    {
-                        volgende.MinimumPrijs = volgende.MinimumPrijs <= 0 ? (volgende.Aanmelding?.MinimumPrijs ?? 0) : volgende.MinimumPrijs;
-                        volgende.MaximumPrijs = volgende.MinimumPrijs + 5m;
-                    }
-
+                    if (volgende.MinimumPrijs <= 0) volgende.MinimumPrijs = volgende.Aanmelding?.MinimumPrijs ?? 0m;
+                    if (volgende.MaximumPrijs <= 0) volgende.MaximumPrijs = volgende.MinimumPrijs + 5m;
                     if (volgende.DalingPerSeconde <= 0) volgende.DalingPerSeconde = 0.10m;
-                    if (volgende.ResterendeHoeveelheid <= 0)
-                        volgende.ResterendeHoeveelheid = volgende.Aanmelding?.Hoeveelheid ?? 0;
+                    if (volgende.ResterendeHoeveelheid <= 0) volgende.ResterendeHoeveelheid = volgende.Aanmelding?.Hoeveelheid ?? 0;
 
                     volgende.HuidigePrijs = volgende.MaximumPrijs;
+                    volgende.LaatstePrijsUpdateUtc = DateTime.UtcNow; // ✅ reset timer
                     veiling.HuidigProductId = volgende.Id;
                 }
                 else
                 {
                     veiling.Status = VeilingStatus.Afgesloten;
-                    if (veiling.AfgeslotenOpUtc == null)
-                        veiling.AfgeslotenOpUtc = DateTime.UtcNow;
-
+                    veiling.AfgeslotenOpUtc ??= DateTime.UtcNow;
                     veiling.HuidigProductId = null;
                 }
             }
 
             await _db.SaveChangesAsync();
 
-            // optioneel: naam meesturen
-            var koper = await _db.Gebruikers
-                .AsNoTracking()
-                .FirstOrDefaultAsync(g => g.Id == koperGebruikerId);
+            var koperUser = await _db.Gebruikers.AsNoTracking().FirstOrDefaultAsync(g => g.Id == koperGebruikerId);
 
             return new BodDto
             {
                 Id = bod.Id,
                 Prijs = bod.Prijs,
                 Tijdstip = bod.Tijdstip,
-                KoperNaam = koper != null ? $"{koper.Voornaam} {koper.Achternaam}" : null
+                KoperNaam = koperUser != null ? $"{koperUser.Voornaam} {koperUser.Achternaam}" : null
             };
         }
+
 
 
         public async Task<List<string>> GetVeilingDagenAsync()

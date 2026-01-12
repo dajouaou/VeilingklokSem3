@@ -90,7 +90,6 @@ namespace Veilingklok.Features.Veiling.Controllers
                     AanvoerderNaam = hp.Aanmelding.Aanvoerder?.Naam ?? ""
                 };
             }
-
             dto.Wachtrij = v.Producten
                 .Where(p => !p.IsActief && !p.IsVerkocht && !p.IsDoorgedraaid)
                 .OrderBy(p => p.Volgorde)
@@ -104,11 +103,11 @@ namespace Veilingklok.Features.Veiling.Controllers
                     MinimumPrijs = p.MinimumPrijs,
                     ResterendeHoeveelheid = p.ResterendeHoeveelheid,
 
-                    // Alleen doen als jouw WachtrijItemDto deze velden heeft:
-                    // AanvoerderId = p.Aanmelding!.AanvoerderId,
-                    // AanvoerderNaam = p.Aanmelding!.Aanvoerder!.Naam
+                    AanvoerderId = p.Aanmelding!.AanvoerderId,
+                    AanvoerderNaam = p.Aanmelding!.Aanvoerder != null ? p.Aanmelding!.Aanvoerder!.Naam : ""
                 })
                 .ToList();
+
 
             return Ok(dto);
         }

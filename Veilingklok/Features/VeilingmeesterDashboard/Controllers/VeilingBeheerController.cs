@@ -56,15 +56,33 @@ public class VeilingBeheerController : ControllerBase
     public async Task<IActionResult> Pause(int id)
     {
         await _service.PauseAsync(id);
+
+        var overzicht = await _service.GetDetailsAsync(id);
+        if (overzicht.HuidigProduct != null)
+        {
+            await _broadcast.StuurHuidigProduct(id, overzicht.HuidigProduct);
+            await _broadcast.StuurWachtrij(id, overzicht.Wachtrij);
+        }
+
         return NoContent();
     }
+
 
     [HttpPost("{id}/resume")]
     public async Task<IActionResult> Resume(int id)
     {
         await _service.ResumeAsync(id);
+
+        var overzicht = await _service.GetDetailsAsync(id);
+        if (overzicht.HuidigProduct != null)
+        {
+            await _broadcast.StuurHuidigProduct(id, overzicht.HuidigProduct);
+            await _broadcast.StuurWachtrij(id, overzicht.Wachtrij);
+        }
+
         return NoContent();
     }
+
 
     [HttpPost("{id}/stop")]
     public async Task<IActionResult> Stop(int id)

@@ -15,5 +15,10 @@ public sealed class VeilingProductConfiguration : IEntityTypeConfiguration<Veili
             .WithOne(a => a.VeilingProduct)
             .HasForeignKey<VeilingProduct>(vp => vp.AanmeldingId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.MaximumPrijs).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.MinimumPrijs).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.HuidigePrijs).HasColumnType("decimal(18,2)");
+        builder.Property(x => x.DalingPerSeconde).HasColumnType("decimal(18,4)");
+
     }
 }
