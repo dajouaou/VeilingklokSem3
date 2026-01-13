@@ -17,6 +17,7 @@ public class AanvoerderDashboardController : ControllerBase
     private readonly IAanvoerderDashboardService _service;
     private readonly IWebHostEnvironment _env;
 
+    // Constructor met benodigde afhankelijkheden
     public AanvoerderDashboardController(
         IAanvoerderDashboardService service,
         MyContext db,
@@ -27,6 +28,7 @@ public class AanvoerderDashboardController : ControllerBase
         _env = env;
     }
 
+    // Haalt gebruiker-id uit de token
     private bool TryGetGebruikerId(out int gebruikerId)
     {
         gebruikerId = 0;
@@ -39,12 +41,12 @@ public class AanvoerderDashboardController : ControllerBase
         return int.TryParse(idStr, out gebruikerId);
     }
 
+    // Geeft een unauthorized response bij ongeldige token
     private ActionResult UnauthorizedUserId()
         => Unauthorized("Geen geldige gebruiker-id in token.");
 
-    // -------------------- Aanmeldingen --------------------
-
     [HttpGet("aanmeldingen")]
+    // Haalt alle aanmeldingen op, eventueel gefilterd op leverdatum
     public async Task<ActionResult<List<AanmeldingListItemDto>>> GetAanmeldingen([FromQuery] DateTime? leverdatum)
     {
         if (!TryGetGebruikerId(out var gebruikerId))
@@ -57,12 +59,12 @@ public class AanvoerderDashboardController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            // bijv. "Geen aanvoerder-profiel gevonden."
             return NotFound(ex.Message);
         }
     }
 
     [HttpPost("aanmeldingen")]
+    // Maakt een nieuwe aanmelding aan
     public async Task<ActionResult<AanmeldingListItemDto>> CreateAanmelding([FromForm] AanmeldingCreateDto dto)
     {
         if (!TryGetGebruikerId(out var gebruikerId))
@@ -72,6 +74,7 @@ public class AanvoerderDashboardController : ControllerBase
         {
             string? fotoPad = null;
 
+            // Foto opslaan indien meegestuurd
             if (dto.Foto != null && dto.Foto.Length > 0)
             {
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
@@ -81,10 +84,8 @@ public class AanvoerderDashboardController : ControllerBase
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
-                await using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.Foto.CopyToAsync(stream);
-                }
+                await using var stream = new FileStream(filePath, FileMode.Create);
+                await dto.Foto.CopyToAsync(stream);
 
                 fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
             }
@@ -94,12 +95,12 @@ public class AanvoerderDashboardController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            // validatie errors zoals weekend/feestdag/potmaat-steellengte etc
             return BadRequest(ex.Message);
         }
     }
 
     [HttpPut("aanmeldingen/{id}")]
+    // Werkt een bestaande aanmelding bij
     public async Task<ActionResult<AanmeldingListItemDto>> UpdateAanmelding(int id, [FromForm] AanmeldingUpdateDto dto)
     {
         if (!TryGetGebruikerId(out var gebruikerId))
@@ -118,10 +119,8 @@ public class AanvoerderDashboardController : ControllerBase
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
                 var filePath = Path.Combine(uploadsFolder, fileName);
 
-                await using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.Foto.CopyToAsync(stream);
-                }
+                await using var stream = new FileStream(filePath, FileMode.Create);
+                await dto.Foto.CopyToAsync(stream);
 
                 fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
             }
@@ -131,8 +130,6 @@ public class AanvoerderDashboardController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            // "Aanmelding niet gevonden." of validatie
-            // kies: NotFound als het expliciet "niet gevonden" is, anders BadRequest
             if (ex.Message.Contains("niet gevonden", StringComparison.OrdinalIgnoreCase))
                 return NotFound(ex.Message);
 
@@ -141,6 +138,7 @@ public class AanvoerderDashboardController : ControllerBase
     }
 
     [HttpDelete("aanmeldingen/{id}")]
+    // Verwijdert een aanmelding
     public async Task<ActionResult> DeleteAanmelding(int id)
     {
         if (!TryGetGebruikerId(out var gebruikerId))
@@ -160,9 +158,8 @@ public class AanvoerderDashboardController : ControllerBase
         }
     }
 
-    // -------------------- Statistieken --------------------
-
     [HttpGet("statistieken")]
+    // Haalt statistieken op
     public async Task<ActionResult<AanvoerderStatsDto>> GetStats([FromQuery] DateTime? leverdatum)
     {
         if (!TryGetGebruikerId(out var gebruikerId))
@@ -179,9 +176,8 @@ public class AanvoerderDashboardController : ControllerBase
         }
     }
 
-    // -------------------- Veildagen --------------------
-
     [HttpGet("veildagen")]
+    // Haalt alle veildagen op
     public async Task<ActionResult<List<string>>> GetVeildagen()
     {
         var dagen = await _db.Veildagen
