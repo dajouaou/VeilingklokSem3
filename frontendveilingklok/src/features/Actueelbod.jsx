@@ -8,7 +8,6 @@ import useLiveVeiling from "./veilingmeesterDashboard/hooks/useLiveVeiling";
 import { getPublicActieveVeiling } from "./veiling/api/veilingPublicApi";
 import PrijsHistorieModal from "../shared/components/PrijsHistorieModal";
 
-
 const API_BASE = "https://localhost:56418";
 
 export default function ActueelBod() {
@@ -20,17 +19,27 @@ export default function ActueelBod() {
     const [loadingInit, setLoadingInit] = useState(true);
     const [error, setError] = useState("");
 
+    const [status, setStatus] = useState(null);
+    const isPaused = status === 2; // VeilingStatus.Gepauzeerd
+
     const [aantal, setAantal] = useState(0);
     const [showHistorie, setShowHistorie] = useState(false);
 
-    // ✅ Smooth prijs (client-side)
+    // ✅ Smooth prijs
     const [displayPrice, setDisplayPrice] = useState(0);
+    const displayPriceRef = useRef(0);
+    useEffect(() => {
+        displayPriceRef.current = Number(displayPrice ?? 0);
+    }, [displayPrice]);
+
     const lastServerRef = useRef({
         price: 0,
         at: Date.now(),
         daling: 0,
         min: 0,
     });
+
+    const wasPausedRef = useRef(false);
 
     useEffect(() => {
         let alive = true;
@@ -40,12 +49,20 @@ export default function ActueelBod() {
                 const actief = await getPublicActieveVeiling();
                 if (!alive) return;
 
-                // jouw public endpoint geeft id=0 terug als geen veiling
                 const id = actief?.id && actief.id > 0 ? actief.id : null;
 
                 setVeilingId(id);
                 setInitLot(actief?.huidigProduct ?? null);
                 setWachtrij(actief?.wachtrij ?? []);
+
+                // ✅ Backend stuurt VeilingOverzichtDto: IsPauze/IsGestart/IsAfgesloten (geen status)
+                const derivedStatus =
+                    actief?.isPauze ? 2 :
+                        actief?.isGestart ? 1 :
+                            actief?.isAfgesloten ? 3 :
+                                null;
+
+                setStatus(derivedStatus);
                 setError("");
             } catch {
                 if (!alive) return;
@@ -64,6 +81,7 @@ export default function ActueelBod() {
         };
     }, []);
 
+    // ✅ laat live updates altijd lopen; alleen UI-teller pauzeren
     const { lot: liveLot, loading: liveLoading } = useLiveVeiling(token, veilingId);
     const lot = liveLot ?? initLot;
 
@@ -71,43 +89,76 @@ export default function ActueelBod() {
         setAantal(0);
     }, [lot?.veilingProductId]);
 
-    // ✅ Reset displayPrice naar echte server prijs zodra server een update geeft
+    // ✅ Nieuwe lot: start altijd vanaf serverprijs (bij nieuw product is dat correct)
     useEffect(() => {
         if (!lot) return;
 
         const serverPrice = Number(lot.huidigePrijs ?? 0);
-        const daling = Number(lot.dalingPerSeconde ?? 0); // prijs per seconde
+        const daling = Number(lot.dalingPerSeconde ?? 0);
         const min = Number(lot.minimumPrijs ?? 0);
 
         lastServerRef.current = { price: serverPrice, at: Date.now(), daling, min };
         setDisplayPrice(serverPrice);
-    }, [lot?.veilingProductId, lot?.huidigePrijs, lot?.dalingPerSeconde, lot?.minimumPrijs]);
+    }, [lot?.veilingProductId]);
 
-    // ✅ Smooth daling: loopt 4x per sec, maar gebruikt dalingPerSeconde
+    // ✅ Bij pauze: bevries exact op schermprijs en zet daling 0
+    useEffect(() => {
+        if (!isPaused) return;
+
+        const frozen = Number(displayPriceRef.current ?? 0);
+        lastServerRef.current = {
+            ...lastServerRef.current,
+            price: frozen,
+            at: Date.now(),
+            daling: 0,
+        };
+        setDisplayPrice(frozen);
+    }, [isPaused]);
+
+    // ✅ Bij resume: GA VERDER VANAF BEVROREN PRIJS (niet van lot.huidigePrijs, die is vaak maximum)
     useEffect(() => {
         if (!lot) return;
+
+        const wasPaused = wasPausedRef.current;
+        if (wasPaused && !isPaused) {
+            const frozen = Number(displayPriceRef.current ?? 0);
+            const daling = Number(lot.dalingPerSeconde ?? 0);
+            const min = Number(lot.minimumPrijs ?? 0);
+
+            lastServerRef.current = { price: frozen, at: Date.now(), daling, min };
+            setDisplayPrice(frozen);
+        }
+
+        wasPausedRef.current = isPaused;
+    }, [isPaused, lot?.veilingProductId]);
+
+    // ✅ Smooth daling: alleen lopen als veiling live
+    useEffect(() => {
+        if (!lot || isPaused) return;
 
         const t = setInterval(() => {
             const { price, at, daling, min } = lastServerRef.current;
             const elapsedSec = (Date.now() - at) / 1000;
 
             const smooth = price - daling * elapsedSec;
-            const clamped = Math.max(min, smooth); // clamp intern (niet zichtbaar)
+            const clamped = Math.max(min, smooth);
 
             setDisplayPrice(clamped);
         }, 250);
 
         return () => clearInterval(t);
-    }, [lot?.veilingProductId]);
+    }, [lot?.veilingProductId, isPaused]);
 
-    // ✅ Gebruik displayPrice als "echte prijs" in UI én bij kopen
     const currentPrice = displayPrice ?? 0;
-
     const maxAantal = useMemo(() => lot?.resterendeHoeveelheid ?? 0, [lot]);
 
     async function koop() {
         if (!token || role !== "Koper") return;
         if (!veilingId || !lot?.veilingProductId) return;
+        if (isPaused) {
+            alert("Veiling is momenteel gepauzeerd.");
+            return;
+        }
 
         const koopAantal = Number(aantal) <= 0 ? 0 : Number(aantal);
 
@@ -129,7 +180,7 @@ export default function ActueelBod() {
                 },
                 body: JSON.stringify({
                     veilingProductId: lot.veilingProductId,
-                    prijs: currentPrice, // ✅ prijs die user ziet
+                    prijs: currentPrice,
                     aantal: koopAantal,
                 }),
             });
@@ -225,6 +276,12 @@ export default function ActueelBod() {
                     <div className="text-muted small">Veiling #{veilingId}</div>
                 </div>
 
+                {isPaused && (
+                    <div className="alert alert-warning mb-3">
+                        Veiling is momenteel gepauzeerd
+                    </div>
+                )}
+
                 <div className="row g-4">
                     {/* LINKS: huidig product card */}
                     <div className="col-lg-7">
@@ -250,14 +307,14 @@ export default function ActueelBod() {
                                                 <div className="text-muted small">Aanvoerder: {lot.aanvoerderNaam}</div>
                                             )}
                                         </div>
-                                        <span className="badge bg-success">LIVE</span>
+                                        <span className={`badge ${isPaused ? "bg-warning text-dark" : "bg-success"}`}>
+                                            {isPaused ? "PAUZE" : "LIVE"}
+                                        </span>
                                     </div>
 
                                     <div className="mt-4">
                                         <div className="text-muted small">Huidige prijs</div>
                                         <div className="display-6 fw-bold">€{Number(currentPrice).toFixed(2)}</div>
-
-                                        {/*  Minimumprijs niet meer tonen */}
 
                                         <button
                                             type="button"
@@ -283,7 +340,11 @@ export default function ActueelBod() {
                                                 <div className="form-text">Max: {maxAantal}</div>
                                             </div>
 
-                                            <button className="btn btn-dark w-100 rounded-pill mt-3" onClick={koop}>
+                                            <button
+                                                className="btn btn-dark w-100 rounded-pill mt-3"
+                                                onClick={koop}
+                                                disabled={isPaused}
+                                            >
                                                 Koop voor deze prijs
                                             </button>
                                         </>
