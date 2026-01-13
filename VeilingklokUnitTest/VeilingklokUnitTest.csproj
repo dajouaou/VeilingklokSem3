@@ -34,7 +34,6 @@
 	<ItemGroup>
 	  <Folder Include="Background\" />
 	  <Folder Include="Mapping\" />
-	  <Folder Include="VeilingmeesterDashboard\" />
 	</ItemGroup>
 
 </Project>
