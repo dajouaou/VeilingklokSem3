@@ -97,54 +97,7 @@ export default function PrijsHistorieModal({ open, onClose, token, soort, aanvoe
                                         </div>
                                     </div>
                                 </div>
-
-                                {/* Huidige aanvoerder */}
-                                <div className="col-md-6">
-                                    <div className="card p-3">
-                                        <h6 className="mb-2">Huidige aanvoerder</h6>
-
-                                        {!aanvoerderId && (
-                                            <div className="alert alert-warning py-2">
-                                                AanvoerderId ontbreekt in “lot”. Voeg dit toe aan je backend DTO.
-                                            </div>
-                                        )}
-
-                                        <div className="mb-2">
-                                            <b>Gemiddelde:</b>{" "}
-                                            {data.gemiddeldeHuidigeAanvoerder != null
-                                                ? `${Number(data.gemiddeldeHuidigeAanvoerder).toFixed(2)} EUR`
-                                                : "-"}
-                                        </div>
-
-                                        <div className="table-responsive">
-                                            <table className="table table-sm mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Prijs</th>
-                                                        <th>Tijd</th>
-                                                        <th>Aanvoerder</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {data.laatste10HuidigeAanvoerder?.length ? (
-                                                        data.laatste10HuidigeAanvoerder.map((p, i) => (
-                                                            <tr key={i}>
-                                                                <td>{Number(p.prijs).toFixed(2)} EUR</td>
-                                                                <td>{p.tijdstip ? new Date(p.tijdstip).toLocaleString("nl-NL") : "-"}</td>
-                                                                <td>{p.aanvoerderNaam ?? "-"}</td>
-                                                            </tr>
-                                                        ))
-                                                    ) : (
-                                                        <tr>
-                                                            <td colSpan="3" className="text-muted">Geen data</td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                    </div>
-                                </div>
+                         
                             </div>
                         )}
 

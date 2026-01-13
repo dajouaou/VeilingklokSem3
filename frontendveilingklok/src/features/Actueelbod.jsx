@@ -420,8 +420,8 @@ export default function ActueelBod() {
                 onClose={() => setShowHistorie(false)}
                 token={token}
                 soort={lot?.soort || ""}
-                aanvoerderId={lot?.aanvoerderId}
             />
+
 
             <Footer />
         </>
