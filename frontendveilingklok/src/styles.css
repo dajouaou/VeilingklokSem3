@@ -555,4 +555,12 @@ footer {
     color: #111827;
     font-weight: 700;
 }
+.hero-banner-image {
+    width: 100%;
+    aspect-ratio: 16 / 9; /* mooier dan vaste height */
+    object-fit: cover;
+    object-position: center;
+}
+
+
 

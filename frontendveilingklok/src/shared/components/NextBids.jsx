@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { getPublicVolgendeVeiling } from "../../features/veiling/api/veilingPublicApi";
+import flowerbanner1 from "../Images/flowerbanner1.jpg";
+
 
 export default function NextBids() {
     const [volgende, setVolgende] = useState(null);
@@ -43,7 +45,7 @@ export default function NextBids() {
                     <div className="row g-4">
                         <div className="col-md-6 col-lg-5">
                             <div className="card card-product h-100">
-                                <img src="/images/flowerbanner1.jpg" className="card-img-top" alt="Veiling" />
+                                <img src={flowerbanner1} className="card-img-top" alt="Veiling" />
                                 <div className="card-body">
                                     <h5 className="card-title">Veiling #{volgende.id}</h5>
                                     <p className="card-text mb-1">
