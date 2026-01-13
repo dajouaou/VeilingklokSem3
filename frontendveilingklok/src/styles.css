@@ -557,7 +557,6 @@ footer {
 }
 .hero-banner-image {
     width: 100%;
-    aspect-ratio: 16 / 9; /* mooier dan vaste height */
     object-fit: cover;
     object-position: center;
 }
