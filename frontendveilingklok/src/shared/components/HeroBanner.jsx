@@ -2,7 +2,6 @@
 import { getPublicActieveVeiling, getPublicVolgendeVeiling } from "../../features/veiling/api/veilingPublicApi";
 import { Link } from "react-router-dom";
 import flowerbanner1 from "../../Images/flowerbanner1.jpg";
-import 
 
 export default function HeroBanner() {
     const [data, setData] = useState({
