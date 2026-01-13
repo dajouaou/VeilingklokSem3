@@ -1,5 +1,7 @@
+// Basis URL van de API
 const API_BASE = "https://localhost:56418";
 
+// Haalt aanmeldingen op, optioneel gefilterd op leverdatum
 export async function fetchAanmeldingen({ token, leverdatum }) {
     let url = `${API_BASE}/api/aanvoerder/dashboard/aanmeldingen`;
 
@@ -15,8 +17,7 @@ export async function fetchAanmeldingen({ token, leverdatum }) {
     return res.json();
 }
 
-
-
+// Maakt een nieuwe aanmelding aan (met optionele foto)
 export async function createAanmelding({ token, data }) {
     const formData = new FormData();
 
@@ -29,16 +30,13 @@ export async function createAanmelding({ token, data }) {
     formData.append("LeverDatum", data.leverdatum);
     formData.append("Beschrijving", data.beschrijving ?? "");
 
-
     if (data.fotoFile) {
         formData.append("Foto", data.fotoFile);
     }
 
     const res = await fetch(`${API_BASE}/api/aanvoerder/dashboard/aanmeldingen`, {
         method: "POST",
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: formData
     });
 
@@ -46,8 +44,7 @@ export async function createAanmelding({ token, data }) {
     return res.json();
 }
 
-
-
+// Haalt statistieken van de aanvoerder op
 export async function fetchAanvoerderStats({ token, leverdatum }) {
     let url = `${API_BASE}/api/aanvoerder/dashboard/statistieken`;
 
@@ -63,7 +60,7 @@ export async function fetchAanvoerderStats({ token, leverdatum }) {
     return res.json();
 }
 
-
+// Wijzigt een bestaande aanmelding
 export async function updateAanmelding({ token, id, data }) {
     const formData = new FormData();
 
@@ -75,7 +72,6 @@ export async function updateAanmelding({ token, id, data }) {
     formData.append("KlokLocatie", data.klokLocatie);
     formData.append("LeverDatum", data.leverdatum);
     formData.append("Beschrijving", data.beschrijving ?? "");
-
 
     if (data.fotoFile) {
         formData.append("Foto", data.fotoFile);
@@ -91,8 +87,7 @@ export async function updateAanmelding({ token, id, data }) {
     return res.json();
 }
 
-
-
+// Verwijdert een aanmelding en leest foutmelding uit indien aanwezig
 export async function deleteAanmelding({ token, id }) {
     const res = await fetch(`${API_BASE}/api/aanvoerder/dashboard/aanmeldingen/${id}`, {
         method: "DELETE",
@@ -103,7 +98,7 @@ export async function deleteAanmelding({ token, id }) {
     try {
         data = await res.json();
     } catch {
-        // empty
+        // Geen response body
     }
 
     if (!res.ok) {
