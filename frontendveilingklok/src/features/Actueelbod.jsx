@@ -7,6 +7,7 @@ import { AuthContext } from "./auth/AuthContext";
 import useLiveVeiling from "./veilingmeesterDashboard/hooks/useLiveVeiling";
 import { getPublicActieveVeiling } from "./veiling/api/veilingPublicApi";
 import PrijsHistorieModal from "../shared/components/PrijsHistorieModal";
+import flowerbanner1 from "../Images/flowerbanner1.jpg";
 
 const API_BASE = "https://localhost:56418";
 
@@ -289,7 +290,7 @@ export default function ActueelBod() {
                             <div className="row g-0 h-100">
                                 <div className="col-md-6">
                                     <img
-                                        src={lot.fotoUrl || "/images/flowerbanner1.jpg"}
+                                        src={lot.fotoUrl || flowerbanner1}
                                         alt={lot.soort}
                                         className="w-100 h-100 object-fit-cover"
                                         style={{ minHeight: 280 }}
@@ -374,7 +375,7 @@ export default function ActueelBod() {
                                 <>
                                     <div className="d-flex gap-3 align-items-center mb-3">
                                         <img
-                                            src={next.fotoUrl || "/images/flowerbanner1.jpg"}
+                                            src={next.fotoUrl || flowerbanner1}
                                             alt={next.soort}
                                             style={{ width: 72, height: 72, borderRadius: 14, objectFit: "cover" }}
                                         />

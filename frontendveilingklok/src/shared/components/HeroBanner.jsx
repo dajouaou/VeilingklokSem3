@@ -1,13 +1,14 @@
 ﻿import { useEffect, useState } from "react";
 import { getPublicActieveVeiling, getPublicVolgendeVeiling } from "../../features/veiling/api/veilingPublicApi";
 import { Link } from "react-router-dom";
+import flowerbanner1 from "../../Images/flowerbanner1.jpg";
 
 export default function HeroBanner() {
     const [data, setData] = useState({
         titel: "Geen actieve veiling",
         beschrijving: "Er is momenteel geen veiling actief.",
         bid: "-",
-        afbeelding: "/images/flowerbanner1.jpg",
+        afbeelding: flowerbanner1,
         link: "/actueelbod",
     });
 
@@ -31,22 +32,23 @@ export default function HeroBanner() {
         async function load() {
             try {
                 const actief = await getPublicActieveVeiling();
-
                 if (!alive) return;
 
+                // ✅ Actieve veiling + huidig product
                 if (actief?.huidigProduct) {
                     const p = actief.huidigProduct;
                     setVolgendeVeiling(null);
                     setData({
                         titel: p.soort,
                         beschrijving: `Resterend: ${p.resterendeHoeveelheid} stuks`,
-                        bid: `${(p.huidigePrijs ?? 0).toFixed(2)} EUR`,
-                        afbeelding: p.fotoUrl || "/images/flowerbanner1.jpg",
+                        bid: `${Number(p.huidigePrijs ?? 0).toFixed(2)} EUR`,
+                        afbeelding: p.fotoUrl || flowerbanner1,
                         link: "/actueelbod",
                     });
                     return;
                 }
 
+                // ✅ Geen actieve: check volgende veiling
                 const volgende = await getPublicVolgendeVeiling();
                 if (!alive) return;
 
@@ -57,21 +59,33 @@ export default function HeroBanner() {
                         titel: `Volgende veiling #${volgende.id}`,
                         beschrijving: `Start over ${tekst} • ${volgende.aantalProducten} producten`,
                         bid: "-",
-                        afbeelding: "/images/flowerbanner1.jpg",
+                        afbeelding: flowerbanner1,
                         link: "/actueelbod",
                     });
                     return;
                 }
 
+                // ✅ Geen actieve en geen volgende
                 setVolgendeVeiling(null);
                 setData({
                     titel: "Geen actieve veiling",
                     beschrijving: "Er is momenteel geen veiling actief.",
                     bid: "-",
-                    afbeelding: "/images/flowerbanner1.jpg",
+                    afbeelding: flowerbanner1,
                     link: "/actueelbod",
                 });
-            } catch { }
+            } catch {
+                // optioneel: fallback bij error
+                if (!alive) return;
+                setVolgendeVeiling(null);
+                setData({
+                    titel: "Geen actieve veiling",
+                    beschrijving: "Er is momenteel geen veiling actief.",
+                    bid: "-",
+                    afbeelding: flowerbanner1,
+                    link: "/actueelbod",
+                });
+            }
         }
 
         load();
@@ -82,7 +96,6 @@ export default function HeroBanner() {
             clearInterval(interval);
         };
     }, []);
-
 
     // countdown live update elke seconde
     useEffect(() => {
@@ -99,7 +112,11 @@ export default function HeroBanner() {
         return () => clearInterval(interval);
     }, [volgendeVeiling]);
 
-    const status = data.titel.startsWith("Volgende veiling") ? "Gepland" : data.titel === "Geen actieve veiling" ? "Geen" : "Live";
+    const status = data.titel.startsWith("Volgende veiling")
+        ? "Gepland"
+        : data.titel === "Geen actieve veiling"
+            ? "Geen"
+            : "Live";
 
     return (
         <section className="hero-section py-5">
@@ -125,13 +142,13 @@ export default function HeroBanner() {
 
                         <Link to={data.link} className="btn" id="btn-herobanner">
                             Bekijk veiling
-                        </Link> 
+                        </Link>
                     </div>
 
                     <div className="col-md-6 hero-image">
                         <img
                             src={data.afbeelding}
-                            className="img-fluid w-100 h-100 object-fit-cover"
+                            className="hero-banner-image"
                             alt="Veiling banner"
                         />
                     </div>
