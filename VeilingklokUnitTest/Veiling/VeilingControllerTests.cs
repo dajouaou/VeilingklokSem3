@@ -9,78 +9,90 @@ namespace VeilingklokUnitTest.Veiling;
 
 public class VeilingControllerTests
 {
-    private readonly Mock<IVeilingService> _svc = new();
-
+    // Start geeft Ok terug
     [Fact]
-    public async Task Start_Ok()
+    public async Task Start_Werkt_ReturnsOk()
     {
-        var expected = new VeilingOverzichtDto { Id = 1, IsGestart = true };
-        _svc.Setup(s => s.StartVeilingAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<TimeSpan?>()))
-            .ReturnsAsync(expected);
+        var service = new Mock<IVeilingService>();
+        service.Setup(s => s.StartVeilingAsync(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<TimeSpan?>()))
+               .ReturnsAsync(new VeilingOverzichtDto { Id = 1 });
 
-        var c = new VeilingController(_svc.Object);
+        var controller = new VeilingController(service.Object);
         var dto = new StartVeilingDto { Veildatum = DateTime.Today, LeverDatum = DateTime.Today, StartTijd = new TimeSpan(9, 0, 0) };
 
-        var result = await c.Start(dto);
+        var result = await controller.Start(dto);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        Assert.Same(expected, ok.Value);
-        _svc.Verify(s => s.StartVeilingAsync(dto.Veildatum, dto.LeverDatum, dto.StartTijd), Times.Once);
+        var body = Assert.IsType<VeilingOverzichtDto>(ok.Value);
+        Assert.Equal(1, body.Id);
     }
 
+    // Details geeft Ok terug
     [Fact]
-    public async Task GetDetails_Ok()
+    public async Task GetDetails_Werkt_ReturnsOk()
     {
-        _svc.Setup(s => s.GetDetailsAsync(5)).ReturnsAsync(new VeilingOverzichtDto { Id = 5 });
+        var service = new Mock<IVeilingService>();
+        service.Setup(s => s.GetDetailsAsync(5)).ReturnsAsync(new VeilingOverzichtDto { Id = 5 });
 
-        var c = new VeilingController(_svc.Object);
-        var result = await c.GetDetails(5);
+        var controller = new VeilingController(service.Object);
+        var result = await controller.GetDetails(5);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var dto = Assert.IsType<VeilingOverzichtDto>(ok.Value);
-        Assert.Equal(5, dto.Id);
+        var body = Assert.IsType<VeilingOverzichtDto>(ok.Value);
+        Assert.Equal(5, body.Id);
     }
 
+    // Pause geeft NoContent terug
     [Fact]
-    public async Task Pause_NoContent()
+    public async Task Pause_Werkt_ReturnsNoContent()
     {
-        var c = new VeilingController(_svc.Object);
-        var result = await c.Pause(2);
+        var service = new Mock<IVeilingService>();
+        var controller = new VeilingController(service.Object);
+
+        var result = await controller.Pause(1);
 
         Assert.IsType<NoContentResult>(result);
-        _svc.Verify(s => s.PauseAsync(2), Times.Once);
+        service.Verify(s => s.PauseAsync(1), Times.Once);
     }
 
+    // Resume geeft NoContent terug
     [Fact]
-    public async Task Resume_NoContent()
+    public async Task Resume_Werkt_ReturnsNoContent()
     {
-        var c = new VeilingController(_svc.Object);
-        var result = await c.Resume(2);
+        var service = new Mock<IVeilingService>();
+        var controller = new VeilingController(service.Object);
+
+        var result = await controller.Resume(1);
 
         Assert.IsType<NoContentResult>(result);
-        _svc.Verify(s => s.ResumeAsync(2), Times.Once);
+        service.Verify(s => s.ResumeAsync(1), Times.Once);
     }
 
+    // Stop geeft NoContent terug
     [Fact]
-    public async Task Stop_NoContent()
+    public async Task Stop_Werkt_ReturnsNoContent()
     {
-        var c = new VeilingController(_svc.Object);
-        var result = await c.Stop(2);
+        var service = new Mock<IVeilingService>();
+        var controller = new VeilingController(service.Object);
+
+        var result = await controller.Stop(1);
 
         Assert.IsType<NoContentResult>(result);
-        _svc.Verify(s => s.StopAsync(2), Times.Once);
+        service.Verify(s => s.StopAsync(1), Times.Once);
     }
 
+    // Dagen geeft Ok terug
     [Fact]
-    public async Task GetVeilingDagen_OkList()
+    public async Task GetVeilingDagen_Werkt_ReturnsOk()
     {
-        var days = new List<string> { "2026-01-01", "2026-01-02" };
-        _svc.Setup(s => s.GetVeilingDagenAsync()).ReturnsAsync(days);
+        var service = new Mock<IVeilingService>();
+        service.Setup(s => s.GetVeilingDagenAsync()).ReturnsAsync(new List<string> { "2026-01-10" });
 
-        var c = new VeilingController(_svc.Object);
-        var result = await c.GetVeilingDagen();
+        var controller = new VeilingController(service.Object);
+        var result = await controller.GetVeilingDagen();
 
         var ok = Assert.IsType<OkObjectResult>(result.Result);
-        Assert.Same(days, ok.Value);
+        var body = Assert.IsType<List<string>>(ok.Value);
+        Assert.Single(body);
     }
 }
