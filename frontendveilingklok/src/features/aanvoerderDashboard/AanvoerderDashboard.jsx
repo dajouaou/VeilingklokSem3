@@ -11,10 +11,10 @@ import VeildagPicker from "./components/VeildagPicker.jsx";
 import AanmeldingenBeheer from "./components/AanmeldingenBeheer.jsx";
 import AanvoerderNavbar from "./components/AanvoerderNavbar";
 
-
 export default function AanvoerderDashboard() {
     const { token, role } = useContext(AuthContext);
 
+    // Zet een Date object om naar YYYY-MM-DD (voor de API)
     function toYmd(date) {
         const y = date.getFullYear();
         const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -22,17 +22,20 @@ export default function AanvoerderDashboard() {
         return `${y}-${m}-${d}`;
     }
 
-
+    // Lijst met aanmeldingen en statistieken voor het dashboard
     const [items, setItems] = useState([]);
     const [stats, setStats] = useState(null);
 
+    // Status voor ophalen van data
     const [loading, setLoading] = useState(false);
     const [loadError, setLoadError] = useState("");
 
+    // Filters en UI-state
     const [filterDate, setFilterDate] = useState("");
     const [search, setSearch] = useState("");
     const [beheerOpen, setBeheerOpen] = useState(false);
 
+    // Form state voor nieuwe aanmelding
     const [form, setForm] = useState({
         soort: "",
         potmaat: "",
@@ -40,18 +43,21 @@ export default function AanvoerderDashboard() {
         hoeveelheid: "",
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
-        leverdatum: null, // date object (niet string)
-        fotoFile: null,  
+        leverdatum: null, // Date object, geen string
+        fotoFile: null,   // File object uit input[type=file]
     });
 
+    // Feedback rond formulieracties
     const [formError, setFormError] = useState("");
     const [formSuccess, setFormSuccess] = useState("");
 
+    // Laad data bij eerste render en wanneer filterDate wijzigt
     useEffect(() => {
         if (!token || role !== "Aanvoerder") return;
         loadDashboardData();
     }, [token, role, filterDate]);
 
+    // Haalt aanmeldingen en statistieken parallel op
     async function loadDashboardData() {
         setLoading(true);
         setLoadError("");
@@ -71,22 +77,26 @@ export default function AanvoerderDashboard() {
         }
     }
 
+    // Algemene handler voor inputs die in form state zitten
     function handleFormChange(e) {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
     }
 
+    // Verstuurt het formulier en voegt nieuwe aanmelding toe
     async function handleSubmit(e) {
         e.preventDefault();
 
         setFormError("");
         setFormSuccess("");
 
+        // Simpele validatie van verplichte velden
         if (!form.soort || !form.hoeveelheid || !form.minimumPrijs || !form.leverdatum) {
             setFormError("Vul minimaal soort, hoeveelheid, minimumprijs en leverdatum in.");
             return;
         }
 
+        // Payload voor API: leverdatum als string en getallen als Number
         const payload = {
             soort: form.soort,
             potmaat: form.potmaat || null,
@@ -99,19 +109,22 @@ export default function AanvoerderDashboard() {
             beschrijving: form.beschrijving || "",
         };
 
-
         try {
             const created = await createAanmelding({ token, data: payload });
 
-            setItems(prev => [...prev, created]);
+            // Direct toevoegen aan de lijst zodat je het meteen ziet
+            setItems((prev) => [...prev, created]);
 
+            // Statistieken opnieuw ophalen zodat de kaarten kloppen
             const updatedStats = await fetchAanvoerderStats({
                 token,
-                leverdatum: filterDate || undefined
+                leverdatum: filterDate || undefined,
             });
             setStats(updatedStats);
 
             setFormSuccess("Product succesvol aangemeld.");
+
+            // Form resetten (leverdatum blijft Date object: null)
             setForm({
                 soort: "",
                 potmaat: "",
@@ -119,7 +132,7 @@ export default function AanvoerderDashboard() {
                 hoeveelheid: "",
                 minimumPrijs: "",
                 klokLocatie: "Naaldwijk",
-                leverdatum: null, //date object (geen string ervan maken pls)
+                leverdatum: null,
                 fotoFile: null,
             });
         } catch (err) {
@@ -127,7 +140,7 @@ export default function AanvoerderDashboard() {
         }
     }
 
-
+    // Filtert de items op zoekterm (soort/potmaat/steellengte)
     const filteredItems = items.filter((item) => {
         if (!search) return true;
 
@@ -141,299 +154,301 @@ export default function AanvoerderDashboard() {
 
     return (
         <>
-        <AanvoerderNavbar />
-        <main id="main" className="container py-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 className="h3">Aanvoerdersdashboard</h1>
-                <p className="text-muted mb-0">Beheer je veilingaanmeldingen</p>
-            </div>
+            <AanvoerderNavbar />
+            <main id="main" className="container py-4">
+                <div className="d-flex justify-content-between align-items-center mb-4">
+                    <h1 className="h3">Aanvoerdersdashboard</h1>
+                    <p className="text-muted mb-0">Beheer je veilingaanmeldingen</p>
+                </div>
 
-            {stats && (
-                <section className="mb-4">
-                    <div className="row g-3">
-                        <div className="col-md-4">
-                            <div className="card shadow-sm border-0">
-                                <div className="card-body">
-                                    <p className="text-muted mb-1">Totaal aanmeldingen</p>
-                                    <p className="fs-4 fw-bold">{stats.totaalAantalAanmeldingen}</p>
+                {stats && (
+                    <section className="mb-4">
+                        <div className="row g-3">
+                            <div className="col-md-4">
+                                <div className="card shadow-sm border-0">
+                                    <div className="card-body">
+                                        <p className="text-muted mb-1">Totaal aanmeldingen</p>
+                                        <p className="fs-4 fw-bold">{stats.totaalAantalAanmeldingen}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="col-md-4">
+                                <div className="card shadow-sm border-0">
+                                    <div className="card-body">
+                                        <p className="text-muted mb-1">Verkocht</p>
+                                        <p className="fs-4 fw-bold">{stats.aantalVerkocht}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="col-md-4">
+                                <div className="card shadow-sm border-0">
+                                    <div className="card-body">
+                                        <p className="text-muted mb-1">Totale opbrengst</p>
+                                        <p className="fs-4 fw-bold">
+                                            {stats.totaleOpbrengst.toFixed(2)} EUR
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </section>
+                )}
 
-                        <div className="col-md-4">
-                            <div className="card shadow-sm border-0">
-                                <div className="card-body">
-                                    <p className="text-muted mb-1">Verkocht</p>
-                                    <p className="fs-4 fw-bold">{stats.aantalVerkocht}</p>
-                                </div>
-                            </div>
-                        </div>
+                <section className="mb-5">
+                    <div className="card shadow-sm border-0">
+                        <div className="card-body">
+                            <h2 className="h4 mb-3">Nieuw product aanmelden</h2>
 
-                        <div className="col-md-4">
-                            <div className="card shadow-sm border-0">
-                                <div className="card-body">
-                                    <p className="text-muted mb-1">Totale opbrengst</p>
-                                    <p className="fs-4 fw-bold">
-                                        {stats.totaleOpbrengst.toFixed(2)} EUR
-                                    </p>
+                            {formError && <div className="alert alert-danger">{formError}</div>}
+                            {formSuccess && <div className="alert alert-success">{formSuccess}</div>}
+
+                            <form onSubmit={handleSubmit}>
+                                <div className="row g-3">
+                                    <div className="col-md-6">
+                                        <label className="form-label">Soort *</label>
+                                        <input
+                                            name="soort"
+                                            type="text"
+                                            className="form-control"
+                                            value={form.soort}
+                                            onChange={handleFormChange}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Potmaat</label>
+                                        <input
+                                            name="potmaat"
+                                            type="text"
+                                            className="form-control"
+                                            value={form.potmaat}
+                                            onChange={handleFormChange}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-6">
+                                        <label className="form-label">Steellengte</label>
+                                        <input
+                                            name="steellengte"
+                                            type="text"
+                                            className="form-control"
+                                            value={form.steellengte}
+                                            onChange={handleFormChange}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-4">
+                                        <label className="form-label">Hoeveelheid *</label>
+                                        <input
+                                            name="hoeveelheid"
+                                            type="number"
+                                            min="1"
+                                            className="form-control"
+                                            value={form.hoeveelheid}
+                                            onChange={handleFormChange}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-4">
+                                        <label className="form-label">Minimumprijs (euro) *</label>
+                                        <input
+                                            name="minimumPrijs"
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            className="form-control"
+                                            value={form.minimumPrijs}
+                                            onChange={handleFormChange}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-4">
+                                        <label className="form-label">Kloklocatie</label>
+                                        <select
+                                            name="klokLocatie"
+                                            className="form-select"
+                                            value={form.klokLocatie}
+                                            onChange={handleFormChange}
+                                        >
+                                            <option value="Naaldwijk">Naaldwijk</option>
+                                            <option value="Aalsmeer">Aalsmeer</option>
+                                            <option value="Rijnsburg">Rijnsburg</option>
+                                            <option value="Eelde">Eelde</option>
+                                        </select>
+                                    </div>
+
+                                    <div className="col-md-4">
+                                        <label className="form-label">Leverdatum *</label>
+                                        <VeildagPicker
+                                            value={form.leverdatum}
+                                            onChange={(value) =>
+                                                setForm((prev) => ({ ...prev, leverdatum: value }))
+                                            }
+                                            highlightedDates={items.map((i) => i.leverDatum ?? i.leverdatum)}
+                                        />
+                                    </div>
+
+                                    <div className="col-md-8">
+                                        <label className="form-label">Productfoto</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            className="form-control"
+                                            onChange={(e) =>
+                                                setForm((prev) => ({ ...prev, fotoFile: e.target.files[0] }))
+                                            }
+                                        />
+                                    </div>
+
+                                    <div className="col-12">
+                                        <label className="form-label">Beschrijving</label>
+                                        <textarea
+                                            name="beschrijving"
+                                            className="form-control"
+                                            rows="3"
+                                            value={form.beschrijving || ""}
+                                            onChange={handleFormChange}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+
+                                <div className="mt-4 d-flex justify-content-end">
+                                    <button type="submit" className="btn btn-success">
+                                        Aanmelden
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </section>
-            )}
 
-            <section className="mb-5">
-                <div className="card shadow-sm border-0">
-                    <div className="card-body">
-                        <h2 className="h4 mb-3">Nieuw product aanmelden</h2>
+                <section>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h2 className="h4">Mijn aanmeldingen</h2>
 
-                        {formError && <div className="alert alert-danger">{formError}</div>}
-                        {formSuccess && <div className="alert alert-success">{formSuccess}</div>}
-
-                        <form onSubmit={handleSubmit}>
-                            <div className="row g-3">
-
-                                <div className="col-md-6">
-                                    <label className="form-label">Soort *</label>
-                                    <input
-                                        name="soort"
-                                        type="text"
-                                        className="form-control"
-                                        value={form.soort}
-                                        onChange={handleFormChange}
-                                    />
-                                </div>
-
-                                <div className="col-md-6">
-                                    <label className="form-label">Potmaat</label>
-                                    <input
-                                        name="potmaat"
-                                        type="text"
-                                        className="form-control"
-                                        value={form.potmaat}
-                                        onChange={handleFormChange}
-                                    />
-                                </div>
-
-                                <div className="col-md-6">
-                                    <label className="form-label">Steellengte</label>
-                                    <input
-                                        name="steellengte"
-                                        type="text"
-                                        className="form-control"
-                                        value={form.steellengte}
-                                        onChange={handleFormChange}
-                                    />
-                                </div>
-
-                                <div className="col-md-4">
-                                    <label className="form-label">Hoeveelheid *</label>
-                                    <input
-                                        name="hoeveelheid"
-                                        type="number"
-                                        min="1"
-                                        className="form-control"
-                                        value={form.hoeveelheid}
-                                        onChange={handleFormChange}
-                                    />
-                                </div>
-
-                                <div className="col-md-4">
-                                    <label className="form-label">Minimumprijs (euro) *</label>
-                                    <input
-                                        name="minimumPrijs"
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        className="form-control"
-                                        value={form.minimumPrijs}
-                                        onChange={handleFormChange}
-                                    />
-                                </div>
-
-                                <div className="col-md-4">
-                                    <label className="form-label">Kloklocatie</label>
-                                    <select
-                                        name="klokLocatie"
-                                        className="form-select"
-                                        value={form.klokLocatie}
-                                        onChange={handleFormChange}
-                                    >
-                                        <option value="Naaldwijk">Naaldwijk</option>
-                                        <option value="Aalsmeer">Aalsmeer</option>
-                                        <option value="Rijnsburg">Rijnsburg</option>
-                                        <option value="Eelde">Eelde</option>
-                                    </select>
-                                </div>
-
-                                <div className="col-md-4">
-                                    <label className="form-label">Leverdatum *</label>
-                                    <VeildagPicker
-                                        value={form.leverdatum}
-                                        onChange={(value) => setForm((prev) => ({ ...prev, leverdatum: value }))}
-                                            highlightedDates={items.map(i => i.leverDatum ?? i.leverdatum)}
-                                    />
-                                </div>
-
-                                <div className="col-md-8">
-                                    <label className="form-label">Productfoto</label>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="form-control"
-                                        onChange={(e) => setForm(prev => ({ ...prev, fotoFile: e.target.files[0] }))}
-                                    />
-                                </div>
-                                <div className="col-12">
-                                    <label className="form-label">Beschrijving</label>
-                                    <textarea
-                                        name="beschrijving"
-                                        className="form-control"
-                                        rows="3"
-                                        value={form.beschrijving || ""}
-                                        onChange={handleFormChange}
-                                    />
-                                </div>
-
-                            </div>
-
-                            <div className="mt-4 d-flex justify-content-end">
-                                <button type="submit" className="btn btn-success">
-                                    Aanmelden
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </section>
-
-            <section>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <h2 className="h4">Mijn aanmeldingen</h2>
-
-                    <button
-                        className="btn btn-outline-primary"
-                        onClick={() => setBeheerOpen(true)}
-                    >
-                        Aanmeldingen beheren
-                    </button>
-                </div>
-
-                <div className="d-flex gap-2 mb-3">
-                    <div>
-                        <label className="form-label mb-1">Filter op leverdatum</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={filterDate}
-                            onChange={(e) => setFilterDate(e.target.value)}
-                        />
+                        <button
+                            className="btn btn-outline-primary"
+                            onClick={() => setBeheerOpen(true)}
+                        >
+                            Aanmeldingen beheren
+                        </button>
                     </div>
 
-                    <div>
-                        <label className="form-label mb-1">Zoek op soort</label>
-                        <input
-                            type="search"
-                            className="form-control"
-                            placeholder="Bijv. Rozen"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
+                    <div className="d-flex gap-2 mb-3">
+                        <div>
+                            <label className="form-label mb-1">Filter op leverdatum</label>
+                            <input
+                                type="date"
+                                className="form-control"
+                                value={filterDate}
+                                onChange={(e) => setFilterDate(e.target.value)}
+                            />
+                        </div>
+
+                        <div>
+                            <label className="form-label mb-1">Zoek op soort</label>
+                            <input
+                                type="search"
+                                className="form-control"
+                                placeholder="Bijv. Rozen"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
                     </div>
-                </div>
 
-                {loadError && <p className="text-danger">{loadError}</p>}
-                {loading && <p>Laden...</p>}
+                    {loadError && <p className="text-danger">{loadError}</p>}
+                    {loading && <p>Laden...</p>}
 
-                {!loading && filteredItems.length === 0 && (
-                    <p>Geen aanmeldingen.</p>
-                )}
+                    {!loading && filteredItems.length === 0 && <p>Geen aanmeldingen.</p>}
 
-                {!loading && filteredItems.length > 0 && (
-                    <div className="table-responsive">
-                        <table className="table table-hover">
-                            <thead className="table-light">
-                                <tr>
-                                    <th>Foto</th>
-                                    <th>Soort</th>
-                                    <th>Kenmerken</th>
-                                    <th>Hoeveelheid</th>
-                                    <th>Min. prijs</th>
-                                    <th>Kloklocatie</th>
-                                    <th>Leverdatum</th>
-                                    <th>Aanvoerder</th>
-                                    <th>Verkoop</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {filteredItems.map((item) => (
-                                    <tr key={item.id}>
-                                        <td>
-                                            {item.fotoUrl ? (
-                                                <img
-                                                    src={item.fotoUrl}
-                                                    style={{
-                                                        width: "64px",
-                                                        height: "64px",
-                                                        objectFit: "cover",
-                                                        borderRadius: "8px",
-                                                    }}
-                                                    alt={item.soort}
-                                                />
-                                            ) : (
-                                                <span className="text-muted">Geen foto</span>
-                                            )}
-                                        </td>
-
-                                        <td>{item.soort}</td>
-
-                                        <td>{item.potmaat || item.steellengte || "-"}</td>
-
-                                        <td>{item.hoeveelheid}</td>
-
-                                        <td>{item.minimumPrijs.toFixed(2)} EUR</td>
-
-                                        <td>{item.klokLocatie}</td>
-
-                                        <td>{new Date(item.leverDatum).toLocaleDateString("nl-NL")}</td>
-
-                                        <td>{item.aanvoerderNaam}</td>
-
-                                        <td>
-                                            {item.isVerkocht ? (
-                                                <>
-                                                    <div>{item.verkoopPrijs?.toFixed(2)} EUR / stuk</div>
-                                                    <div className="small text-muted">
-                                                        Totaal: {item.totaleOpbrengst?.toFixed(2)} EUR
-                                                        {item.koperNaam && <> {" \u2013 "} {item.koperNaam}</>}
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <span className="badge bg-secondary">
-                                                    Nog niet verkocht
-                                                </span>
-                                            )}
-                                        </td>
+                    {!loading && filteredItems.length > 0 && (
+                        <div className="table-responsive">
+                            <table className="table table-hover">
+                                <thead className="table-light">
+                                    <tr>
+                                        <th>Foto</th>
+                                        <th>Soort</th>
+                                        <th>Kenmerken</th>
+                                        <th>Hoeveelheid</th>
+                                        <th>Min. prijs</th>
+                                        <th>Kloklocatie</th>
+                                        <th>Leverdatum</th>
+                                        <th>Aanvoerder</th>
+                                        <th>Verkoop</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+
+                                <tbody>
+                                    {filteredItems.map((item) => (
+                                        <tr key={item.id}>
+                                            <td>
+                                                {item.fotoUrl ? (
+                                                    <img
+                                                        src={item.fotoUrl}
+                                                        style={{
+                                                            width: "64px",
+                                                            height: "64px",
+                                                            objectFit: "cover",
+                                                            borderRadius: "8px",
+                                                        }}
+                                                        alt={item.soort}
+                                                    />
+                                                ) : (
+                                                    <span className="text-muted">Geen foto</span>
+                                                )}
+                                            </td>
+
+                                            <td>{item.soort}</td>
+
+                                            <td>{item.potmaat || item.steellengte || "-"}</td>
+
+                                            <td>{item.hoeveelheid}</td>
+
+                                            <td>{item.minimumPrijs.toFixed(2)} EUR</td>
+
+                                            <td>{item.klokLocatie}</td>
+
+                                            <td>{new Date(item.leverDatum).toLocaleDateString("nl-NL")}</td>
+
+                                            <td>{item.aanvoerderNaam}</td>
+
+                                            <td>
+                                                {item.isVerkocht ? (
+                                                    <>
+                                                        <div>{item.verkoopPrijs?.toFixed(2)} EUR / stuk</div>
+                                                        <div className="small text-muted">
+                                                            Totaal: {item.totaleOpbrengst?.toFixed(2)} EUR
+                                                            {item.koperNaam && (
+                                                                <>
+                                                                    {" \u2013 "} {item.koperNaam}
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <span className="badge bg-secondary">Nog niet verkocht</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </section>
+
+                {beheerOpen && (
+                    <AanmeldingenBeheer
+                        items={filteredItems}
+                        token={token}
+                        onClose={() => setBeheerOpen(false)}
+                        onUpdated={loadDashboardData}
+                    />
                 )}
-            </section>
-
-            {beheerOpen && (
-                <AanmeldingenBeheer
-                    items={filteredItems}
-                    token={token}
-                    onClose={() => setBeheerOpen(false)}
-                    onUpdated={loadDashboardData}
-                />
-            )}
-
-        </main>
+            </main>
         </>
     );
 }
