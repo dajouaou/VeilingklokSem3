@@ -31,9 +31,5 @@
 		<ProjectReference Include="..\Veilingklok\Veilingklok.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="Veilingmeesterdashboard\" />
-	</ItemGroup>
-
 
 </Project>
