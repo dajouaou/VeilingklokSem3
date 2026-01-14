@@ -9,6 +9,7 @@ using Veilingklok.Features.Veiling.Controllers;
 using Veilingklok.Features.Veiling.Dtos;
 using Veilingklok.Infrastructure.Database;
 using Xunit;
+using VeilingEntity = Veilingklok.Core.Entities.Veiling;
 
 namespace VeilingklokUnitTest.Veiling
 {
@@ -40,6 +41,7 @@ namespace VeilingklokUnitTest.Veiling
                 Aanvoerder = aanvoerder,
                 LeverDatum = DateTime.Today
             };
+
             var a2 = new Aanmelding
             {
                 Id = 101,
@@ -50,9 +52,16 @@ namespace VeilingklokUnitTest.Veiling
                 Aanvoerder = aanvoerder,
                 LeverDatum = DateTime.Today
             };
+
             db.Aanmeldingen.AddRange(a1, a2);
 
-            var v = new Veiling { Id = 1, Status = VeilingStatus.Gestart, Datum = DateTime.Today, StartTijd = new TimeSpan(9, 0, 0) };
+            var v = new VeilingEntity
+            {
+                Id = 1,
+                Status = VeilingStatus.Gestart,
+                Datum = DateTime.Today,
+                StartTijd = new TimeSpan(9, 0, 0)
+            };
             db.Veilingen.Add(v);
 
             var pActief = new VeilingProduct
@@ -120,7 +129,14 @@ namespace VeilingklokUnitTest.Veiling
         {
             using var db = CreateDb();
 
-            var v = new Veiling { Id = 1, Status = VeilingStatus.Gestart, Datum = DateTime.Today, StartTijd = TimeSpan.Zero, HuidigProductId = 999 };
+            var v = new VeilingEntity
+            {
+                Id = 1,
+                Status = VeilingStatus.Gestart,
+                Datum = DateTime.Today,
+                StartTijd = TimeSpan.Zero,
+                HuidigProductId = 999
+            };
             db.Veilingen.Add(v);
             await db.SaveChangesAsync();
 
