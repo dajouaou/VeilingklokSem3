@@ -41,8 +41,23 @@ builder.Services.AddControllers()
         o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-builder.Services.AddDbContext<MyContext>(opt =>
-    opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<MyContext>(options =>
+{
+    // Als we lokaal draaien (Development)
+    if (builder.Environment.IsDevelopment())
+    {
+        // Gebruik de lokale connection string uit appsettings.json
+        options.UseSqlServer(
+            builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
+    else
+    {
+        // Als we op Azure draaien (Production)
+        options.UseSqlServer(
+            builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING"));
+    }
+});
+
 builder.Services.AddScoped<IPrijsHistorieService, PrijsHistorieService>();
 
 builder.Services.AddSignalR()
