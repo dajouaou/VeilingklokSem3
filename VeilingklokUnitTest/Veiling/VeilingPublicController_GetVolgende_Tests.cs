@@ -8,6 +8,7 @@ using Veilingklok.Features.Veiling.Controllers;
 using Veilingklok.Features.VeilingmeesterDashboard.Dtos;
 using Veilingklok.Infrastructure.Database;
 using Xunit;
+using VeilingEntity = Veilingklok.Core.Entities.Veiling;
 
 namespace VeilingklokUnitTest.Veiling
 {
@@ -38,7 +39,7 @@ namespace VeilingklokUnitTest.Veiling
         {
             using var db = CreateDb();
 
-            var v = new Veiling
+            var v = new VeilingEntity
             {
                 Id = 1,
                 Status = VeilingStatus.Gepland,
@@ -46,6 +47,7 @@ namespace VeilingklokUnitTest.Veiling
                 StartTijd = new TimeSpan(9, 0, 0)
             };
             db.Veilingen.Add(v);
+
             db.VeilingProducten.Add(new VeilingProduct { Id = 10, VeilingId = 1 });
             db.VeilingProducten.Add(new VeilingProduct { Id = 11, VeilingId = 1 });
 
