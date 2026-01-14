@@ -1,0 +1,256 @@
+/* AanmeldingenBeheer.css (licht/mint + modern modal) */
+
+:root {
+    --ab-bg: #f3f7f5;
+    --ab-panel: #ffffff;
+    --ab-border: rgba(16,24,20,.10);
+    --ab-text: #0f1a16;
+    --ab-muted: #5f6f68;
+    --ab-primary: #1f2d2a;
+    --ab-primary2: #0f1c19;
+    --ab-soft: rgba(31,45,42,.10);
+    --ab-success: #1f7a4a;
+    --ab-warning: #b7791f;
+    --ab-danger: #c24141;
+    --ab-radius-xl: 22px;
+    --ab-radius-lg: 18px;
+    --ab-radius-md: 14px;
+    --ab-shadow: 0 18px 50px rgba(16,24,20,.12);
+    --ab-shadow-soft: 0 10px 26px rgba(16,24,20,.10);
+    --ab-ring: 0 0 0 4px rgba(31,45,42,.14);
+}
+
+/* backdrop (jouw modal is d-block, dus we stylen container zelf) */
+.ab-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1060;
+    display: block;
+    overflow-y: auto;
+    padding: 18px;
+    background: rgba(16,24,20,.35);
+    backdrop-filter: blur(4px);
+}
+
+    .ab-modal .modal-dialog {
+        margin: 24px auto;
+    }
+
+    .ab-modal .modal-content {
+        border: 1px solid var(--ab-border);
+        border-radius: var(--ab-radius-xl);
+        background: rgba(255,255,255,.94);
+        box-shadow: var(--ab-shadow);
+        overflow: hidden;
+    }
+
+    .ab-modal .modal-header {
+        border-bottom: 1px solid rgba(16,24,20,.08);
+        background: radial-gradient(800px 220px at 10% 0%, rgba(191,227,211,.60), transparent 60%), linear-gradient(135deg, rgba(255,255,255,.92), rgba(255,255,255,.78));
+        padding: 16px 18px;
+    }
+
+    .ab-modal .modal-title {
+        font-weight: 950;
+        letter-spacing: -0.01em;
+        color: var(--ab-text);
+    }
+
+    .ab-modal .modal-body {
+        padding: 16px 18px 18px;
+    }
+
+    /* close button */
+    .ab-modal .btn-close {
+        opacity: .8;
+    }
+
+        .ab-modal .btn-close:hover {
+            opacity: 1;
+        }
+
+/* table wrapper */
+.ab-tablewrap {
+    border: 1px solid var(--ab-border);
+    border-radius: var(--ab-radius-xl);
+    overflow: hidden;
+    background: rgba(255,255,255,.92);
+    box-shadow: var(--ab-shadow-soft);
+}
+
+    .ab-tablewrap .table {
+        margin: 0;
+    }
+
+    .ab-tablewrap thead th {
+        background: rgba(16,24,20,.04) !important;
+        border-bottom: 1px solid rgba(16,24,20,.10) !important;
+        color: var(--ab-muted);
+        font-weight: 900;
+        letter-spacing: -0.01em;
+    }
+
+    .ab-tablewrap tbody td {
+        vertical-align: middle;
+    }
+
+    .ab-tablewrap .table-hover tbody tr:hover {
+        background: rgba(191,227,211,.22);
+    }
+
+/* buttons */
+.ab-btn {
+    border-radius: 999px !important;
+    font-weight: 900 !important;
+}
+
+.ab-btn-primary {
+    border: 0 !important;
+    background: linear-gradient(135deg, var(--ab-primary), var(--ab-primary2)) !important;
+    color: #fff !important;
+    box-shadow: 0 10px 22px rgba(16,24,20,.14);
+}
+
+.ab-btn-outline {
+    border-radius: 999px !important;
+    font-weight: 900 !important;
+    border: 1px solid rgba(31,45,42,.22) !important;
+    color: var(--ab-primary) !important;
+    background: rgba(255,255,255,.80) !important;
+}
+
+    .ab-btn-outline:hover {
+        background: rgba(31,45,42,.06) !important;
+    }
+
+.ab-btn-danger {
+    border: 1px solid rgba(194,65,65,.18) !important;
+    background: rgba(194,65,65,.10) !important;
+    color: var(--ab-danger) !important;
+}
+
+    .ab-btn-danger:hover {
+        background: rgba(194,65,65,.14) !important;
+    }
+
+.ab-btn-success {
+    border: 0 !important;
+    border-radius: 999px !important;
+    font-weight: 950 !important;
+    background: linear-gradient(135deg, #1f7a4a, #16633d) !important;
+    color: #fff !important;
+    box-shadow: 0 10px 22px rgba(31,122,74,.14);
+}
+
+/* edit panel */
+.ab-edit {
+    margin-top: 16px;
+    border: 1px solid rgba(31,45,42,.14);
+    border-radius: var(--ab-radius-xl);
+    background: radial-gradient(700px 200px at 10% 0%, rgba(191,227,211,.55), transparent 60%), rgba(16,24,20,.03);
+    padding: 16px;
+}
+
+    .ab-edit h5 {
+        margin: 0;
+        font-weight: 950;
+        letter-spacing: -0.01em;
+    }
+
+    .ab-edit .form-label {
+        font-weight: 850;
+        color: var(--ab-text);
+    }
+
+    .ab-edit .form-control,
+    .ab-edit .form-select {
+        border-radius: 14px;
+        border: 1px solid rgba(16,24,20,.14);
+        background: rgba(255,255,255,.90);
+    }
+
+        .ab-edit .form-control:focus,
+        .ab-edit .form-select:focus {
+            border-color: rgba(31,45,42,.35);
+            box-shadow: var(--ab-ring);
+        }
+
+/* delete confirm */
+.ab-dangerbox {
+    margin-top: 16px;
+    border-radius: var(--ab-radius-xl);
+    border: 1px solid rgba(194,65,65,.18);
+    background: rgba(194,65,65,.06);
+    padding: 14px 16px;
+}
+
+    .ab-dangerbox h5 {
+        font-weight: 950;
+        margin: 0;
+    }
+
+/* small helper button */
+.ab-mini {
+    border-radius: 999px !important;
+    font-weight: 900 !important;
+}
+
+/* inner description modal */
+.ab-submodal {
+    position: fixed;
+    inset: 0;
+    z-index: 1065;
+    background: rgba(16,24,20,.35);
+    backdrop-filter: blur(4px);
+    padding: 18px;
+    overflow-y: auto;
+}
+
+    .ab-submodal .modal-dialog {
+        margin: 24px auto;
+    }
+
+    .ab-submodal .modal-content {
+        border: 1px solid var(--ab-border);
+        border-radius: var(--ab-radius-xl);
+        background: rgba(255,255,255,.94);
+        box-shadow: var(--ab-shadow);
+        overflow: hidden;
+    }
+
+    .ab-submodal .modal-header {
+        border-bottom: 1px solid rgba(16,24,20,.08);
+        background: radial-gradient(700px 200px at 10% 0%, rgba(191,227,211,.55), transparent 60%), rgba(255,255,255,.88);
+        padding: 16px 18px;
+    }
+
+    .ab-submodal .modal-body {
+        padding: 16px 18px 18px;
+    }
+
+    .ab-submodal .modal-footer {
+        border-top: 1px solid rgba(16,24,20,.08);
+        padding: 12px 18px;
+    }
+
+/* image in description modal */
+.ab-desc-img {
+    border-radius: 18px;
+    border: 1px solid rgba(16,24,20,.10);
+    box-shadow: var(--ab-shadow-soft);
+}
+
+/* responsive */
+@media (max-width: 576px) {
+    .ab-modal {
+        padding: 12px;
+    }
+
+        .ab-modal .modal-body {
+            padding: 14px;
+        }
+
+    .ab-edit {
+        padding: 14px;
+    }
+}

@@ -1,3 +1,4 @@
+// AanvoerderDashboard.jsx (mooier layout + classes, zelfde logica)
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext.jsx";
 
@@ -11,10 +12,11 @@ import VeildagPicker from "./components/VeildagPicker.jsx";
 import AanmeldingenBeheer from "./components/AanmeldingenBeheer.jsx";
 import AanvoerderNavbar from "./components/AanvoerderNavbar";
 
+import "./AanvoerderDashboard.css";
+
 export default function AanvoerderDashboard() {
     const { token, role } = useContext(AuthContext);
 
-    // Zet een Date object om naar YYYY-MM-DD (voor de API)
     function toYmd(date) {
         const y = date.getFullYear();
         const m = String(date.getMonth() + 1).padStart(2, "0");
@@ -22,20 +24,16 @@ export default function AanvoerderDashboard() {
         return `${y}-${m}-${d}`;
     }
 
-    // Lijst met aanmeldingen en statistieken voor het dashboard
     const [items, setItems] = useState([]);
     const [stats, setStats] = useState(null);
 
-    // Status voor ophalen van data
     const [loading, setLoading] = useState(false);
     const [loadError, setLoadError] = useState("");
 
-    // Filters en UI-state
     const [filterDate, setFilterDate] = useState("");
     const [search, setSearch] = useState("");
     const [beheerOpen, setBeheerOpen] = useState(false);
 
-    // Form state voor nieuwe aanmelding
     const [form, setForm] = useState({
         soort: "",
         potmaat: "",
@@ -43,21 +41,19 @@ export default function AanvoerderDashboard() {
         hoeveelheid: "",
         minimumPrijs: "",
         klokLocatie: "Naaldwijk",
-        leverdatum: null, // Date object, geen string
-        fotoFile: null,   // File object uit input[type=file]
+        leverdatum: null,
+        fotoFile: null,
     });
 
-    // Feedback rond formulieracties
     const [formError, setFormError] = useState("");
     const [formSuccess, setFormSuccess] = useState("");
 
-    // Laad data bij eerste render en wanneer filterDate wijzigt
     useEffect(() => {
         if (!token || role !== "Aanvoerder") return;
         loadDashboardData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [token, role, filterDate]);
 
-    // Haalt aanmeldingen en statistieken parallel op
     async function loadDashboardData() {
         setLoading(true);
         setLoadError("");
@@ -67,7 +63,6 @@ export default function AanvoerderDashboard() {
                 fetchAanmeldingen({ token, leverdatum: filterDate || undefined }),
                 fetchAanvoerderStats({ token, leverdatum: filterDate || undefined }),
             ]);
-
             setItems(aanmeldingen);
             setStats(statsDto);
         } catch (err) {
@@ -77,26 +72,21 @@ export default function AanvoerderDashboard() {
         }
     }
 
-    // Algemene handler voor inputs die in form state zitten
     function handleFormChange(e) {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
     }
 
-    // Verstuurt het formulier en voegt nieuwe aanmelding toe
     async function handleSubmit(e) {
         e.preventDefault();
-
         setFormError("");
         setFormSuccess("");
 
-        // Simpele validatie van verplichte velden
         if (!form.soort || !form.hoeveelheid || !form.minimumPrijs || !form.leverdatum) {
             setFormError("Vul minimaal soort, hoeveelheid, minimumprijs en leverdatum in.");
             return;
         }
 
-        // Payload voor API: leverdatum als string en getallen als Number
         const payload = {
             soort: form.soort,
             potmaat: form.potmaat || null,
@@ -111,11 +101,8 @@ export default function AanvoerderDashboard() {
 
         try {
             const created = await createAanmelding({ token, data: payload });
-
-            // Direct toevoegen aan de lijst zodat je het meteen ziet
             setItems((prev) => [...prev, created]);
 
-            // Statistieken opnieuw ophalen zodat de kaarten kloppen
             const updatedStats = await fetchAanvoerderStats({
                 token,
                 leverdatum: filterDate || undefined,
@@ -123,8 +110,6 @@ export default function AanvoerderDashboard() {
             setStats(updatedStats);
 
             setFormSuccess("Product succesvol aangemeld.");
-
-            // Form resetten (leverdatum blijft Date object: null)
             setForm({
                 soort: "",
                 potmaat: "",
@@ -140,10 +125,8 @@ export default function AanvoerderDashboard() {
         }
     }
 
-    // Filtert de items op zoekterm (soort/potmaat/steellengte)
     const filteredItems = items.filter((item) => {
         if (!search) return true;
-
         const term = search.toLowerCase();
         return (
             item.soort.toLowerCase().includes(term) ||
@@ -155,40 +138,80 @@ export default function AanvoerderDashboard() {
     return (
         <>
             <AanvoerderNavbar />
-            <main id="main" className="container py-4">
-                <div className="d-flex justify-content-between align-items-center mb-4">
-                    <h1 className="h3">Aanvoerdersdashboard</h1>
-                    <p className="text-muted mb-0">Beheer je veilingaanmeldingen</p>
+
+            <main id="main" className="container py-4 av-page">
+                {/* Header */}
+                <div className="av-header">
+                    <div>
+                        <h1 className="h3 av-title">Aanvoerdersdashboard</h1>
+                        <p className="av-sub">Beheer je veilingaanmeldingen</p>
+                    </div>
+
+                    <div className="av-chiprow">
+                        <span className={`av-chip ${loading ? "primary" : "success"}`}>
+                            <span className="dot" />
+                            {loading ? "Laden..." : "Alles up-to-date"}
+                        </span>
+
+                        {filterDate && (
+                            <span className="av-chip">
+                                <span className="dot" />
+                                Filter: <strong>{filterDate}</strong>
+                            </span>
+                        )}
+                    </div>
                 </div>
 
+                {/* Hero */}
+                <section className="av-hero">
+                    <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <h2 className="h5 mb-1 av-card-title">Snelle acties</h2>
+                            <p className="text-muted mb-0">
+                                Meld producten aan en beheer je aanmeldingen.
+                            </p>
+                        </div>
+
+                        <button
+                            className="btn av-btn-outline"
+                            onClick={() => setBeheerOpen(true)}
+                        >
+                            Aanmeldingen beheren
+                        </button>
+                    </div>
+                </section>
+
+                {/* Stats */}
                 {stats && (
-                    <section className="mb-4">
+                    <section className="mb-4 av-stats">
                         <div className="row g-3">
                             <div className="col-md-4">
-                                <div className="card shadow-sm border-0">
+                                <div className="card border-0">
                                     <div className="card-body">
-                                        <p className="text-muted mb-1">Totaal aanmeldingen</p>
-                                        <p className="fs-4 fw-bold">{stats.totaalAantalAanmeldingen}</p>
+                                        <div className="av-stat-label">Totaal aanmeldingen</div>
+                                        <div className="fs-3 av-stat-value">
+                                            {stats.totaalAantalAanmeldingen}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="col-md-4">
-                                <div className="card shadow-sm border-0">
+                                <div className="card border-0">
                                     <div className="card-body">
-                                        <p className="text-muted mb-1">Verkocht</p>
-                                        <p className="fs-4 fw-bold">{stats.aantalVerkocht}</p>
+                                        <div className="av-stat-label">Verkocht</div>
+                                        <div className="fs-3 av-stat-value">{stats.aantalVerkocht}</div>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="col-md-4">
-                                <div className="card shadow-sm border-0">
+                                <div className="card border-0">
                                     <div className="card-body">
-                                        <p className="text-muted mb-1">Totale opbrengst</p>
-                                        <p className="fs-4 fw-bold">
+                                        <div className="av-stat-label">Totale opbrengst</div>
+                                        <div className="fs-3 av-stat-value">
                                             {stats.totaleOpbrengst.toFixed(2)} EUR
-                                        </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -196,10 +219,22 @@ export default function AanvoerderDashboard() {
                     </section>
                 )}
 
+                {/* Form */}
                 <section className="mb-5">
-                    <div className="card shadow-sm border-0">
+                    <div className="card border-0 av-card">
                         <div className="card-body">
-                            <h2 className="h4 mb-3">Nieuw product aanmelden</h2>
+                            <div className="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                <div>
+                                    <h2 className="h4 mb-1 av-card-title">Nieuw product aanmelden</h2>
+                                    <p className="text-muted mb-0">
+                                        Vul de gegevens in en voeg optioneel een foto toe.
+                                    </p>
+                                </div>
+                                <span className="av-chip success">
+                                    <span className="dot" />
+                                    Veilig opslaan
+                                </span>
+                            </div>
 
                             {formError && <div className="alert alert-danger">{formError}</div>}
                             {formSuccess && <div className="alert alert-success">{formSuccess}</div>}
@@ -315,7 +350,7 @@ export default function AanvoerderDashboard() {
                                 </div>
 
                                 <div className="mt-4 d-flex justify-content-end">
-                                    <button type="submit" className="btn btn-success">
+                                    <button type="submit" className="btn av-btn-success">
                                         Aanmelden
                                     </button>
                                 </div>
@@ -324,19 +359,20 @@ export default function AanvoerderDashboard() {
                     </div>
                 </section>
 
+                {/* List */}
                 <section>
-                    <div className="d-flex justify-content-between align-items-center mb-3">
-                        <h2 className="h4">Mijn aanmeldingen</h2>
+                    <div className="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-3">
+                        <div>
+                            <h2 className="h4 mb-1 av-card-title">Mijn aanmeldingen</h2>
+                            <p className="text-muted mb-0">Filter en zoek in je producten.</p>
+                        </div>
 
-                        <button
-                            className="btn btn-outline-primary"
-                            onClick={() => setBeheerOpen(true)}
-                        >
+                        <button className="btn av-btn-outline" onClick={() => setBeheerOpen(true)}>
                             Aanmeldingen beheren
                         </button>
                     </div>
 
-                    <div className="d-flex gap-2 mb-3">
+                    <div className="av-filters mb-3">
                         <div>
                             <label className="form-label mb-1">Filter op leverdatum</label>
                             <input
@@ -360,14 +396,18 @@ export default function AanvoerderDashboard() {
                     </div>
 
                     {loadError && <p className="text-danger">{loadError}</p>}
-                    {loading && <p>Laden...</p>}
+                    {loading && <p className="text-muted">Laden...</p>}
 
-                    {!loading && filteredItems.length === 0 && <p>Geen aanmeldingen.</p>}
+                    {!loading && filteredItems.length === 0 && (
+                        <div className="alert alert-success">
+                            Geen aanmeldingen gevonden voor je filters.
+                        </div>
+                    )}
 
                     {!loading && filteredItems.length > 0 && (
-                        <div className="table-responsive">
-                            <table className="table table-hover">
-                                <thead className="table-light">
+                        <div className="table-responsive av-tablewrap">
+                            <table className="table table-hover align-middle">
+                                <thead>
                                     <tr>
                                         <th>Foto</th>
                                         <th>Soort</th>
@@ -386,46 +426,29 @@ export default function AanvoerderDashboard() {
                                         <tr key={item.id}>
                                             <td>
                                                 {item.fotoUrl ? (
-                                                    <img
-                                                        src={item.fotoUrl}
-                                                        style={{
-                                                            width: "64px",
-                                                            height: "64px",
-                                                            objectFit: "cover",
-                                                            borderRadius: "8px",
-                                                        }}
-                                                        alt={item.soort}
-                                                    />
+                                                    <img className="av-img" src={item.fotoUrl} alt={item.soort} />
                                                 ) : (
                                                     <span className="text-muted">Geen foto</span>
                                                 )}
                                             </td>
 
-                                            <td>{item.soort}</td>
-
+                                            <td className="fw-semibold">{item.soort}</td>
                                             <td>{item.potmaat || item.steellengte || "-"}</td>
-
                                             <td>{item.hoeveelheid}</td>
-
                                             <td>{item.minimumPrijs.toFixed(2)} EUR</td>
-
                                             <td>{item.klokLocatie}</td>
-
                                             <td>{new Date(item.leverDatum).toLocaleDateString("nl-NL")}</td>
-
                                             <td>{item.aanvoerderNaam}</td>
 
                                             <td>
                                                 {item.isVerkocht ? (
                                                     <>
-                                                        <div>{item.verkoopPrijs?.toFixed(2)} EUR / stuk</div>
+                                                        <div className="fw-semibold">
+                                                            {item.verkoopPrijs?.toFixed(2)} EUR / stuk
+                                                        </div>
                                                         <div className="small text-muted">
                                                             Totaal: {item.totaleOpbrengst?.toFixed(2)} EUR
-                                                            {item.koperNaam && (
-                                                                <>
-                                                                    {" \u2013 "} {item.koperNaam}
-                                                                </>
-                                                            )}
+                                                            {item.koperNaam && <> {" \u2013 "} {item.koperNaam}</>}
                                                         </div>
                                                     </>
                                                 ) : (

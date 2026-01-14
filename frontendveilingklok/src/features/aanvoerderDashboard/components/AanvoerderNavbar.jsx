@@ -46,12 +46,6 @@ export default function AanvoerderNavbar() {
                             </Link>
                         </li>
 
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/">
-                                Home (koper view)
-                            </Link>
-                        </li>
-
                         {/* PROFIEL RECHTSBOVEN */}
                         {isAanvoerder && (
                             <li className="nav-item dropdown ms-lg-3">
@@ -76,9 +70,14 @@ export default function AanvoerderNavbar() {
                                             <strong>{naam}</strong>
                                         </span>
                                     </li>
-                                    <li><hr className="dropdown-divider" /></li>
                                     <li>
-                                        <button className="dropdown-item text-danger" onClick={handleLogout}>
+                                        <hr className="dropdown-divider" />
+                                    </li>
+                                    <li>
+                                        <button
+                                            className="dropdown-item text-danger"
+                                            onClick={handleLogout}
+                                        >
                                             Uitloggen
                                         </button>
                                     </li>

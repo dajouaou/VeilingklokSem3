@@ -1,260 +1,300 @@
 ﻿import React, { useState } from "react";
 import { updateAanmelding, deleteAanmelding } from "../api/aanvoerderApi";
+import "./AanmeldingBeheer.css";
 
 export default function AanmeldingenBeheer({ items, onClose, token, onUpdated }) {
-    const [editing, setEditing] = useState(null);
-    const [confirmDelete, setConfirmDelete] = useState(null);
-    const [beschrijvingItem, setBeschrijvingItem] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [beschrijvingItem, setBeschrijvingItem] = useState(null);
 
-    const [form, setForm] = useState({
-        soort: "",
-        potmaat: "",
-        steellengte: "",
-        hoeveelheid: "",
-        minimumPrijs: "",
-        klokLocatie: "Naaldwijk",
-        leverdatum: "", // ✅ FIX
-        fotoFile: null,
-        beschrijving: "",
+  const [form, setForm] = useState({
+    soort: "",
+    potmaat: "",
+    steellengte: "",
+    hoeveelheid: "",
+    minimumPrijs: "",
+    klokLocatie: "Naaldwijk",
+    leverdatum: "", // ✅ FIX
+    fotoFile: null,
+    beschrijving: "",
+  });
+
+  function startEdit(item) {
+    setEditing(item.id);
+
+    const ld = (item.leverDatum ?? item.leverdatum ?? "").toString();
+    const leverdatumYmd = ld.includes("T") ? ld.split("T")[0] : ld;
+
+    setForm({
+      soort: item.soort,
+      potmaat: item.potmaat || "",
+      steellengte: item.steellengte || "",
+      hoeveelheid: item.hoeveelheid,
+      minimumPrijs: item.minimumPrijs,
+      klokLocatie: item.klokLocatie,
+      leverdatum: leverdatumYmd, // ✅ FIX
+      beschrijving: item.beschrijving || "",
+      fotoFile: null,
+    });
+  }
+
+  async function saveEdit() {
+    await updateAanmelding({
+      token,
+      id: editing,
+      data: {
+        ...form,
+        hoeveelheid: Number(form.hoeveelheid),
+        minimumPrijs: Number(form.minimumPrijs),
+      },
     });
 
-    function startEdit(item) {
-        setEditing(item.id);
+    onUpdated();
+    setEditing(null);
+  }
 
-        const ld = (item.leverDatum ?? item.leverdatum ?? "").toString();
-        const leverdatumYmd = ld.includes("T") ? ld.split("T")[0] : ld;
+  async function confirmDeleteAction() {
+    await deleteAanmelding({ token, id: confirmDelete });
+    onUpdated();
+    setConfirmDelete(null);
+  }
 
-        setForm({
-            soort: item.soort,
-            potmaat: item.potmaat || "",
-            steellengte: item.steellengte || "",
-            hoeveelheid: item.hoeveelheid,
-            minimumPrijs: item.minimumPrijs,
-            klokLocatie: item.klokLocatie,
-            leverdatum: leverdatumYmd, // ✅ FIX
-            beschrijving: item.beschrijving || "",
-            fotoFile: null,
-        });
-    }
+  function handleFormChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
 
-    async function saveEdit() {
-        await updateAanmelding({
-            token,
-            id: editing,
-            data: {
-                ...form,
-                hoeveelheid: Number(form.hoeveelheid),
-                minimumPrijs: Number(form.minimumPrijs),
-            },
-        });
+  return (
+    <div className="modal d-block" tabIndex="-1">
+      <div className="modal-dialog modal-xl">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h5 className="modal-title">Aanmeldingen beheren</h5>
+            <button className="btn-close" onClick={onClose}></button>
+          </div>
 
-        onUpdated();
-        setEditing(null);
-    }
+          <div className="modal-body">
+            <table className="table table-hover">
+              <thead>
+                <tr>
+                  <th>Soort</th>
+                  <th>Hoeveelheid</th>
+                  <th>Min. prijs</th>
+                  <th>Beschrijving</th>
+                  <th>Acties</th>
+                </tr>
+              </thead>
 
-    async function confirmDeleteAction() {
-        await deleteAanmelding({ token, id: confirmDelete });
-        onUpdated();
-        setConfirmDelete(null);
-    }
+              <tbody>
+                {items.map((a) => (
+                  <tr key={a.id}>
+                    <td>{a.soort}</td>
+                    <td>{a.hoeveelheid}</td>
+                    <td>{a.minimumPrijs.toFixed(2)} EUR</td>
 
-    function handleFormChange(e) {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
-    }
+                    <td>
+                      {a.beschrijving ? (
+                        <button
+                          className="btn btn-sm btn-outline-secondary"
+                          onClick={() => setBeschrijvingItem(a)}
+                        >
+                          Bekijken
+                        </button>
+                      ) : (
+                        <span className="text-muted">-</span>
+                      )}
+                    </td>
 
-    return (
-        <div className="modal d-block" tabIndex="-1">
-            <div className="modal-dialog modal-xl">
-                <div className="modal-content">
-                    <div className="modal-header">
-                        <h5 className="modal-title">Aanmeldingen beheren</h5>
-                        <button className="btn-close" onClick={onClose}></button>
-                    </div>
+                    <td>
+                      <button
+                        className="btn btn-sm btn-primary me-2"
+                        onClick={() => startEdit(a)}
+                      >
+                        Bewerken
+                      </button>
 
-                    <div className="modal-body">
-                        <table className="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Soort</th>
-                                    <th>Hoeveelheid</th>
-                                    <th>Min. prijs</th>
-                                    <th>Beschrijving</th>
-                                    <th>Acties</th>
-                                </tr>
-                            </thead>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => setConfirmDelete(a.id)}
+                      >
+                        Verwijderen
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-                            <tbody>
-                                {items.map((a) => (
-                                    <tr key={a.id}>
-                                        <td>{a.soort}</td>
-                                        <td>{a.hoeveelheid}</td>
-                                        <td>{a.minimumPrijs.toFixed(2)} EUR</td>
+            {editing && (
+              <div className="mt-4 p-3 border rounded bg-light">
+                <h5>Aanmelding bewerken</h5>
 
-                                        <td>
-                                            {a.beschrijving ? (
-                                                <button
-                                                    className="btn btn-sm btn-outline-secondary"
-                                                    onClick={() => setBeschrijvingItem(a)}
-                                                >
-                                                    Bekijken
-                                                </button>
-                                            ) : (
-                                                <span className="text-muted">-</span>
-                                            )}
-                                        </td>
+                <div className="row g-2 mt-2">
+                  <div className="col-md-4">
+                    <label className="form-label">Soort</label>
+                    <input
+                      name="soort"
+                      className="form-control"
+                      value={form.soort}
+                      onChange={handleFormChange}
+                    />
+                  </div>
 
-                                        <td>
-                                            <button className="btn btn-sm btn-primary me-2" onClick={() => startEdit(a)}>
-                                                Bewerken
-                                            </button>
+                  <div className="col-md-4">
+                    <label className="form-label">Potmaat</label>
+                    <input
+                      name="potmaat"
+                      className="form-control"
+                      value={form.potmaat}
+                      onChange={handleFormChange}
+                    />
+                  </div>
 
-                                            <button className="btn btn-sm btn-danger" onClick={() => setConfirmDelete(a.id)}>
-                                                Verwijderen
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                  <div className="col-md-4">
+                    <label className="form-label">Steellengte</label>
+                    <input
+                      name="steellengte"
+                      className="form-control"
+                      value={form.steellengte}
+                      onChange={handleFormChange}
+                    />
+                  </div>
 
-                        {editing && (
-                            <div className="mt-4 p-3 border rounded bg-light">
-                                <h5>Aanmelding bewerken</h5>
+                  <div className="col-md-3">
+                    <label className="form-label">Hoeveelheid</label>
+                    <input
+                      name="hoeveelheid"
+                      type="number"
+                      className="form-control"
+                      value={form.hoeveelheid}
+                      onChange={handleFormChange}
+                    />
+                  </div>
 
-                                <div className="row g-2 mt-2">
-                                    <div className="col-md-4">
-                                        <label className="form-label">Soort</label>
-                                        <input name="soort" className="form-control" value={form.soort} onChange={handleFormChange} />
-                                    </div>
+                  <div className="col-md-3">
+                    <label className="form-label">Minimumprijs (EUR)</label>
+                    <input
+                      name="minimumPrijs"
+                      type="number"
+                      className="form-control"
+                      value={form.minimumPrijs}
+                      onChange={handleFormChange}
+                    />
+                  </div>
 
-                                    <div className="col-md-4">
-                                        <label className="form-label">Potmaat</label>
-                                        <input name="potmaat" className="form-control" value={form.potmaat} onChange={handleFormChange} />
-                                    </div>
+                  <div className="col-md-6">
+                    <label className="form-label">Leverdatum</label>
+                    <input
+                      name="leverdatum"
+                      type="date"
+                      className="form-control"
+                      value={form.leverdatum}
+                      onChange={handleFormChange}
+                    />
+                  </div>
 
-                                    <div className="col-md-4">
-                                        <label className="form-label">Steellengte</label>
-                                        <input
-                                            name="steellengte"
-                                            className="form-control"
-                                            value={form.steellengte}
-                                            onChange={handleFormChange}
-                                        />
-                                    </div>
+                  <div className="col-12">
+                    <label>Nieuwe foto (optioneel)</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="form-control"
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          fotoFile: e.target.files?.[0] ?? null,
+                        }))
+                      }
+                    />
+                  </div>
 
-                                    <div className="col-md-3">
-                                        <label className="form-label">Hoeveelheid</label>
-                                        <input
-                                            name="hoeveelheid"
-                                            type="number"
-                                            className="form-control"
-                                            value={form.hoeveelheid}
-                                            onChange={handleFormChange}
-                                        />
-                                    </div>
-
-                                    <div className="col-md-3">
-                                        <label className="form-label">Minimumprijs (EUR)</label>
-                                        <input
-                                            name="minimumPrijs"
-                                            type="number"
-                                            className="form-control"
-                                            value={form.minimumPrijs}
-                                            onChange={handleFormChange}
-                                        />
-                                    </div>
-
-                                    <div className="col-md-6">
-                                        <label className="form-label">Leverdatum</label>
-                                        <input
-                                            name="leverdatum"
-                                            type="date"
-                                            className="form-control"
-                                            value={form.leverdatum}
-                                            onChange={handleFormChange}
-                                        />
-                                    </div>
-
-                                    <div className="col-12">
-                                        <label>Nieuwe foto (optioneel)</label>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="form-control"
-                                            onChange={(e) => setForm((prev) => ({ ...prev, fotoFile: e.target.files?.[0] ?? null }))}
-                                        />
-                                    </div>
-
-                                    <div className="col-12 mt-2">
-                                        <label className="form-label">Beschrijving</label>
-                                        <textarea
-                                            name="beschrijving"
-                                            className="form-control"
-                                            rows="3"
-                                            value={form.beschrijving}
-                                            onChange={handleFormChange}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="d-flex justify-content-end gap-2 mt-3">
-                                    <button className="btn btn-secondary" onClick={() => setEditing(null)}>
-                                        Annuleren
-                                    </button>
-
-                                    <button className="btn btn-success" onClick={saveEdit}>
-                                        Opslaan
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {confirmDelete && (
-                            <div className="alert alert-danger mt-4">
-                                <h5>Weet je zeker dat je deze aanmelding wilt verwijderen?</h5>
-
-                                <div className="d-flex justify-content-end gap-2 mt-2">
-                                    <button className="btn btn-secondary" onClick={() => setConfirmDelete(null)}>
-                                        Annuleren
-                                    </button>
-
-                                    <button className="btn btn-danger" onClick={confirmDeleteAction}>
-                                        Verwijderen
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                  <div className="col-12 mt-2">
+                    <label className="form-label">Beschrijving</label>
+                    <textarea
+                      name="beschrijving"
+                      className="form-control"
+                      rows="3"
+                      value={form.beschrijving}
+                      onChange={handleFormChange}
+                    />
+                  </div>
                 </div>
-            </div>
 
-            {beschrijvingItem && (
-                <div className="modal d-block" tabIndex="-1">
-                    <div className="modal-dialog">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">Beschrijving van {beschrijvingItem.soort}</h5>
-                                <button className="btn-close" onClick={() => setBeschrijvingItem(null)}></button>
-                            </div>
+                <div className="d-flex justify-content-end gap-2 mt-3">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setEditing(null)}
+                  >
+                    Annuleren
+                  </button>
 
-                            <div className="modal-body">
-                                <p>{beschrijvingItem.beschrijving}</p>
-
-                                {beschrijvingItem.fotoUrl && (
-                                    <img src={beschrijvingItem.fotoUrl} className="img-fluid rounded mt-3" alt="Product" />
-                                )}
-                            </div>
-
-                            <div className="modal-footer">
-                                <button className="btn btn-secondary" onClick={() => setBeschrijvingItem(null)}>
-                                    Sluiten
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                  <button className="btn btn-success" onClick={saveEdit}>
+                    Opslaan
+                  </button>
                 </div>
+              </div>
             )}
+
+            {confirmDelete && (
+              <div className="alert alert-danger mt-4">
+                <h5>Weet je zeker dat je deze aanmelding wilt verwijderen?</h5>
+
+                <div className="d-flex justify-content-end gap-2 mt-2">
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => setConfirmDelete(null)}
+                  >
+                    Annuleren
+                  </button>
+
+                  <button className="btn btn-danger" onClick={confirmDeleteAction}>
+                    Verwijderen
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-    );
+      </div>
+
+      {beschrijvingItem && (
+        <div className="modal d-block" tabIndex="-1">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  Beschrijving van {beschrijvingItem.soort}
+                </h5>
+                <button
+                  className="btn-close"
+                  onClick={() => setBeschrijvingItem(null)}
+                ></button>
+              </div>
+
+              <div className="modal-body">
+                <p>{beschrijvingItem.beschrijving}</p>
+
+                {beschrijvingItem.fotoUrl && (
+                  <img
+                    src={beschrijvingItem.fotoUrl}
+                    className="img-fluid rounded mt-3"
+                    alt="Product"
+                  />
+                )}
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setBeschrijvingItem(null)}
+                >
+                  Sluiten
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
