@@ -9,17 +9,21 @@
     <BuildOutputFolder>$(MSBuildProjectDirectory)\dist</BuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="src\core\context\**" />
     <None Remove="src\features\NewFolder1\**" />
     <None Remove="src\features\NewFolder\**" />
+    <None Remove="src\features\veilingmeesterDashboard\api\**" />
+    <None Remove="src\features\veilingmeesterDashboard\pages\**" />
+    <None Remove="src\shared\layout\**" />
+    <TypeScriptConfiguration Remove="src\core\context\**" />
     <TypeScriptConfiguration Remove="src\features\NewFolder1\**" />
     <TypeScriptConfiguration Remove="src\features\NewFolder\**" />
+    <TypeScriptConfiguration Remove="src\features\veilingmeesterDashboard\api\**" />
+    <TypeScriptConfiguration Remove="src\features\veilingmeesterDashboard\pages\**" />
+    <TypeScriptConfiguration Remove="src\shared\layout\**" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="src\core\context\" />
-    <Folder Include="src\features\veilingmeesterDashboard\api\" />
     <Folder Include="src\features\veilingmeesterDashboard\hooks\" />
-    <Folder Include="src\features\veilingmeesterDashboard\pages\" />
     <Folder Include="src\features\veiling\hooks\" />
-    <Folder Include="src\shared\layout\" />
   </ItemGroup>
 </Project>
