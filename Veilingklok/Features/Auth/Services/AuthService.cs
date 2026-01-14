@@ -1,4 +1,4 @@
-﻿using Veilingklok.Core.Entities;
+using Veilingklok.Core.Entities;
 using Veilingklok.Core.Enums;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Auth.Dtos;
@@ -6,12 +6,14 @@ using Veilingklok.Infrastructure.Repositories;
 
 namespace Veilingklok.Features.Auth.Services;
 
+// Service die alle auth-logica bevat (registreren, inloggen, token maken)
 public class AuthService
 {
     private readonly IGebruikerRepository _gebruikerRepo;
     private readonly PasswordService _passwordService;
     private readonly JwtService _jwtService;
 
+    // Injecteert repository, password-logica en JWT-logica
     public AuthService(
         IGebruikerRepository gebruikerRepo,
         PasswordService passwordService,
@@ -22,6 +24,7 @@ public class AuthService
         _jwtService = jwtService;
     }
 
+    // Registreert een nieuwe gebruiker en geeft een JWT token terug
     public async Task<string> RegisterAsync(
         string email,
         string password,
@@ -29,10 +32,12 @@ public class AuthService
         string achternaam,
         UserRole rol)
     {
+        // Checkt of het emailadres al bestaat
         var bestaand = await _gebruikerRepo.GetByEmailAsync(email);
         if (bestaand != null)
             throw new Exception("Email is al in gebruik.");
 
+        // Maakt een nieuwe gebruiker aan
         var user = new Gebruiker
         {
             Email = email,
@@ -43,8 +48,10 @@ public class AuthService
             CreatedAtUtc = DateTime.UtcNow
         };
 
+        // Slaat gebruiker op in de database
         await _gebruikerRepo.AddAsync(user);
 
+        // Maakt het bijbehorende rol-object aan (koper, aanvoerder of veilingmeester)
         switch (rol)
         {
             case UserRole.Koper:
@@ -72,20 +79,25 @@ public class AuthService
                 break;
         }
 
+        // Genereert en geeft een JWT token terug
         return _jwtService.GenerateToken(user);
     }
 
 
+    // Logt een gebruiker in en geeft een JWT token terug
     public async Task<string> LoginAsync(string email, string password)
     {
+        // Haalt gebruiker op via email
         var gebruiker = await _gebruikerRepo.GetByEmailAsync(email);
         if (gebruiker == null)
             throw new Exception("Ongeldige login.");
 
+        // Checkt of het wachtwoord klopt
         bool ok = _passwordService.VerifyPassword(password, gebruiker.PasswordHash);
         if (!ok)
             throw new Exception("Ongeldige login.");
 
+        // Genereert en geeft een JWT token terug
         return _jwtService.GenerateToken(gebruiker);
     }
 }

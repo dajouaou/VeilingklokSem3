@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Entities;
@@ -12,16 +12,19 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
     [ApiController]
     [Authorize(Roles = "Veilingmeester")]
     [Route("api/veilingmeester/planning")]
+    // Controller voor plannen en ophalen van geplande veilingen
     public class VeilingPlanningController : ControllerBase
     {
         private readonly MyContext _db;
 
+        // Injecteert database context
         public VeilingPlanningController(MyContext db)
         {
             _db = db;
         }
 
         [HttpGet("veildagen")]
+        // Haalt toekomstige leverdagen op waar nog aanmeldingen zonder veilingproduct zijn
         public async Task<IActionResult> GetVeildagen()
         {
             var today = DateTime.Today;
@@ -39,13 +42,15 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
 
 
-        // 2️⃣ Aanmeldingen per leverdatum
+        // Endpoint om aanmeldingen op te halen voor een specifieke leverdatum
         [HttpGet("aanmeldingen")]
         public async Task<IActionResult> GetAanmeldingen([FromQuery] string leverdatum)
         {
+            // Valideert leverdatum input
             if (!DateTime.TryParse(leverdatum, out var parsedDatum))
                 return BadRequest("Leverdatum ongeldig (yyyy-MM-dd)");
 
+            // Haalt aanmeldingen op die nog niet ingepland zijn
             var items = await _db.Aanmeldingen
                 .Include(a => a.Aanvoerder)
                 .Include(a => a.VeilingProduct)
@@ -68,8 +73,10 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
         }
 
         [HttpPost("plan")]
+        // Plant een veiling en koppelt geselecteerde aanmeldingen als veilingproducten
         public async Task<IActionResult> PlanVeiling([FromBody] PlanVeilingRequestDto dto)
         {
+            // Valideert datum/tijd input
             if (!DateTime.TryParse(dto.Leverdatum, out var leverdatum))
                 return BadRequest("Leverdatum ongeldig");
 
@@ -79,12 +86,12 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             if (!TimeSpan.TryParse(dto.StartTijd, out var startTijd))
                 return BadRequest("Starttijd ongeldig");
 
-            // ✅ voorkom “direct afgesloten” door cleanup service
+            // Blokkeert plannen in het verleden of te dicht op nu
             var geplandeStart = veildatum.Date + startTijd;
             if (geplandeStart <= DateTime.Now.AddMinutes(1))
                 return BadRequest($"Je kunt geen veiling plannen in het verleden. Kies een tijd na {DateTime.Now.AddMinutes(1):yyyy-MM-dd HH:mm}.");
 
-            // ✅ zoek op datum + starttijd (anders overschrijf je onbedoeld of haal je de verkeerde op)
+            // Zoekt bestaande geplande veiling op dezelfde datum en starttijd
             var veiling = await _db.Veilingen
                 .Include(v => v.Producten)
                 .FirstOrDefaultAsync(v =>
@@ -93,6 +100,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                     v.StartTijd == startTijd
                 );
 
+            // Maakt een nieuwe geplande veiling als die nog niet bestaat
             if (veiling == null)
             {
                 veiling = new VeilingEntity
@@ -107,12 +115,15 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                 await _db.SaveChangesAsync();
             }
 
+            // Gebruikt bestaande productenlijst als die er al is
             var producten = veiling.Producten ?? new List<VeilingProduct>();
 
+            // Bouwt set van aanmeldingen die al in deze veiling zitten
             var bestaandeAanmeldingen = producten
                 .Select(p => p.AanmeldingId)
                 .ToHashSet();
 
+            // Checkt op dubbele selectie
             var dubbeleAanmeldingen = dto.AanmeldingIds
                 .Where(id => bestaandeAanmeldingen.Contains(id))
                 .ToList();
@@ -120,10 +131,12 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             if (dubbeleAanmeldingen.Any())
                 return BadRequest("Geselecteerde producten zijn al aangemeld voor de veiling.");
 
+            // Bepaalt startvolgorde voor nieuwe items
             int volgorde = producten.Any()
                 ? producten.Max(p => p.Volgorde) + 1
                 : 1;
 
+            // Koppelt elke aanmelding als veilingproduct aan deze veiling
             foreach (var aanmeldingId in dto.AanmeldingIds)
             {
                 var a = await _db.Aanmeldingen.FindAsync(aanmeldingId);
@@ -152,11 +165,13 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
             await _db.SaveChangesAsync();
 
+            // Geeft het veilingId terug zodat de frontend ermee verder kan
             return Ok(new { veilingId = veiling.Id });
         }
 
 
         [HttpGet("gepland")]
+        // Haalt alle toekomstige geplande veilingen op (met een kleine grace marge)
         public async Task<IActionResult> GetGeplande()
         {
             var today = DateTime.Today;
@@ -166,6 +181,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             var cutoff = nowTime - grace;
             if (cutoff < TimeSpan.Zero) cutoff = TimeSpan.Zero;
 
+            // Haalt geplande veilingen op die nog relevant zijn
             var veilingen = await _db.Veilingen
                 .Where(v => v.Status == VeilingStatus.Gepland &&
                     (v.Datum > today || (v.Datum == today && v.StartTijd >= cutoff)))
@@ -173,11 +189,13 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
                 .ThenBy(v => v.StartTijd)
                 .ToListAsync();
 
+            // Haalt per veiling het aantal producten op
             var productCounts = await _db.VeilingProducten
                 .GroupBy(p => p.VeilingId)
                 .Select(g => new { VeilingId = g.Key, Aantal = g.Count() })
                 .ToListAsync();
 
+            // Zet veilingen om naar lijst-items voor de UI
             var result = veilingen.Select(v =>
             {
                 var aantal = productCounts.FirstOrDefault(x => x.VeilingId == v.Id)?.Aantal ?? 0;
@@ -197,6 +215,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
 
 
         [HttpGet("volgende")]
+        // Haalt de eerstvolgende geplande veiling op
         public async Task<IActionResult> GetVolgende()
         {
             var today = DateTime.Today;
@@ -206,6 +225,7 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             var cutoff = nowTime - grace;
             if (cutoff < TimeSpan.Zero) cutoff = TimeSpan.Zero;
 
+            // Zoekt de eerstvolgende geplande veiling
             var volgende = await _db.Veilingen
                 .Where(v => v.Status == VeilingStatus.Gepland &&
                     (v.Datum > today || (v.Datum == today && v.StartTijd >= cutoff)))
@@ -216,8 +236,10 @@ namespace Veilingklok.Features.VeilingmeesterDashboard.Controllers
             if (volgende == null)
                 return Ok(null);
 
+            // Telt hoeveel producten in de veiling zitten
             var aantal = await _db.VeilingProducten.CountAsync(p => p.VeilingId == volgende.Id);
 
+            // Geeft geplande veiling-info terug
             return Ok(new GeplandeVeilingListItemDto
             {
                 Id = volgende.Id,

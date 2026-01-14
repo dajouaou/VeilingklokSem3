@@ -1,27 +1,31 @@
 export default function BiedingenLijst({ biedingen }) {
-    if (!biedingen || biedingen.length === 0)
-        return <p className="text-muted">Er zijn nog geen biedingen geplaatst.</p>;
+    if (!biedingen || biedingen.length === 0) {
+        return <p className="vm-muted">Er zijn nog geen biedingen geplaatst.</p>;
+    }
 
     return (
-        <div className="card shadow-sm p-3 mb-4">
-            <h5 className="mb-3">Biedingen</h5>
+        <section className="vm-panel">
+            <header className="vm-panel-header">
+                <h3>Biedingen</h3>
+                <p className="vm-muted">Overzicht van recente biedingen.</p>
+            </header>
 
-            <ul className="list-group list-group-flush">
+            <ul className="vm-list">
                 {biedingen.map((b, i) => (
-                    <li key={b.id || i} className="list-group-item d-flex justify-content-between">
-                        <span>
-                            {b.prijs?.toFixed(2)} EUR
-                            {b.koperNaam ? <span className="text-muted ms-2">({b.koperNaam})</span> : null}
-                        </span>
+                    <li key={b.id || i} className="vm-list-item vm-list-item-split">
+                        <div className="vm-text">
+                            <strong>{Number(b.prijs ?? 0).toFixed(2)} EUR</strong>
+                            {b.koperNaam ? (
+                                <span className="vm-muted"> ({b.koperNaam})</span>
+                            ) : null}
+                        </div>
 
-                        <span className="text-muted">
-                            {b.tijdstip
-                                ? new Date(b.tijdstip).toLocaleTimeString()
-                                : ""}
-                        </span>
+                        <div className="vm-time">
+                            {b.tijdstip ? new Date(b.tijdstip).toLocaleTimeString() : ""}
+                        </div>
                     </li>
                 ))}
             </ul>
-        </div>
+        </section>
     );
 }

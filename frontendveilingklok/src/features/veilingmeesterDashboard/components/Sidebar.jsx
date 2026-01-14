@@ -10,54 +10,49 @@ export default function Sidebar({ logout, sidebarOpen, setSidebarOpen }) {
     }
 
     return (
-        <aside className={`vm-sidebar ${sidebarOpen ? "open" : ""}`}>
-            <button className="vm-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Sluit menu">
-                ✖
+        <aside className={`vm-sidebar ${sidebarOpen ? "open" : ""}`} aria-label="Navigatie">
+            <button
+                type="button"
+                className="vm-sidebar-close"
+                onClick={() => setSidebarOpen(false)}
+                aria-label="Sluit menu"
+            >
+                Sluiten
             </button>
 
-            <div className="vm-sidebar-logo">
-                <div className="vm-logo-dot" />
+            <div className="vm-sidebar-brand">
+                <div className="vm-brand-dot" />
                 <div>
-                    <div className="vm-logo-title">Veilingklok</div>
-                    <div className="vm-logo-sub">Veilingmeester</div>
+                    <div className="vm-brand-title">Veilingklok</div>
+                    <div className="vm-brand-sub">Veilingmeester</div>
                 </div>
             </div>
 
-            <nav className="vm-sidebar-nav">
+            <nav className="vm-nav">
                 <NavLink to="/veilingmeester" end onClick={() => setSidebarOpen(false)}>
-                    {({ isActive }) => (
-                        <>
-                            <img src={iconUrl("nav/dashboard.svg")} alt="" width="18" height="18" />
-                            <span className={isActive ? "active" : ""}>Dashboard</span>
-                        </>
-                    )}
+                    <img src={iconUrl("nav/dashboard.svg")} alt="" width="18" height="18" />
+                    <span>Dashboard</span>
                 </NavLink>
 
                 <NavLink to="/veilingmeester/plan" onClick={() => setSidebarOpen(false)}>
                     <img src={iconUrl("nav/plan.svg")} alt="" width="18" height="18" />
-                    Veiling plannen
+                    <span>Veiling plannen</span>
                 </NavLink>
 
                 <NavLink to="/veilingmeester/gepland" onClick={() => setSidebarOpen(false)}>
                     <img src={iconUrl("nav/calendar.svg")} alt="" width="18" height="18" />
-                    Geplande veilingen
+                    <span>Geplande veilingen</span>
                 </NavLink>
 
                 <NavLink to="/veilingmeester/archief" onClick={() => setSidebarOpen(false)}>
                     <img src={iconUrl("nav/archive.svg")} alt="" width="18" height="18" />
-                    Archief
+                    <span>Archief</span>
                 </NavLink>
             </nav>
 
             <div className="vm-sidebar-footer">
-                <button className="vm-logout-btn" onClick={handleLogout}>
-                    <img
-                        src={iconUrl("ui/logout.svg")}
-                        alt=""
-                        width="18"
-                        height="18"
-                        style={{ marginRight: 8, verticalAlign: "middle" }}
-                    />
+                <button type="button" className="vm-logout" onClick={handleLogout}>
+                    <img src={iconUrl("ui/logout.svg")} alt="" width="18" height="18" />
                     Uitloggen
                 </button>
             </div>

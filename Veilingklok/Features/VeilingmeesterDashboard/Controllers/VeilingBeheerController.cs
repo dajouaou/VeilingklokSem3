@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Veiling.Dtos;
@@ -10,12 +10,14 @@ using Veilingklok.Core.Enums;
 [ApiController]
 [Authorize(Roles = "Veilingmeester")]
 [Route("api/veilingmeester/veilingen")]
+// Controller voor veilingmeester acties (start/pause/resume/stop + archief)
 public class VeilingBeheerController : ControllerBase
 {
     private readonly IVeilingService _service;
     private readonly IVeilingBroadcastService _broadcast;
     private readonly MyContext _db;
 
+    // Injecteert service, broadcaster en database
     public VeilingBeheerController(
         IVeilingService service,
         IVeilingBroadcastService broadcast,
@@ -27,22 +29,28 @@ public class VeilingBeheerController : ControllerBase
     }
 
     [HttpGet("actief")]
+    // Haalt de huidige actieve veiling op
     public async Task<ActionResult<VeilingOverzichtDto?>> GetActieve()
         => Ok(await _service.GetActieveVeilingAsync());
 
     [HttpPost("{id}/start")]
+    // Start een geplande veiling en pusht meteen updates naar clients
     public async Task<ActionResult<VeilingOverzichtDto>> Start(int id)
     {
+        // Checkt of de veiling bestaat
         var entity = await _db.Veilingen.FindAsync(id);
         if (entity == null)
             return BadRequest("Veiling bestaat niet.");
 
+        // Blokkeert starten als de geplande starttijd nog niet bereikt is
         var geplandeStart = entity.Datum.Date + entity.StartTijd;
         if (DateTime.Now < geplandeStart)
             return BadRequest($"Veiling kan pas starten op {geplandeStart:yyyy-MM-dd HH:mm}");
 
+        // Start de veiling via de service
         var overzicht = await _service.StartGeplandeVeilingAsync(id);
 
+        // Stuurt huidig product en wachtrij realtime door
         if (overzicht.HuidigProduct != null)
         {
             await _broadcast.StuurHuidigProduct(id, overzicht.HuidigProduct);
@@ -53,6 +61,7 @@ public class VeilingBeheerController : ControllerBase
     }
 
     [HttpPost("{id}/pause")]
+    // Pauzeert een veiling en pusht de nieuwe status naar clients
     public async Task<IActionResult> Pause(int id)
     {
         await _service.PauseAsync(id);
@@ -69,6 +78,7 @@ public class VeilingBeheerController : ControllerBase
 
 
     [HttpPost("{id}/resume")]
+    // Hervat een veiling en pusht de nieuwe status naar clients
     public async Task<IActionResult> Resume(int id)
     {
         await _service.ResumeAsync(id);
@@ -85,14 +95,18 @@ public class VeilingBeheerController : ControllerBase
 
 
     [HttpPost("{id}/stop")]
+    // Stopt en sluit een veiling af
     public async Task<IActionResult> Stop(int id)
     {
         await _service.StopAsync(id);
         return NoContent();
     }
+
     [HttpGet("archief")]
+    // Haalt het archief van afgesloten veilingen op inclusief transacties
     public async Task<ActionResult<List<VeilingArchiefDto>>> GetArchief()
     {
+        // Laadt afgesloten veilingen met producten, aanmeldingen en transacties
         var veilingen = await _db.Veilingen
             .AsNoTracking()
             .Where(v => v.Status == VeilingStatus.Afgesloten)
@@ -105,11 +119,10 @@ public class VeilingBeheerController : ControllerBase
             .ThenByDescending(v => v.StartTijd)
             .ToListAsync();
 
+        // Zet de entities om naar archief DTO’s
         var result = veilingen.Select(v =>
         {
-            // eindtijd bepalen:
-            // 1) als je AfgeslotenOpUtc hebt -> gebruik die
-            // 2) anders: laatste transactie
+            // Bepaalt eindtijd van de veiling voor het archief
             DateTime? eindUtc = null;
 
             if (v.AfgeslotenOpUtc != null)
@@ -122,6 +135,7 @@ public class VeilingBeheerController : ControllerBase
                     .Max();
             }
 
+            // Bouwt het archief-item inclusief transactie lijst
             return new VeilingArchiefDto
             {
                 Id = v.Id,

@@ -19,29 +19,40 @@ export default function GeplandeVeilingen() {
     }, [token]);
 
     return (
-        <div className="vm-layout">
+        <div className="vm-shell">
             <Sidebar logout={logout} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-            <div className="vm-main">
+            <div className="vm-content">
                 <Topbar title="Geplande veilingen" veiling={null} onMenuClick={() => setSidebarOpen(true)} />
 
-                <main className="vm-main-content">
-                    {error && <div className="alert alert-danger vm-alert">{error}</div>}
+                <main className="vm-page">
+                    {error && <div className="vm-alert vm-alert-danger">{error}</div>}
+
+                    <section className="vm-hero-card">
+                        <h2>Planning</h2>
+                        <p className="vm-muted">Overzicht van alle geplande veilingen.</p>
+                    </section>
 
                     {veilingen.length === 0 && (
-                        <div className="vm-card">
-                            <p className="text-muted mb-0">Geen geplande veilingen.</p>
-                        </div>
+                        <section className="vm-panel">
+                            <p className="vm-muted">Geen geplande veilingen.</p>
+                        </section>
                     )}
 
-                    {veilingen.map((v) => (
-                        <div key={v.id} className="vm-card mb-3">
-                            <strong>Veiling #{v.id}</strong>
-                            <div className="text-muted small mt-1">
-                                + Datum: {v.veildatum} - Starttijd: {v.startTijd} - Producten: {v.aantalProducten}
-                            </div>
-                        </div>
-                    ))}
+                    <section className="vm-grid-cards">
+                        {veilingen.map((v) => (
+                            <article key={v.id} className="vm-card">
+                                <div className="vm-card-title">Veiling #{v.id}</div>
+                                <div className="vm-muted vm-card-sub">
+                                    Datum: {v.veildatum}
+                                    <br />
+                                    Start: {v.startTijd}
+                                    <br />
+                                    Producten: {v.aantalProducten}
+                                </div>
+                            </article>
+                        ))}
+                    </section>
                 </main>
             </div>
         </div>

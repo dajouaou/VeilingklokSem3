@@ -1,5 +1,5 @@
 export default function VeilingInformatie({ gegevens }) {
-    if (!gegevens) return <p className="text-muted">Geen informatie over de veiling beschikbaar.</p>;
+    if (!gegevens) return <p className="vm-muted">Geen informatie over de veiling beschikbaar.</p>;
 
     const statusParts = [];
     if (gegevens.isGestart) statusParts.push("Gestart");
@@ -7,26 +7,40 @@ export default function VeilingInformatie({ gegevens }) {
     if (gegevens.isPauze) statusParts.push("Pauze");
     if (gegevens.isAfgesloten) statusParts.push("Afgesloten");
 
-    const statusText = statusParts.join(" · ");
+    const statusText = statusParts.join(" | ");
 
     return (
-        <div className="card shadow-sm p-3 mb-4">
-            <h5 className="mb-3">Veilinginformatie</h5>
+        <section className="vm-panel">
+            <header className="vm-panel-header">
+                <h3>Veilinginformatie</h3>
+                <p className="vm-muted">Status en actuele gegevens.</p>
+            </header>
 
-            <p><strong>Veilingnummer:</strong> {gegevens.id}</p>
-            <p><strong>Status:</strong> {statusText}</p>
+            <div className="vm-kv">
+                <div className="vm-kv-row">
+                    <span className="vm-muted">Veilingnummer</span>
+                    <strong>{gegevens.id}</strong>
+                </div>
 
-            {gegevens.huidigProduct && (
-                <p>
-                    <strong>Huidig product:</strong>{" "}
-                    {gegevens.huidigProduct.soort} ( {gegevens.huidigProduct.resterendeHoeveelheid} stuks )
-                </p>
-            )}
+                <div className="vm-kv-row">
+                    <span className="vm-muted">Status</span>
+                    <strong>{statusText}</strong>
+                </div>
 
-            <p>
-                <strong>Aantal in wachtrij:</strong>{" "}
-                {Array.isArray(gegevens.wachtrij) ? gegevens.wachtrij.length : 0}
-            </p>
-        </div>
+                {gegevens.huidigProduct && (
+                    <div className="vm-kv-row">
+                        <span className="vm-muted">Huidig product</span>
+                        <strong>
+                            {gegevens.huidigProduct.soort} ({gegevens.huidigProduct.resterendeHoeveelheid} stuks)
+                        </strong>
+                    </div>
+                )}
+
+                <div className="vm-kv-row">
+                    <span className="vm-muted">In wachtrij</span>
+                    <strong>{Array.isArray(gegevens.wachtrij) ? gegevens.wachtrij.length : 0}</strong>
+                </div>
+            </div>
+        </section>
     );
 }
