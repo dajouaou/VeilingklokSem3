@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Veilingklok.Core.Interfaces;
@@ -11,13 +11,14 @@ namespace Veilingklok.Features.AanvoerderDashboard.Controllers;
 [ApiController]
 [Route("api/aanvoerder/dashboard")]
 [Authorize(Roles = "Aanvoerder")]
+// Controller voor alle aanvoerder dashboard acties
 public class AanvoerderDashboardController : ControllerBase
 {
     private readonly MyContext _db;
     private readonly IAanvoerderDashboardService _service;
     private readonly IWebHostEnvironment _env;
 
-    // Constructor met benodigde afhankelijkheden
+    // Injecteert service, database en hosting info
     public AanvoerderDashboardController(
         IAanvoerderDashboardService service,
         MyContext db,
@@ -28,7 +29,7 @@ public class AanvoerderDashboardController : ControllerBase
         _env = env;
     }
 
-    // Haalt gebruiker-id uit de token
+    // Haalt gebruiker-id uit de JWT token
     private bool TryGetGebruikerId(out int gebruikerId)
     {
         gebruikerId = 0;
@@ -41,12 +42,12 @@ public class AanvoerderDashboardController : ControllerBase
         return int.TryParse(idStr, out gebruikerId);
     }
 
-    // Geeft een unauthorized response bij ongeldige token
+    // Geeft een standaard unauthorized response
     private ActionResult UnauthorizedUserId()
         => Unauthorized("Geen geldige gebruiker-id in token.");
 
     [HttpGet("aanmeldingen")]
-    // Haalt alle aanmeldingen op, eventueel gefilterd op leverdatum
+    // Haalt alle aanmeldingen op voor deze aanvoerder
     public async Task<ActionResult<List<AanmeldingListItemDto>>> GetAanmeldingen([FromQuery] DateTime? leverdatum)
     {
         if (!TryGetGebruikerId(out var gebruikerId))
@@ -74,7 +75,7 @@ public class AanvoerderDashboardController : ControllerBase
         {
             string? fotoPad = null;
 
-            // Foto opslaan indien meegestuurd
+            // Slaat een geüploade foto op en bouwt de URL
             if (dto.Foto != null && dto.Foto.Length > 0)
             {
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
@@ -110,6 +111,7 @@ public class AanvoerderDashboardController : ControllerBase
         {
             string? fotoPad = null;
 
+            // Slaat een nieuwe foto op en bouwt de URL
             if (dto.Foto != null && dto.Foto.Length > 0)
             {
                 var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
@@ -159,7 +161,7 @@ public class AanvoerderDashboardController : ControllerBase
     }
 
     [HttpGet("statistieken")]
-    // Haalt statistieken op
+    // Haalt statistieken op voor de aanvoerder
     public async Task<ActionResult<AanvoerderStatsDto>> GetStats([FromQuery] DateTime? leverdatum)
     {
         if (!TryGetGebruikerId(out var gebruikerId))
