@@ -7,6 +7,7 @@ using Veilingklok.Infrastructure.SignalR.Broadcasters;
 
 namespace Veilingklok.Features.Veiling.Services
 {
+    // Background service die automatisch de prijs van actieve veilingen laat dalen
     public class PrijsMechanismeService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
@@ -18,10 +19,8 @@ namespace Veilingklok.Features.Veiling.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            const int tickMs = 1000;      // loop elke seconde
-            const int stepSeconds = 5;    // prijs-update elke 5 sec
-
-            // tempo (default) als product geen daling heeft
+            const int tickMs = 1000;   // elke seconde uitvoeren
+            const int stepSeconds = 5; // prijs daalt elke 5 seconden
             const decimal defaultDalingPerSeconde = 0.01m;
 
             var delay = TimeSpan.FromMilliseconds(tickMs);
@@ -34,6 +33,7 @@ namespace Veilingklok.Features.Veiling.Services
                     var db = scope.ServiceProvider.GetRequiredService<MyContext>();
                     var broadcast = scope.ServiceProvider.GetRequiredService<IVeilingBroadcastService>();
 
+                    // Alle actieve veilingen ophalen
                     var actieveVeilingen = await db.Veilingen
                         .Where(v => v.Status == VeilingStatus.Gestart)
                         .Include(v => v.Producten)
@@ -48,46 +48,32 @@ namespace Veilingklok.Features.Veiling.Services
                         var hp = v.Producten.SingleOrDefault(p => p.Id == v.HuidigProductId);
                         if (hp == null) continue;
 
-                        // Alleen dalen als product "actief" is en nog niet klaar
+                        // Alleen actief en nog niet afgerond product
                         if (!hp.IsActief || hp.IsVerkocht || hp.IsDoorgedraaid) continue;
 
-                        // -----------------------------
-                        // 1) Defaults (altijd veilig zetten)
-                        //    -> NIET de huidige prijs resetten
-                        // -----------------------------
+                        // Basiswaarden veilig instellen
                         if (hp.MinimumPrijs <= 0) hp.MinimumPrijs = hp.Aanmelding?.MinimumPrijs ?? 0m;
                         if (hp.MaximumPrijs <= 0) hp.MaximumPrijs = hp.MinimumPrijs + 5m;
                         if (hp.DalingPerSeconde <= 0) hp.DalingPerSeconde = defaultDalingPerSeconde;
                         if (hp.ResterendeHoeveelheid <= 0) hp.ResterendeHoeveelheid = hp.Aanmelding?.Hoeveelheid ?? 0;
-
-                        // Als HuidigePrijs nog niet gezet is, start bovenaan (1x)
                         if (hp.HuidigePrijs <= 0) hp.HuidigePrijs = hp.MaximumPrijs;
 
-                        // -----------------------------
-                        // 2) Init timer (1x) + skip daling deze tick
-                        //    -> voorkomt "direct dalen" en voorkomt "reset bug"
-                        // -----------------------------
+                        // Eerste tick alleen timer zetten
                         if (hp.LaatstePrijsUpdateUtc == null)
                         {
                             hp.LaatstePrijsUpdateUtc = nowUtc;
                             await db.SaveChangesAsync(stoppingToken);
-                            continue; // volgende tick pas dalen
+                            continue;
                         }
 
-                        // -----------------------------
-                        // 3) Alleen elke stepSeconds updaten
-                        // -----------------------------
+                        // Alleen elke stepSeconds dalen
                         var elapsed = (nowUtc - hp.LaatstePrijsUpdateUtc.Value).TotalSeconds;
                         if (elapsed < stepSeconds) continue;
 
                         hp.LaatstePrijsUpdateUtc = nowUtc;
+                        var nieuwePrijs = hp.HuidigePrijs - (hp.DalingPerSeconde * stepSeconds);
 
-                        var dalingPerStap = hp.DalingPerSeconde * stepSeconds;
-                        var nieuwePrijs = hp.HuidigePrijs - dalingPerStap;
-
-                        // -----------------------------
-                        // 4) Minimum bereikt => doordraai
-                        // -----------------------------
+                        // Minimumprijs bereikt
                         if (nieuwePrijs <= hp.MinimumPrijs)
                         {
                             hp.HuidigePrijs = hp.MinimumPrijs;
@@ -102,17 +88,12 @@ namespace Veilingklok.Features.Veiling.Services
                             if (volgende != null)
                             {
                                 volgende.IsActief = true;
-
-                                // defaults volgende product
-                                if (volgende.MinimumPrijs <= 0) volgende.MinimumPrijs = volgende.Aanmelding?.MinimumPrijs ?? 0m;
-                                if (volgende.MaximumPrijs <= 0) volgende.MaximumPrijs = volgende.MinimumPrijs + 5m;
-                                if (volgende.DalingPerSeconde <= 0) volgende.DalingPerSeconde = defaultDalingPerSeconde;
-                                if (volgende.ResterendeHoeveelheid <= 0) volgende.ResterendeHoeveelheid = volgende.Aanmelding?.Hoeveelheid ?? 0;
-
-                                // start bovenaan + timer init
+                                volgende.MinimumPrijs = volgende.Aanmelding?.MinimumPrijs ?? 0m;
+                                volgende.MaximumPrijs = volgende.MinimumPrijs + 5m;
+                                volgende.DalingPerSeconde = defaultDalingPerSeconde;
+                                volgende.ResterendeHoeveelheid = volgende.Aanmelding?.Hoeveelheid ?? 0;
                                 volgende.HuidigePrijs = volgende.MaximumPrijs;
                                 volgende.LaatstePrijsUpdateUtc = nowUtc;
-
                                 v.HuidigProductId = volgende.Id;
                             }
                             else
@@ -124,63 +105,17 @@ namespace Veilingklok.Features.Veiling.Services
 
                             await db.SaveChangesAsync(stoppingToken);
 
-                            // Audit
                             await broadcast.StuurAuditEvent(v.Id, new AuditEventDto
                             {
                                 Gebeurtenis = $"Doordraai: {hp.Aanmelding?.Soort} bereikte minimumprijs.",
                                 Tijdstip = nowUtc
                             });
 
-                            // Wachtrij
-                            var wachtrij = v.Producten
-                                .Where(p => !p.IsActief && !p.IsVerkocht && !p.IsDoorgedraaid)
-                                .OrderBy(p => p.Volgorde)
-                                .Select(p => new WachtrijItemDto
-                                {
-                                    VeilingProductId = p.Id,
-                                    Volgorde = p.Volgorde,
-                                    Soort = p.Aanmelding!.Soort,
-                                    FotoUrl = p.Aanmelding!.FotoUrl,
-                                    MaximumPrijs = p.MaximumPrijs,
-                                    MinimumPrijs = p.MinimumPrijs,
-                                    ResterendeHoeveelheid = p.ResterendeHoeveelheid,
-                                    AanvoerderId = p.Aanmelding!.AanvoerderId,
-                                    AanvoerderNaam = p.Aanmelding!.Aanvoerder?.Naam ?? ""
-                                })
-                                .ToList();
-
-                            await broadcast.StuurWachtrij(v.Id, wachtrij);
-
-                            // Nieuw huidig product
-                            var nieuwHp = v.Producten.SingleOrDefault(p => p.Id == v.HuidigProductId);
-                            if (nieuwHp?.Aanmelding != null)
-                            {
-                                await broadcast.StuurHuidigProduct(v.Id, new HuidigProductDto
-                                {
-                                    VeilingProductId = nieuwHp.Id,
-                                    Soort = nieuwHp.Aanmelding.Soort,
-                                    FotoUrl = nieuwHp.Aanmelding.FotoUrl,
-                                    MaximumPrijs = nieuwHp.MaximumPrijs,
-                                    MinimumPrijs = nieuwHp.MinimumPrijs,
-                                    HuidigePrijs = nieuwHp.HuidigePrijs,
-                                    DalingPerSeconde = nieuwHp.DalingPerSeconde,
-                                    ResterendeHoeveelheid = nieuwHp.ResterendeHoeveelheid,
-                                    IsActief = nieuwHp.IsActief,
-                                    IsVerkocht = nieuwHp.IsVerkocht,
-                                    IsDoorgedraaid = nieuwHp.IsDoorgedraaid,
-                                    AanvoerderId = nieuwHp.Aanmelding.AanvoerderId,
-                                    AanvoerderNaam = nieuwHp.Aanmelding.Aanvoerder?.Naam ?? ""
-                                });
-                            }
-
                             continue;
                         }
 
-                        // -----------------------------
-                        // 5) Normale daling
-                        // -----------------------------
+                        // Normale prijsdaling
                         hp.HuidigePrijs = nieuwePrijs;
-
                         await db.SaveChangesAsync(stoppingToken);
 
                         await broadcast.StuurHuidigProduct(v.Id, new HuidigProductDto
@@ -203,7 +138,7 @@ namespace Veilingklok.Features.Veiling.Services
                 }
                 catch (TaskCanceledException)
                 {
-                    // shutdown
+                    // service stopt
                 }
                 catch (Exception ex)
                 {
