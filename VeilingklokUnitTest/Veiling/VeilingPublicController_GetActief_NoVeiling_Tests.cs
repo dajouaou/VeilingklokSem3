@@ -12,10 +12,12 @@ using VeilingEntity = Veilingklok.Core.Entities.Veiling;
 
 namespace VeilingklokUnitTest.Veiling
 {
+    // Tests voor GetActief wanneer er geen gestart/gepauzeerde veiling is
     public sealed class VeilingPublicController_GetActief_NoVeiling_Tests
     {
         private static MyContext CreateDb()
         {
+            // InMemory database per test
             var opts = new DbContextOptionsBuilder<MyContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
@@ -27,6 +29,7 @@ namespace VeilingklokUnitTest.Veiling
         {
             using var db = CreateDb();
 
+            // Arrange: alleen een geplande veiling (dus niet actief)
             db.Veilingen.Add(new VeilingEntity
             {
                 Status = VeilingStatus.Gepland,
@@ -38,8 +41,10 @@ namespace VeilingklokUnitTest.Veiling
 
             var controller = new VeilingPublicController(db);
 
+            // Act
             var result = await controller.GetActief();
 
+            // Assert: controller geeft een leeg overzicht terug
             var ok = Assert.IsType<OkObjectResult>(result);
             var dto = Assert.IsType<VeilingOverzichtDto>(ok.Value);
 
