@@ -48,7 +48,7 @@ namespace VeilingklokUnitTest.AanvoerderDashboard.Controllers
             return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
         }
 
-        // ---------------- GET aanmeldingen ----------------
+        //GET aanmeldingen 
 
         [Fact]
         public async Task GetAanmeldingen_ZonderUserId_IsUnauthorized()
@@ -96,7 +96,7 @@ namespace VeilingklokUnitTest.AanvoerderDashboard.Controllers
             Assert.IsType<NotFoundObjectResult>(result.Result);
         }
 
-        // ---------------- DELETE aanmelding ----------------
+        //  DELETE aanmelding 
 
         [Fact]
         public async Task DeleteAanmelding_ServiceOk_GeeftNoContent()

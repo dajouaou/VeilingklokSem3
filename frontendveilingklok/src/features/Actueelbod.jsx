@@ -26,7 +26,7 @@ export default function ActueelBod() {
     const [aantal, setAantal] = useState(0);
     const [showHistorie, setShowHistorie] = useState(false);
 
-    // ✅ Smooth prijs
+    //  Smooth prijs
     const [displayPrice, setDisplayPrice] = useState(0);
     const displayPriceRef = useRef(0);
     useEffect(() => {
@@ -56,7 +56,7 @@ export default function ActueelBod() {
                 setInitLot(actief?.huidigProduct ?? null);
                 setWachtrij(actief?.wachtrij ?? []);
 
-                // ✅ Backend stuurt VeilingOverzichtDto: IsPauze/IsGestart/IsAfgesloten (geen status)
+                //  Backend stuurt VeilingOverzichtDto: IsPauze/IsGestart/IsAfgesloten (geen status)
                 const derivedStatus =
                     actief?.isPauze ? 2 :
                         actief?.isGestart ? 1 :
@@ -82,7 +82,7 @@ export default function ActueelBod() {
         };
     }, []);
 
-    // ✅ laat live updates altijd lopen; alleen UI-teller pauzeren
+    //  laat live updates altijd lopen; alleen UI-teller pauzeren
     const { lot: liveLot, loading: liveLoading } = useLiveVeiling(token, veilingId);
     const lot = liveLot ?? initLot;
 
@@ -90,7 +90,7 @@ export default function ActueelBod() {
         setAantal(0);
     }, [lot?.veilingProductId]);
 
-    // ✅ Nieuwe lot: start altijd vanaf serverprijs (bij nieuw product is dat correct)
+    //  Nieuwe lot: start altijd vanaf serverprijs (bij nieuw product is dat correct)
     useEffect(() => {
         if (!lot) return;
 
@@ -102,7 +102,7 @@ export default function ActueelBod() {
         setDisplayPrice(serverPrice);
     }, [lot?.veilingProductId]);
 
-    // ✅ Bij pauze: bevries exact op schermprijs en zet daling 0
+    //  Bij pauze: bevries exact op schermprijs en zet daling 0
     useEffect(() => {
         if (!isPaused) return;
 
@@ -116,7 +116,7 @@ export default function ActueelBod() {
         setDisplayPrice(frozen);
     }, [isPaused]);
 
-    // ✅ Bij resume: GA VERDER VANAF BEVROREN PRIJS (niet van lot.huidigePrijs, die is vaak maximum)
+    //  Bij resume: GA VERDER VANAF BEVROREN PRIJS (niet van lot.huidigePrijs, die is vaak maximum)
     useEffect(() => {
         if (!lot) return;
 
@@ -133,7 +133,7 @@ export default function ActueelBod() {
         wasPausedRef.current = isPaused;
     }, [isPaused, lot?.veilingProductId]);
 
-    // ✅ Smooth daling: alleen lopen als veiling live
+    //  Smooth daling: alleen lopen als veiling live
     useEffect(() => {
         if (!lot || isPaused) return;
 
