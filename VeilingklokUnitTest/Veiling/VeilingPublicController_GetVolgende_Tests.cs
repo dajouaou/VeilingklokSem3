@@ -1,0 +1,67 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading.Tasks;
+using Veilingklok.Core.Entities;
+using Veilingklok.Core.Enums;
+using Veilingklok.Features.Veiling.Controllers;
+using Veilingklok.Features.VeilingmeesterDashboard.Dtos;
+using Veilingklok.Infrastructure.Database;
+using Xunit;
+
+namespace VeilingklokUnitTest.Veiling
+{
+    public sealed class VeilingPublicController_GetVolgende_Tests
+    {
+        private static MyContext CreateDb()
+        {
+            var opts = new DbContextOptionsBuilder<MyContext>()
+                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+                .Options;
+            return new MyContext(opts);
+        }
+
+        [Fact]
+        public async Task GetVolgende_NoPlannedVeiling_ReturnsNull()
+        {
+            using var db = CreateDb();
+            var controller = new VeilingPublicController(db);
+
+            var result = await controller.GetVolgende();
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.Null(ok.Value);
+        }
+
+        [Fact]
+        public async Task GetVolgende_PlannedVeiling_ReturnsDto_WithCount()
+        {
+            using var db = CreateDb();
+
+            var v = new Veiling
+            {
+                Id = 1,
+                Status = VeilingStatus.Gepland,
+                Datum = DateTime.Today.AddDays(1),
+                StartTijd = new TimeSpan(9, 0, 0)
+            };
+            db.Veilingen.Add(v);
+            db.VeilingProducten.Add(new VeilingProduct { Id = 10, VeilingId = 1 });
+            db.VeilingProducten.Add(new VeilingProduct { Id = 11, VeilingId = 1 });
+
+            await db.SaveChangesAsync();
+
+            var controller = new VeilingPublicController(db);
+
+            var result = await controller.GetVolgende();
+
+            var ok = Assert.IsType<OkObjectResult>(result.Result);
+            var dto = Assert.IsType<GeplandeVeilingListItemDto>(ok.Value);
+
+            Assert.Equal(1, dto.Id);
+            Assert.Equal(DateTime.Today.AddDays(1).ToString("yyyy-MM-dd"), dto.Veildatum);
+            Assert.Equal("09:00", dto.StartTijd);
+            Assert.Equal(2, dto.AantalProducten);
+        }
+    }
+}
