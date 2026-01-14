@@ -13,10 +13,12 @@ using VeilingEntity = Veilingklok.Core.Entities.Veiling;
 
 namespace VeilingklokUnitTest.Veiling
 {
+    // Tests voor VeilingPublicController.GetActief met een actieve (gestarte) veiling
     public sealed class VeilingPublicController_GetActief_ActieveVeiling_Tests
     {
         private static MyContext CreateDb()
         {
+            // InMemory database per test zodat tests elkaar niet beïnvloeden
             var opts = new DbContextOptionsBuilder<MyContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
@@ -28,6 +30,7 @@ namespace VeilingklokUnitTest.Veiling
         {
             using var db = CreateDb();
 
+            // Arrange: aanvoerder + 2 aanmeldingen
             var aanvoerder = new Aanvoerder { Id = 10, Naam = "Jan" };
             db.Aanvoerders.Add(aanvoerder);
 
@@ -55,6 +58,7 @@ namespace VeilingklokUnitTest.Veiling
 
             db.Aanmeldingen.AddRange(a1, a2);
 
+            // Arrange: veiling is gestart
             var v = new VeilingEntity
             {
                 Id = 1,
@@ -64,6 +68,7 @@ namespace VeilingklokUnitTest.Veiling
             };
             db.Veilingen.Add(v);
 
+            // Arrange: 1 actief product + 1 wachtrij product
             var pActief = new VeilingProduct
             {
                 Id = 200,
@@ -105,8 +110,10 @@ namespace VeilingklokUnitTest.Veiling
 
             var controller = new VeilingPublicController(db);
 
+            // Act
             var result = await controller.GetActief();
 
+            // Assert: Ok met overzicht + huidig product + wachtrij
             var ok = Assert.IsType<OkObjectResult>(result);
             var dto = Assert.IsType<VeilingOverzichtDto>(ok.Value);
 
@@ -129,6 +136,7 @@ namespace VeilingklokUnitTest.Veiling
         {
             using var db = CreateDb();
 
+            // Arrange: veiling gestart maar HuidigProductId verwijst naar niet-bestaand product
             var v = new VeilingEntity
             {
                 Id = 1,
@@ -142,8 +150,10 @@ namespace VeilingklokUnitTest.Veiling
 
             var controller = new VeilingPublicController(db);
 
+            // Act
             var result = await controller.GetActief();
 
+            // Assert: Ok met HuidigProduct = null
             var ok = Assert.IsType<OkObjectResult>(result);
             var dto = Assert.IsType<VeilingOverzichtDto>(ok.Value);
 
