@@ -35,10 +35,6 @@ export default function Navbar() {
                             <Link className="nav-link" to="/actueelbod">Actueel bod</Link>
                         </li>
 
-                        <li className="nav-item">
-                            <Link className="nav-link" to="/veiling">Veiling</Link>
-                        </li>
-
                         {/* 👉 RECHTSBOVEN PROFIEL */}
                         {!isKoper ? (
                             <li className="nav-item">
