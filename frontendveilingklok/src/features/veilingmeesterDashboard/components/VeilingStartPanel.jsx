@@ -4,21 +4,27 @@ export default function VeilingStartPanel({
     startTijd,
     setGekozenDatum,
     setStartTijd,
-    onStart
+    onStart,
 }) {
     return (
-        <div className="card shadow p-4 mb-4">
-            <h4 className="mb-3">Nieuwe veiling starten</h4>
+        <section className="vm-panel">
+            <header className="vm-panel-header">
+                <h3>Nieuwe veiling starten</h3>
+                <p className="vm-muted">Selecteer veildatum en starttijd.</p>
+            </header>
 
-            <div className="row g-3">
-                <div className="col-md-6">
-                    <label className="form-label">Veildatum</label>
+            <div className="vm-form-grid">
+                <div className="vm-field">
+                    <label className="vm-label" htmlFor="veildatum">
+                        Veildatum
+                    </label>
                     <select
-                        className="form-select"
+                        id="veildatum"
+                        className="vm-input"
                         value={gekozenDatum}
                         onChange={(e) => setGekozenDatum(e.target.value)}
                     >
-                        <option value="">-- Kies een dag --</option>
+                        <option value="">Kies een dag</option>
                         {veildagen.map((d) => (
                             <option key={d} value={d}>
                                 {d}
@@ -27,22 +33,25 @@ export default function VeilingStartPanel({
                     </select>
                 </div>
 
-                <div className="col-md-6">
-                    <label className="form-label">Starttijd</label>
+                <div className="vm-field">
+                    <label className="vm-label" htmlFor="starttijd">
+                        Starttijd
+                    </label>
                     <input
+                        id="starttijd"
                         type="time"
-                        className="form-control"
+                        className="vm-input"
                         value={startTijd}
                         onChange={(e) => setStartTijd(e.target.value)}
                     />
                 </div>
             </div>
 
-            <div className="mt-3 text-end">
-                <button className="btn btn-success" onClick={onStart}>
+            <div className="vm-form-actions">
+                <button type="button" className="vm-btn vm-btn-primary" onClick={onStart}>
                     Start veiling
                 </button>
             </div>
-        </div>
+        </section>
     );
 }

@@ -1,23 +1,25 @@
 export default function WachtrijLijst({ wachtrij }) {
-    if (!wachtrij || wachtrij.length === 0) return <p className="text-muted">Geen producten in de wachtrij.</p>;
+    if (!wachtrij || wachtrij.length === 0) {
+        return <p className="vm-muted">Geen producten in de wachtrij.</p>;
+    }
 
     return (
-        <div className="card shadow-sm border-0">
-            <div className="card-header bg-light fw-bold">Wachtrij</div>
+        <section className="vm-panel">
+            <header className="vm-panel-header">
+                <h3>Wachtrij</h3>
+                <p className="vm-muted">Producten die nog moeten draaien.</p>
+            </header>
 
-            <ul className="list-group list-group-flush">
+            <ul className="vm-list">
                 {wachtrij.map((item) => (
-                    <li
-                        key={item.veilingProductId || item.id}
-                        className="list-group-item d-flex justify-content-between"
-                    >
-                        <span>
-                            {item.soort} ({item.resterendeHoeveelheid} stuks)
-                        </span>
-                        <span className="text-muted">Volgorde {item.volgorde}</span>
+                    <li key={item.veilingProductId || item.id} className="vm-list-item vm-list-item-split">
+                        <div className="vm-text">
+                            <strong>{item.soort}</strong> ({item.resterendeHoeveelheid} stuks)
+                        </div>
+                        <div className="vm-muted">Volgorde {item.volgorde}</div>
                     </li>
                 ))}
             </ul>
-        </div>
+        </section>
     );
 }

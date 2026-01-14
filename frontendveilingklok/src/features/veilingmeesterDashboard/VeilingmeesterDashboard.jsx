@@ -26,15 +26,13 @@ import "./VeilingmeesterDashboard.css";
 export default function VeilingmeesterDashboard() {
     const { token, role, logout } = useContext(AuthContext);
 
-    const [veiling, setVeiling] = useState(null);     // actieve veiling
-    const [volgende, setVolgende] = useState(null);   // eerstvolgende geplande veiling
+    const [veiling, setVeiling] = useState(null);
+    const [volgende, setVolgende] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    const { lot, queue, bids, audit, loading: liveLoading } =
-        useLiveVeiling(token, veiling?.id);
+    const { lot, queue, bids, audit, loading: liveLoading } = useLiveVeiling(token, veiling?.id);
 
     const isBusy = loading || liveLoading;
 
@@ -61,18 +59,14 @@ export default function VeilingmeesterDashboard() {
             setLoading(false);
         }
     }, [token, role]);
+
     useEffect(() => {
         if (!token || role !== "Veilingmeester") return;
 
         loadInit();
-
-        const interval = setInterval(() => {
-            loadInit();
-        }, 5000);
-
+        const interval = setInterval(() => loadInit(), 5000);
         return () => clearInterval(interval);
     }, [token, role, loadInit]);
-
 
     async function handleStart() {
         setError("");
@@ -81,7 +75,6 @@ export default function VeilingmeesterDashboard() {
             setError("Er is al een actieve veiling.");
             return;
         }
-
         if (!volgende) {
             setError("Geen geplande veiling beschikbaar.");
             return;
@@ -95,6 +88,7 @@ export default function VeilingmeesterDashboard() {
             setError(err.message || "Kon veiling niet starten.");
         }
     }
+
     async function refreshActiveVeiling() {
         const actief = await getActiveVeiling(token).catch(() => null);
         setVeiling(actief);
@@ -104,30 +98,27 @@ export default function VeilingmeesterDashboard() {
         if (!veiling?.id) return;
         try {
             await pauseVeiling(token, veiling.id);
-
-            setVeiling(prev => prev ? { ...prev, isPauze: true, isGepauzeerd: true, status: "Gepauzeerd" } : prev);
-
+            setVeiling((prev) =>
+                prev ? { ...prev, isPauze: true, isGepauzeerd: true, status: "Gepauzeerd" } : prev
+            );
             await refreshActiveVeiling();
         } catch (e) {
             setError(e.message || "Pauzeren mislukt.");
         }
-
     }
-
 
     async function handleResume() {
         if (!veiling?.id) return;
         try {
             await resumeVeiling(token, veiling.id);
-
-            setVeiling(prev => prev ? { ...prev, isPauze: false, isGepauzeerd: false, status: "Gestart" } : prev);
-
+            setVeiling((prev) =>
+                prev ? { ...prev, isPauze: false, isGepauzeerd: false, status: "Gestart" } : prev
+            );
             await refreshActiveVeiling();
         } catch {
             setError("Hervatten mislukt.");
         }
     }
-
 
     async function handleStop() {
         if (!veiling?.id) return;
@@ -143,84 +134,77 @@ export default function VeilingmeesterDashboard() {
     }
 
     return (
-        <div className="vm-layout">
-            <Sidebar
-                logout={logout}
-                active="dashboard"
-                sidebarOpen={sidebarOpen}
-                setSidebarOpen={setSidebarOpen}
-            />
+        <div className="vm-shell">
+            <Sidebar logout={logout} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-            <div className="vm-main">
-                <Topbar
-                    title="Veilingmeester Dashboard"
-                    veiling={veiling}
-                    onMenuClick={() => setSidebarOpen(true)}
-                />
+            <div className="vm-content">
+                <Topbar title="Veilingmeester" veiling={veiling} onMenuClick={() => setSidebarOpen(true)} />
 
-                <main className="vm-main-content">
-                    {error && <div className="alert alert-danger vm-alert">{error}</div>}
+                <main className="vm-page">
+                    {error && <div className="vm-alert vm-alert-danger">{error}</div>}
 
-                    {/* Volgende geplande veiling */}
-                    <section className="vm-card vm-card-highlight mb-4">
-                        <div className="vm-card-header d-flex justify-content-between align-items-center">
-                            <div>
-                                <h2>Volgende geplande veiling</h2>
+                    <section className="vm-hero-card">
+                        <h2>Overzicht</h2>
+                        <p className="vm-muted">
+                            Monitor de veiling, bekijk biedingen en beheer de klok.
+                        </p>
+
+                        <div className="vm-hero-row">
+                            <div className="vm-hero-item">
+                                <div className="vm-muted">Volgende veiling</div>
                                 {volgende ? (
-                                    <p className="mb-0">
-                                        Veiling #{volgende.id} {" - "}
-                                        <strong>{volgende.veildatum}</strong> {" - "}
-                                        <strong>{volgende.startTijd}</strong> {" - "}
-                                        {volgende.aantalProducten} producten
-                                    </p>
-
+                                    <div className="vm-hero-strong">
+                                        #{volgende.id} | {volgende.veildatum} | {volgende.startTijd}
+                                    </div>
                                 ) : (
-                                    <p className="mb-0 text-muted">
-                                        Geen geplande veiling beschikbaar.
-                                    </p>
+                                    <div className="vm-hero-strong">Geen planning</div>
                                 )}
+                                <div className="vm-muted">
+                                    Producten: {volgende?.aantalProducten ?? 0}
+                                </div>
                             </div>
 
-                            {volgende && !veiling && (
-                                <button
-                                    className="btn btn-primary vm-primary-btn"
-                                    onClick={handleStart}
-                                    disabled={isBusy}
-                                >
-                                    Veiling starten
-                                </button>
-                            )}
+                            <div className="vm-hero-item vm-hero-actions">
+                                {volgende && !veiling && (
+                                    <button
+                                        type="button"
+                                        className="vm-btn vm-btn-primary"
+                                        onClick={handleStart}
+                                        disabled={isBusy}
+                                    >
+                                        Start veiling
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </section>
 
-                    {/* Metrics */}
-                    <section className="vm-metrics-grid">
-                        <div className="vm-card vm-metric">
-                            <p className="label">In wachtrij</p>
-                            <p className="value">{queue?.length ?? 0}</p>
-
+                    <section className="vm-metrics">
+                        <div className="vm-metric">
+                            <div className="vm-muted">In wachtrij</div>
+                            <div className="vm-metric-value">{queue?.length ?? 0}</div>
                         </div>
-                        <div className="vm-card vm-metric">
-                            <p className="label">Laatste biedingen</p>
-                            <p className="value">{bids?.length ?? 0}</p>
+                        <div className="vm-metric">
+                            <div className="vm-muted">Biedingen</div>
+                            <div className="vm-metric-value">{bids?.length ?? 0}</div>
                         </div>
-                        <div className="vm-card vm-metric">
-                            <p className="label">Log events</p>
-                            <p className="value">{audit?.length ?? 0}</p>
+                        <div className="vm-metric">
+                            <div className="vm-muted">Log events</div>
+                            <div className="vm-metric-value">{audit?.length ?? 0}</div>
                         </div>
-                        <div className="vm-card vm-metric">
-                            <p className="label">Live status</p>
-                            <p className="value">
-                                {isBusy ? "Bezig" : veiling ? "Actief" : "Inactief"}
-                            </p>
+                        <div className="vm-metric">
+                            <div className="vm-muted">Status</div>
+                            <div className="vm-metric-value">{isBusy ? "Bezig" : veiling ? "Actief" : "Inactief"}</div>
                         </div>
                     </section>
 
-                    {/* Klokbediening */}
-                    <section className="vm-card vm-controls-card">
-                        <div className="vm-card-header">
-                            <h2>Klokbediening</h2>
-                        </div>
+                    <section className="vm-panel">
+                        <header className="vm-panel-header vm-panel-header-split">
+                            <div>
+                                <h3>Klokbediening</h3>
+                                <p className="vm-muted">Start, pauzeer, hervat of stop de veiling.</p>
+                            </div>
+                        </header>
 
                         <VeilingControls
                             veiling={veiling}
@@ -234,12 +218,8 @@ export default function VeilingmeesterDashboard() {
                     {veiling && !isBusy && (
                         <>
                             <section className="vm-grid-2">
-                                <div className="vm-card">
-                                    <VeilingInformatie gegevens={veiling} />
-                                </div>
-                                <div className="vm-card">
-                                    <LiveKlok lot={lot} />
-                                </div>
+                                <VeilingInformatie gegevens={veiling} />
+                                <LiveKlok lot={lot} />
                             </section>
 
                             <section className="vm-grid-2">
