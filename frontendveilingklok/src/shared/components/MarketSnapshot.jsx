@@ -38,12 +38,12 @@ export default function MarketSnapshot() {
     }, []);
 
     const priceText = useMemo(() => {
-        if (loading) return "…";
-        if (lastPrice == null) return "—";
+        if (loading) return "...";
+        if (lastPrice == null) return "-";
         return `€${Number(lastPrice).toFixed(2)}`;
     }, [loading, lastPrice]);
 
-    const biddersText = "—"; // pas mogelijk met backend hub-tracking
+    const biddersText = "-"; // pas mogelijk met backend hubtracking
 
     return (
         <section className="market-snapshot py-4">
@@ -65,7 +65,7 @@ export default function MarketSnapshot() {
                             <div className="kpi">
                                 <div className="kpi-label">Online bieders</div>
                                 <div className="kpi-value">{biddersText}</div>
-                                <div className="kpi-sub text-muted">Realtime motherfuckers!!</div>
+                                <div className="kpi-sub text-muted">Realtime bieders.</div>
                             </div>
                         </div>
 
