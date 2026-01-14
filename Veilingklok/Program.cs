@@ -246,4 +246,7 @@ app.MapControllers();
 app.MapHealthChecks("/health");
 app.MapHub<AuctionHub>("/hub/veiling");
 
+// Kleine startpagina zodat / geen 404 geeft
+app.MapGet("/", () => Results.Ok("API draait. Gebruik /health of /api/..."));
+
 app.Run();
