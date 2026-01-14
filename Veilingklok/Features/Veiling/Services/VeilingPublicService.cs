@@ -1,30 +1,30 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Infrastructure.Database;
 
 namespace Veilingklok.Features.VeilingPublic.Services
 {
-    // Service die openbare veiling-info ophaalt voor de public pagina’s
+    // Service voor publieke veilinginformatie
     public class VeilingPublicService : IVeilingPublicService
     {
         private readonly MyContext _db;
 
-        // Injecteert de database context
         public VeilingPublicService(MyContext db)
         {
-            _db = db;
+            _db = db; // DbContext via dependency injection
         }
 
-        // Haalt alle beschikbare veildagen op en zet ze om naar strings
+        // Haalt alle beschikbare veildagen op
         public async Task<List<string>> GetBeschikbareVeildagenAsync()
         {
             var dagen = await _db.Aanmeldingen
-                .Select(a => a.LeverDatum.Date)
-                .Distinct()
-                .OrderBy(d => d)
+                .Select(a => a.LeverDatum.Date) // alleen datum, geen tijd
+                .Distinct()                     // dubbele dagen verwijderen
+                .OrderBy(d => d)                // sorteren op datum
                 .ToListAsync();
 
             return dagen.Select(d => d.ToString("yyyy-MM-dd")).ToList();
+            // Datum formatteren voor frontend
         }
     }
 }
