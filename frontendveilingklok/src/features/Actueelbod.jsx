@@ -10,7 +10,7 @@ import PrijsHistorieModal from "../shared/components/PrijsHistorieModal";
 import flowerbanner1 from "../Images/flowerbanner1.jpg";
 
 
-import { API_BASE_URL } from "../../config/apiBaseUrl";
+import { API_BASE_URL } from "../config/apiBaseUrl";
 
 
 export default function ActueelBod() {
