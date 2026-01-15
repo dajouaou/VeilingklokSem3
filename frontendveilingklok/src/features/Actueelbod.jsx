@@ -9,7 +9,9 @@ import { getPublicActieveVeiling } from "./veiling/api/veilingPublicApi";
 import PrijsHistorieModal from "../shared/components/PrijsHistorieModal";
 import flowerbanner1 from "../Images/flowerbanner1.jpg";
 
-const API_BASE = "https://localhost:56418";
+
+import { API_BASE_URL } from "../../config/apiBaseUrl";
+
 
 export default function ActueelBod() {
     const { token, role } = useContext(AuthContext);
@@ -173,7 +175,7 @@ export default function ActueelBod() {
         }
 
         try {
-            const res = await fetch(`${API_BASE}/api/bod/${veilingId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/bod/${veilingId}`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
