@@ -32,14 +32,8 @@ export default function AppRouter() {
             />
 
 
-            <Route
-                path="/"
-                element={
-                    <ProtectedRoute allowedRoles={["Koper"]}>
-                        <HomePage />
-                    </ProtectedRoute>
-                }
-            />
+            <Route path="/" element={<HomePage />} />
+
 
             <Route
                 path="/aanvoerder"
