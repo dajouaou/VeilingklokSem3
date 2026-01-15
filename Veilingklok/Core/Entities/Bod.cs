@@ -13,7 +13,7 @@
         public int KoperId { get; set; }
         public Koper? Koper { get; set; }
 
-        public int Aantal { get; set; }                    // ✅ nodig voor deelverkoop
+        public int Aantal { get; set; }                    // nodig voor deelverkoop
         public decimal Prijs { get; set; }
         public DateTime Tijdstip { get; set; } = DateTime.UtcNow;
     }
