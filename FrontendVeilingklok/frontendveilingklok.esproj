@@ -26,4 +26,10 @@
     <Folder Include="src\features\veilingmeesterDashboard\hooks\" />
     <Folder Include="src\features\veiling\hooks\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="src\favicon.ico">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
 </Project>
