@@ -7,7 +7,7 @@ import { AuthContext } from "./auth/AuthContext";
 import useLiveVeiling from "./veilingmeesterDashboard/hooks/useLiveVeiling";
 import { getPublicActieveVeiling } from "./veiling/api/veilingPublicApi";
 import PrijsHistorieModal from "../shared/components/PrijsHistorieModal";
-import flowerbanner1 from "../Images/flowerbanner1.jpg";
+import flowerbanner1 from "src/Images/flowerbanner1.jpg";
 
 
 import { API_BASE_URL } from "../config/apiBaseUrl";
