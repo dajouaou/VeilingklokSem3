@@ -1,10 +1,17 @@
-const API_BASE = "https://localhost:56418";
+import { API_BASE_URL } from "../../../config/apiBaseUrl";
 
-async function apiGet(url) {
-    const res = await fetch(`${API_BASE}${url}`);
+async function apiGet(path) {
+    const res = await fetch(`${API_BASE_URL}${path}`);
+
     let data = null;
-    try { data = await res.json(); } catch { }
-    if (!res.ok) return null;
+    try {
+        data = await res.json();
+    } catch { }
+
+    if (!res.ok) {
+        throw new Error(`GET ${path} mislukt`);
+    }
+
     return data;
 }
 

@@ -13,7 +13,7 @@ export default function useLiveVeiling(token, veilingId) {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        // ✅ als geen token/veiling: state resetten zodat UI niet crasht / oude data toont
+        // als geen token/veiling: state resetten zodat UI niet crasht / oude data toont
         if (!token || !veilingId) {
             setLot(null);
             setWachtrij([]);

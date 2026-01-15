@@ -1,26 +1,19 @@
-// Basis URL van de API
-const API_BASE = "https://localhost:56418";
+import { API_BASE_URL } from "../../../config/apiBaseUrl";
 
-// Haalt aanmeldingen op, optioneel gefilterd op leverdatum
 export async function fetchAanmeldingen({ token, leverdatum }) {
-    let url = `${API_BASE}/api/aanvoerder/dashboard/aanmeldingen`;
-
-    if (leverdatum) {
-        url += `?leverdatum=${leverdatum}`;
-    }
+    let url = `${API_BASE_URL}/api/aanvoerder/dashboard/aanmeldingen`;
+    if (leverdatum) url += `?leverdatum=${encodeURIComponent(leverdatum)}`;
 
     const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
     });
 
     if (!res.ok) throw new Error("Kon aanmeldingen niet laden.");
     return res.json();
 }
 
-// Maakt een nieuwe aanmelding aan (met optionele foto)
 export async function createAanmelding({ token, data }) {
     const formData = new FormData();
-
     formData.append("Soort", data.soort);
     formData.append("Potmaat", data.potmaat ?? "");
     formData.append("Steellengte", data.steellengte ?? "");
@@ -29,41 +22,32 @@ export async function createAanmelding({ token, data }) {
     formData.append("KlokLocatie", data.klokLocatie);
     formData.append("LeverDatum", data.leverdatum);
     formData.append("Beschrijving", data.beschrijving ?? "");
+    if (data.fotoFile) formData.append("Foto", data.fotoFile);
 
-    if (data.fotoFile) {
-        formData.append("Foto", data.fotoFile);
-    }
-
-    const res = await fetch(`${API_BASE}/api/aanvoerder/dashboard/aanmeldingen`, {
+    const res = await fetch(`${API_BASE_URL}/api/aanvoerder/dashboard/aanmeldingen`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
-        body: formData
+        body: formData,
     });
 
     if (!res.ok) throw new Error("Kon aanmelding niet opslaan.");
     return res.json();
 }
 
-// Haalt statistieken van de aanvoerder op
 export async function fetchAanvoerderStats({ token, leverdatum }) {
-    let url = `${API_BASE}/api/aanvoerder/dashboard/statistieken`;
-
-    if (leverdatum) {
-        url += `?leverdatum=${leverdatum}`;
-    }
+    let url = `${API_BASE_URL}/api/aanvoerder/dashboard/statistieken`;
+    if (leverdatum) url += `?leverdatum=${encodeURIComponent(leverdatum)}`;
 
     const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
     });
 
     if (!res.ok) throw new Error("Kon statistieken niet laden.");
     return res.json();
 }
 
-// Wijzigt een bestaande aanmelding
 export async function updateAanmelding({ token, id, data }) {
     const formData = new FormData();
-
     formData.append("Soort", data.soort);
     formData.append("Potmaat", data.potmaat ?? "");
     formData.append("Steellengte", data.steellengte ?? "");
@@ -72,24 +56,20 @@ export async function updateAanmelding({ token, id, data }) {
     formData.append("KlokLocatie", data.klokLocatie);
     formData.append("LeverDatum", data.leverdatum);
     formData.append("Beschrijving", data.beschrijving ?? "");
+    if (data.fotoFile) formData.append("Foto", data.fotoFile);
 
-    if (data.fotoFile) {
-        formData.append("Foto", data.fotoFile);
-    }
-
-    const res = await fetch(`${API_BASE}/api/aanvoerder/dashboard/aanmeldingen/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/aanvoerder/dashboard/aanmeldingen/${id}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` },
-        body: formData
+        body: formData,
     });
 
     if (!res.ok) throw new Error("Kon aanmelding niet wijzigen.");
     return res.json();
 }
 
-// Verwijdert een aanmelding en leest foutmelding uit indien aanwezig
 export async function deleteAanmelding({ token, id }) {
-    const res = await fetch(`${API_BASE}/api/aanvoerder/dashboard/aanmeldingen/${id}`, {
+    const res = await fetch(`${API_BASE_URL}/api/aanvoerder/dashboard/aanmeldingen/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
     });
@@ -97,16 +77,15 @@ export async function deleteAanmelding({ token, id }) {
     let data = null;
     try {
         data = await res.json();
-    } catch {
-        // Geen response body
-    }
+    } catch { }
 
     if (!res.ok) {
         const msg =
             typeof data === "string"
                 ? data
                 : data?.message || data?.title || "Kon aanmelding niet verwijderen.";
-
         throw new Error(msg);
     }
+
+    return true;
 }

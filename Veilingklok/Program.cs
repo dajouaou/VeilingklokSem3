@@ -41,8 +41,23 @@ builder.Services.AddControllers()
         o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 
-builder.Services.AddDbContext<MyContext>(opt =>
-    opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<MyContext>(options =>
+{
+    // Als we lokaal draaien (Development)
+    if (builder.Environment.IsDevelopment())
+    {
+        // Gebruik de lokale connection string uit appsettings.json
+        options.UseSqlServer(
+            builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
+    else
+    {
+        // Als we op Azure draaien (Production)
+        options.UseSqlServer(
+            builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING"));
+    }
+});
+
 builder.Services.AddScoped<IPrijsHistorieService, PrijsHistorieService>();
 
 builder.Services.AddSignalR()
@@ -101,22 +116,18 @@ builder.Services
         };
     });
 
-builder.Services.AddCors(opt =>
+var allowedOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? Array.Empty<string>();
+
+builder.Services.AddCors(options =>
 {
-    opt.AddPolicy("AllowFrontend", p =>
-        p.WithOrigins(
-                "http://localhost:5173",
-                "https://localhost:5173",
-                "http://localhost:5174",
-                "https://localhost:5174",
-                "http://localhost:5175",
-                "https://localhost:5175"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials()
-    );
+    options.AddPolicy("FrontendPolicy", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -222,7 +233,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors("AllowFrontend");
+app.UseCors("FrontendPolicy");
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -230,5 +241,8 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHealthChecks("/health");
 app.MapHub<AuctionHub>("/hub/veiling");
+
+// Kleine startpagina zodat / geen 404 geeft
+app.MapGet("/", () => Results.Ok("API draait. Gebruik /health of /api/..."));
 
 app.Run();

@@ -8,10 +8,12 @@ using Xunit;
 
 namespace VeilingklokUnitTest.Veiling
 {
+    // Test voor VeilingPublicController.GetPublicVeildagen
     public sealed class VeilingPublicController_GetPublicVeildagen_Tests
     {
         private static MyContext CreateDb()
         {
+            // InMemory database per test
             var opts = new DbContextOptionsBuilder<MyContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
@@ -23,6 +25,7 @@ namespace VeilingklokUnitTest.Veiling
         {
             using var db = CreateDb();
 
+            // Arrange: 2 geldige dagen, 1 duplicate, 1 record die eruit moet (VeilingProductId != null)
             db.Aanmeldingen.Add(new Aanmelding { LeverDatum = DateTime.Today, VeilingProductId = null });
             db.Aanmeldingen.Add(new Aanmelding { LeverDatum = DateTime.Today.AddDays(1), VeilingProductId = null });
             db.Aanmeldingen.Add(new Aanmelding { LeverDatum = DateTime.Today, VeilingProductId = null }); // duplicate
@@ -32,8 +35,10 @@ namespace VeilingklokUnitTest.Veiling
 
             var controller = new VeilingPublicController(db);
 
+            // Act
             var result = await controller.GetPublicVeildagen();
 
+            // Assert: alleen unieke, gesorteerde dagen en alleen waar VeilingProductId null is
             var list = result.Value!;
             Assert.Equal(2, list.Count);
             Assert.Equal(DateTime.Today.ToString("yyyy-MM-dd"), list[0]);

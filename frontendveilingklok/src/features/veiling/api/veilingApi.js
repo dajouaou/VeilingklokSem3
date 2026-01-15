@@ -1,32 +1,28 @@
-const API_BASE = "https://localhost:56418";
+import { API_BASE_URL } from "../../../config/apiBaseUrl";
 
-async function apiGet(url, token) {
-    const res = await fetch(`${API_BASE}${url}`, {
-        headers: { Authorization: `Bearer ${token}` },
+async function apiGet(path, token) {
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     });
 
     let data = null;
     try {
         data = await res.json();
-    } catch {
-        // soms is het plain text / leeg
-    }
+    } catch { }
 
     if (!res.ok) {
         const message =
             typeof data === "string"
                 ? data
-                : data?.message || data?.title || `GET ${url} mislukt`;
-
+                : data?.message || data?.title || `GET ${path} mislukt`;
         throw new Error(message);
     }
 
     return data;
 }
 
-
-async function apiPost(url, token, body) {
-    const res = await fetch(`${API_BASE}${url}`, {
+async function apiPost(path, token, body) {
+    const res = await fetch(`${API_BASE_URL}${path}`, {
         method: "POST",
         headers: {
             Authorization: `Bearer ${token}`,
@@ -38,22 +34,20 @@ async function apiPost(url, token, body) {
     let data = null;
     try {
         data = await res.json();
-    } catch {
-    }
+    } catch { }
 
     if (!res.ok) {
         const message =
             typeof data === "string"
-                ? data               
-                : data?.message             
-                || `POST ${url} mislukt`;
-
+                ? data
+                : data?.message || data?.title || `POST ${path} mislukt`;
         throw new Error(message);
     }
 
     return data;
 }
 
+/* Veilingmeester beheer */
 export function getActiveVeiling(token) {
     return apiGet("/api/veilingmeester/veilingen/actief", token);
 }
@@ -74,19 +68,20 @@ export function stopVeiling(token, veilingId) {
     return apiPost(`/api/veilingmeester/veilingen/${veilingId}/stop`, token);
 }
 
-export function placeBid(token, veilingId) {
-    return apiPost(`/api/veilingmeester/veilingen/${veilingId}/buy`, token);
-}
-
+/* Planning */
 export function fetchVeilingDagen(token) {
     return apiGet("/api/veilingmeester/planning/veildagen", token);
 }
 
 export function fetchAanmeldingenVoorDatum(token, leverdatum) {
     return apiGet(
-        `/api/veilingmeester/planning/aanmeldingen?leverdatum=${encodeURIComponent(leverdatum)}`,
+        `/api/veilingmeester/planning/aanmeldingen?leverdatum=${encodeURIComponent(leverdaturmFix(leverdatum))}`,
         token
     );
+}
+
+function leverdaturmFix(leverd) {
+    return (leverd ?? "").trim();
 }
 
 export function planVeiling(token, body) {
@@ -96,11 +91,12 @@ export function planVeiling(token, body) {
 export function fetchPlannedVeilingen(token) {
     return apiGet("/api/veilingmeester/planning/gepland", token);
 }
+
 export function fetchVolgendeVeiling(token) {
     return apiGet("/api/veilingmeester/planning/volgende", token);
 }
+
+/* Archief */
 export function fetchArchiefVeilingen(token) {
     return apiGet("/api/veilingmeester/veilingen/archief", token);
 }
-
-
