@@ -4,7 +4,7 @@ using System.Security.Claims;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.AanvoerderDashboard.Dtos;
 using Veilingklok.Infrastructure.Database;
-using Microsoft.EntityFrameworkCore;
+
 
 namespace Veilingklok.Features.AanvoerderDashboard.Controllers;
 
