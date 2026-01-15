@@ -9,21 +9,21 @@
                         {
                             naam: "Doa",
                             rol: "Bloemenliefhebber",
-                            img: "Images/icon.jpg",
+                            img: "/src/images/icon.jpg",
                             text: "Geweldige service en mooie kwaliteit bloemen. Elke veiling is spannend en overzichtelijk!",
                             stars: 5
                         },
                         {
                             naam: "Shriya",
                             rol: "Tuinier",
-                            img: "Images/icon.jpg",
+                            img: "/src/images/icon.jpg",
                             text: "De digitale veiling is super makkelijk te gebruiken en de producten zijn altijd topkwaliteit.",
                             stars: 4
                         },
                         {
                             naam: "Sofia",
                             rol: "Plantenhandelaar",
-                            img: "Ïmages/icon.jpg",
+                            img: "/src/images/icon.jpg",
                             text: "Ik kan de veiling elke week volgen en vind altijd de bloemen die ik nodig heb. Top ervaring!",
                             stars: 5
                         }
