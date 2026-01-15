@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { registerApi } from "../auth/api/authApi";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function Register() {
     const navigate = useNavigate();
@@ -122,9 +123,10 @@ export default function Register() {
 
                             <p className="text-center mt-4">
                                 Al een account?{" "}
-                                <a href="/login" className="text-success fw-semibold">
+                                <Link to="/login" className="text-success fw-semibold">
                                     Log in
-                                </a>
+                                </Link>
+
                             </p>
 
                         </div>
