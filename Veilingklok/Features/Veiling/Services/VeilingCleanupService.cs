@@ -7,7 +7,6 @@ using Veilingklok.Infrastructure.Time;
 
 namespace Veilingklok.Features.Veiling.Services
 {
-    // Background service die verlopen geplande veilingen automatisch afsluit
     public class VeilingCleanupService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
@@ -19,6 +18,7 @@ namespace Veilingklok.Features.Veiling.Services
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            // elke 30 sec checken is prima
             while (!stoppingToken.IsCancellationRequested)
             {
                 try
@@ -26,41 +26,45 @@ namespace Veilingklok.Features.Veiling.Services
                     using var scope = _scopeFactory.CreateScope();
                     var db = scope.ServiceProvider.GetRequiredService<MyContext>();
 
-                    // ✅ Gebruik NL tijd
-                    var now = NlTime.Now();
-                    var today = now.Date;
+                    var nowNl = NlTime.Now();
+                    var today = nowNl.Date;
 
-                    // geplande veilingen van vandaag en eerder
+                    var grace = TimeSpan.FromMinutes(5);
+
+                    // Pak geplande veilingen van vandaag en eerder
                     var kandidaten = await db.Veilingen
                         .Where(v => v.Status == VeilingStatus.Gepland && v.Datum <= today)
                         .ToListAsync(stoppingToken);
 
-                    var grace = TimeSpan.FromMinutes(5);
-
                     var verlopen = kandidaten
                         .Where(v =>
                         {
-                            var geplandeStart = v.Datum.Date + v.StartTijd;
+                            var geplandeStartNl = v.Datum.Date + v.StartTijd;
 
-                            // alles van eerdere dagen meteen afsluiten
+                            // Eerdere dagen altijd verlopen
                             if (v.Datum.Date < today) return true;
 
-                            // vandaag pas na grace afsluiten
-                            return now > geplandeStart + grace;
+                            // Vandaag: verlopen als nu > geplande start + 5 min
+                            return nowNl > geplandeStartNl + grace;
                         })
                         .ToList();
 
                     if (verlopen.Count > 0)
                     {
                         foreach (var v in verlopen)
+                        {
                             v.Status = VeilingStatus.Afgesloten;
+
+                            // zet timestamp (optioneel maar sterk aan te raden)
+                            v.AfgeslotenOpUtc ??= DateTime.UtcNow;
+                        }
 
                         await db.SaveChangesAsync(stoppingToken);
                     }
                 }
                 catch
                 {
-                    // errors mogen service niet stoppen
+                    // laat de service doorlopen
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);

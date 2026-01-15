@@ -45,7 +45,7 @@ namespace Veilingklok.Features.Veiling.Services
 
             var geplandeStart = v.Datum.Date + v.StartTijd;
 
-            // ✅ NL tijd i.p.v. DateTime.Now (Azure kan UTC draaien)
+            // NL tijd i.p.v. DateTime.Now (door mf Azure)
             if (NlTime.Now() < geplandeStart)
                 throw new ArgumentException($"Deze veiling kan pas gestart worden op {geplandeStart:yyyy-MM-dd HH:mm}");
 
@@ -134,7 +134,7 @@ namespace Veilingklok.Features.Veiling.Services
             return await GetDetailsAsync(veiling.Id);
         }
 
-        // Bouwt het overzicht (huidig product + wachtrij) voor één veiling
+        // Bouwt het overzicht (huidig product + wachtrij) voor 1 veiling
         public async Task<VeilingOverzichtDto> GetDetailsAsync(int veilingId)
         {
             var v = await _db.Veilingen
