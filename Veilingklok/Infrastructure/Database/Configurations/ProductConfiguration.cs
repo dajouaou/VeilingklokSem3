@@ -12,6 +12,6 @@ public sealed class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.HasKey(p => p.Id);
 
         builder.Property(p => p.MinimumPrijs)
-            .HasColumnType("decimal(18,2)"); // ✅ geld
+            .HasColumnType("decimal(18,2)"); // geld
     }
 }

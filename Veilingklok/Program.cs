@@ -122,9 +122,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.AllowAnyOrigin()
+      .AllowAnyHeader()
+      .AllowAnyMethod();
+
     });
 });
 
@@ -137,7 +138,7 @@ builder.Services.AddSwaggerGen(c =>
         Title = "Veilingklok API",
         Version = "v1"
     });
-
+   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
