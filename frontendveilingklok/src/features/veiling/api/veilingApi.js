@@ -68,7 +68,7 @@ export function stopVeiling(token, veilingId) {
     return apiPost(`/api/veilingmeester/veilingen/${veilingId}/stop`, token);
 }
 
-/* Planning */
+// Planning
 export function fetchVeilingDagen(token) {
     return apiGet("/api/veilingmeester/planning/veildagen", token);
 }
@@ -96,7 +96,7 @@ export function fetchVolgendeVeiling(token) {
     return apiGet("/api/veilingmeester/planning/volgende", token);
 }
 
-/* Archief */
+// Archief
 export function fetchArchiefVeilingen(token) {
     return apiGet("/api/veilingmeester/veilingen/archief", token);
 }

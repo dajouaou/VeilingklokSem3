@@ -5,10 +5,10 @@ using Veilingklok.Core.Entities;
 using Veilingklok.Core.Enums;
 using Veilingklok.Features.Veiling.Dtos;
 using VeilingEntity = Veilingklok.Core.Entities.Veiling;
+using Veilingklok.Infrastructure.Time;
 
 namespace Veilingklok.Features.Veiling.Services
 {
-    // Service met alle veiling-logica (ophalen, starten, pauzeren, stoppen, bod plaatsen)
     public class VeilingService : IVeilingService
     {
         private readonly MyContext _db;
@@ -18,7 +18,6 @@ namespace Veilingklok.Features.Veiling.Services
             _db = db;
         }
 
-        // Zoekt de veiling die gestart of gepauzeerd is en geeft het volledige overzicht terug
         public async Task<VeilingOverzichtDto?> GetActieveVeilingAsync()
         {
             var v = await _db.Veilingen
@@ -34,7 +33,6 @@ namespace Veilingklok.Features.Veiling.Services
             return await GetDetailsAsync(v.Id);
         }
 
-        // Start een geplande veiling als de geplande starttijd bereikt is
         public async Task<VeilingOverzichtDto> StartGeplandeVeilingAsync(int veilingId)
         {
             var v = await _db.Veilingen
@@ -46,7 +44,9 @@ namespace Veilingklok.Features.Veiling.Services
             if (v.Status != VeilingStatus.Gepland) throw new ArgumentException("Veiling is niet gepland.");
 
             var geplandeStart = v.Datum.Date + v.StartTijd;
-            if (DateTime.Now < geplandeStart)
+
+            // ✅ NL tijd i.p.v. DateTime.Now (Azure kan UTC draaien)
+            if (NlTime.Now() < geplandeStart)
                 throw new ArgumentException($"Deze veiling kan pas gestart worden op {geplandeStart:yyyy-MM-dd HH:mm}");
 
             var first = v.Producten
@@ -57,11 +57,9 @@ namespace Veilingklok.Features.Veiling.Services
             v.Status = VeilingStatus.Gestart;
             v.HuidigProductId = first.Id;
 
-            // Eerste product actief maken en klok bovenaan starten
             first.IsActief = true;
             first.LaatstePrijsUpdateUtc = DateTime.UtcNow;
 
-            // Fallbacks als prijzen/tempo nog niet zijn gezet
             if (first.MaximumPrijs <= 0)
             {
                 first.MinimumPrijs = first.MinimumPrijs <= 0 ? (first.Aanmelding?.MinimumPrijs ?? 0) : first.MinimumPrijs;
@@ -80,7 +78,6 @@ namespace Veilingklok.Features.Veiling.Services
             return await GetDetailsAsync(v.Id);
         }
 
-        // Maakt een veiling aan + vult veilingproducten op basis van aanmeldingen (status: gepland)
         public async Task<VeilingOverzichtDto> StartVeilingAsync(DateTime veildatum, DateTime leverdatum, TimeSpan? startTijd = null)
         {
             var aanmeldingen = await _db.Aanmeldingen
@@ -107,7 +104,6 @@ namespace Veilingklok.Features.Veiling.Services
 
             foreach (var a in aanmeldingen)
             {
-                // Simpele defaults voor prijs en daling
                 var min = a.MinimumPrijs;
                 var max = min + 5m;
                 var daling = 0.10m;
@@ -131,7 +127,7 @@ namespace Veilingklok.Features.Veiling.Services
                 };
 
                 _db.VeilingProducten.Add(vp);
-                a.VeilingProduct = vp; // koppeling terug naar aanmelding
+                a.VeilingProduct = vp;
             }
 
             await _db.SaveChangesAsync();

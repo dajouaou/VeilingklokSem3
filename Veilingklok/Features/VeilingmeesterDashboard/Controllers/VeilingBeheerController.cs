@@ -6,18 +6,17 @@ using Veilingklok.Infrastructure.Database;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
 using Microsoft.EntityFrameworkCore;
 using Veilingklok.Core.Enums;
+using Veilingklok.Infrastructure.Time;
 
 [ApiController]
 [Authorize(Roles = "Veilingmeester")]
 [Route("api/veilingmeester/veilingen")]
-// Controller voor veilingmeester acties (start/pause/resume/stop + archief)
 public class VeilingBeheerController : ControllerBase
 {
     private readonly IVeilingService _service;
     private readonly IVeilingBroadcastService _broadcast;
     private readonly MyContext _db;
 
-    // Injecteert service, broadcaster en database
     public VeilingBeheerController(
         IVeilingService service,
         IVeilingBroadcastService broadcast,
@@ -29,28 +28,30 @@ public class VeilingBeheerController : ControllerBase
     }
 
     [HttpGet("actief")]
-    // Haalt de huidige actieve veiling op
     public async Task<ActionResult<VeilingOverzichtDto?>> GetActieve()
         => Ok(await _service.GetActieveVeilingAsync());
 
     [HttpPost("{id}/start")]
-    // Start een geplande veiling en pusht meteen updates naar clients
     public async Task<ActionResult<VeilingOverzichtDto>> Start(int id)
     {
-        // Checkt of de veiling bestaat
         var entity = await _db.Veilingen.FindAsync(id);
         if (entity == null)
-            return BadRequest("Veiling bestaat niet.");
+            return BadRequest(new { message = "Veiling bestaat niet." });
 
-        // Blokkeert starten als de geplande starttijd nog niet bereikt is
+        // NL tijd "nu"
+        var nowNl = NlTime.Now();
+
+        // Geplande startmoment (jouw data is bedoeld als NL lokale datum/tijd)
         var geplandeStart = entity.Datum.Date + entity.StartTijd;
-        if (DateTime.Now < geplandeStart)
-            return BadRequest($"Veiling kan pas starten op {geplandeStart:yyyy-MM-dd HH:mm}");
 
-        // Start de veiling via de service
+        // Te vroeg starten blokkeren
+        if (nowNl < geplandeStart)
+            return BadRequest(new { message = $"Veiling kan pas starten op {geplandeStart:yyyy-MM-dd HH:mm}" });
+
+        // Start via service (let op: in je service ook NlTime.Now() gebruiken!)
         var overzicht = await _service.StartGeplandeVeilingAsync(id);
 
-        // Stuurt huidig product en wachtrij realtime door
+        // Push realtime updates
         if (overzicht.HuidigProduct != null)
         {
             await _broadcast.StuurHuidigProduct(id, overzicht.HuidigProduct);
@@ -61,7 +62,6 @@ public class VeilingBeheerController : ControllerBase
     }
 
     [HttpPost("{id}/pause")]
-    // Pauzeert een veiling en pusht de nieuwe status naar clients
     public async Task<IActionResult> Pause(int id)
     {
         await _service.PauseAsync(id);
@@ -76,9 +76,7 @@ public class VeilingBeheerController : ControllerBase
         return NoContent();
     }
 
-
     [HttpPost("{id}/resume")]
-    // Hervat een veiling en pusht de nieuwe status naar clients
     public async Task<IActionResult> Resume(int id)
     {
         await _service.ResumeAsync(id);
@@ -93,9 +91,7 @@ public class VeilingBeheerController : ControllerBase
         return NoContent();
     }
 
-
     [HttpPost("{id}/stop")]
-    // Stopt en sluit een veiling af
     public async Task<IActionResult> Stop(int id)
     {
         await _service.StopAsync(id);
@@ -103,10 +99,8 @@ public class VeilingBeheerController : ControllerBase
     }
 
     [HttpGet("archief")]
-    // Haalt het archief van afgesloten veilingen op inclusief transacties
     public async Task<ActionResult<List<VeilingArchiefDto>>> GetArchief()
     {
-        // Laadt afgesloten veilingen met producten, aanmeldingen en transacties
         var veilingen = await _db.Veilingen
             .AsNoTracking()
             .Where(v => v.Status == VeilingStatus.Afgesloten)
@@ -119,10 +113,8 @@ public class VeilingBeheerController : ControllerBase
             .ThenByDescending(v => v.StartTijd)
             .ToListAsync();
 
-        // Zet de entities om naar archief DTO’s
         var result = veilingen.Select(v =>
         {
-            // Bepaalt eindtijd van de veiling voor het archief
             DateTime? eindUtc = null;
 
             if (v.AfgeslotenOpUtc != null)
@@ -135,15 +127,12 @@ public class VeilingBeheerController : ControllerBase
                     .Max();
             }
 
-            // Bouwt het archief-item inclusief transactie lijst
             return new VeilingArchiefDto
             {
                 Id = v.Id,
                 Veildatum = v.Datum.ToString("yyyy-MM-dd"),
                 StartTijd = v.StartTijd.ToString(@"hh\:mm"),
-                EindTijd = eindUtc.HasValue
-    ? eindUtc.Value.ToLocalTime().ToString("HH:mm")
-    : "",
+                EindTijd = eindUtc.HasValue ? eindUtc.Value.ToLocalTime().ToString("HH:mm") : "",
                 AantalProducten = v.Producten?.Count ?? 0,
 
                 Transacties = (v.Producten ?? new())
@@ -152,7 +141,7 @@ public class VeilingBeheerController : ControllerBase
                     .Select(t => new VeilingTransactieDto
                     {
                         Soort = t.VeilingProduct?.Aanmelding?.Soort ?? "",
-                        KoperNaam = t.Koper != null? $"{t.Koper.Voornaam} {t.Koper.Achternaam}": "",
+                        KoperNaam = t.Koper != null ? $"{t.Koper.Voornaam} {t.Koper.Achternaam}" : "",
                         Aantal = t.Aantal,
                         Prijs = t.Prijs,
                         Tijdstip = t.Tijdstip
@@ -163,5 +152,4 @@ public class VeilingBeheerController : ControllerBase
 
         return Ok(result);
     }
-
 }
