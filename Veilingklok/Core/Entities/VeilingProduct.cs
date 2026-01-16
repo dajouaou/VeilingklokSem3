@@ -12,7 +12,7 @@ namespace Veilingklok.Core.Entities
         public int AanmeldingId { get; set; }
         public Aanmelding? Aanmelding { get; set; }
 
-        // ✅ Klokdata
+        // Klokdata
         public decimal MaximumPrijs { get; set; }          // door veilingmeester
         public decimal MinimumPrijs { get; set; }          // uit aanmelding (kopie)
         public decimal HuidigePrijs { get; set; }          // live prijs

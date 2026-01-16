@@ -20,20 +20,22 @@ namespace Veilingklok.Features.PrijsHistorie.Services
 
         public async Task<PrijsHistorieDto> GetPrijsHistorieAsync(string soort, int? huidigeAanvoerderId)
         {
-            var cs = _config.GetConnectionString("DefaultConnection");
+            // Pak in prod dezelfde als EF gebruikt, val terug op DefaultConnection
+            var cs =
+                _config.GetConnectionString("AZURE_SQL_CONNECTIONSTRING")
+                ?? _config.GetConnectionString("DefaultConnection");
+
             if (string.IsNullOrWhiteSpace(cs))
-                throw new Exception("ConnectionString 'DefaultConnection' ontbreekt.");
+                throw new Exception("Geen geldige connectionstring gevonden (AZURE_SQL_CONNECTIONSTRING/DefaultConnection).");
 
             var dto = new PrijsHistorieDto { Soort = soort };
 
             await using var conn = new SqlConnection(cs);
             await conn.OpenAsync();
 
-            // 1) AVG + last10 (alle aanvoerders)
             dto.GemiddeldeAlleAanvoerders = await QueryAvgAsync(conn, soort, null);
             dto.Laatste10AlleAanvoerders = await QueryLast10Async(conn, soort, null);
 
-            // 2) AVG + last10 (huidige aanvoerder)
             if (huidigeAanvoerderId.HasValue && huidigeAanvoerderId.Value > 0)
             {
                 dto.GemiddeldeHuidigeAanvoerder = await QueryAvgAsync(conn, soort, huidigeAanvoerderId.Value);
@@ -42,6 +44,7 @@ namespace Veilingklok.Features.PrijsHistorie.Services
 
             return dto;
         }
+
 
         private static async Task<decimal?> QueryAvgAsync(SqlConnection conn, string soort, int? aanvoerderId)
         {
