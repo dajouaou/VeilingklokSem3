@@ -40,7 +40,7 @@ export default function MarketSnapshot() {
     const priceText = useMemo(() => {
         if (loading) return "...";
         if (lastPrice == null) return "-";
-        return `€${Number(lastPrice).toFixed(2)}`;
+        return `${Number(lastPrice).toFixed(2)}EUR`;
     }, [loading, lastPrice]);
 
     const biddersText = "-"; // pas mogelijk met backend hubtracking
