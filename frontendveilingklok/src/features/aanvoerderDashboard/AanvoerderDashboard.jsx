@@ -1,6 +1,8 @@
 // AanvoerderDashboard.jsx (mooier layout + classes, zelfde logica)
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthContext.jsx";
+import placeholderImg from "../../Images/icon.jpg";
+
 
 import {
     fetchAanmeldingen,
@@ -425,11 +427,12 @@ export default function AanvoerderDashboard() {
                                     {filteredItems.map((item) => (
                                         <tr key={item.id}>
                                             <td>
-                                                {item.fotoUrl ? (
-                                                    <img className="av-img" src={item.fotoUrl} alt={item.soort} />
-                                                ) : (
-                                                    <span className="text-muted">Geen foto</span>
-                                                )}
+                                                <img
+                                                    className="av-img"
+                                                    src={item.fotoUrl || placeholderImg}
+                                                    alt={item.soort}
+                                                />
+
                                             </td>
 
                                             <td className="fw-semibold">{item.soort}</td>
