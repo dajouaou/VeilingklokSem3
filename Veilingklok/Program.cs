@@ -116,18 +116,21 @@ builder.Services
         };
     });
 
-var allowedOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? Array.Empty<string>();
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:Origins")
+    .Get<string[]>() ?? Array.Empty<string>();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
-      .AllowAnyHeader()
-      .AllowAnyMethod();
-
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
+
 
 
 builder.Services.AddEndpointsApiExplorer();

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useContext, useCallback } from "react";
+﻿import { useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { AuthContext } from "../auth/AuthContext";
 
 import {
@@ -32,9 +32,21 @@ export default function VeilingmeesterDashboard() {
     const [error, setError] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    const { lot, queue, bids, audit, loading: liveLoading } = useLiveVeiling(token, veiling?.id);
+    // ✅ Hook-output zoals jij eerder stuurde:
+    // { lot, wachtrij, lastBid, audit, onlineBieders, loading }
+    const {
+        lot,
+        wachtrij,
+        lastBid,
+        audit,
+        loading: liveLoading,
+    } = useLiveVeiling(token, veiling?.id);
 
-    const isBusy = loading || liveLoading;
+    // ✅ Maak van lastBid een array zodat je bestaande BiedingenLijst werkt
+    const bids = useMemo(() => (lastBid ? [lastBid] : []), [lastBid]);
+
+    // ✅ API-loading mag UI blokkeren, SignalR niet (die mag falen/reconnecten)
+    const isBusy = loading; // i.p.v. loading || liveLoading
 
     const loadInit = useCallback(async () => {
         if (!token || role !== "Veilingmeester") return;
@@ -85,7 +97,7 @@ export default function VeilingmeesterDashboard() {
             setVeiling(gestart);
             setVolgende(null);
         } catch (err) {
-            setError(err.message || "Kon veiling niet starten.");
+            setError(err?.message || "Kon veiling niet starten.");
         }
     }
 
@@ -96,49 +108,69 @@ export default function VeilingmeesterDashboard() {
 
     async function handlePause() {
         if (!veiling?.id) return;
+
         try {
             await pauseVeiling(token, veiling.id);
+
+            // Optimistische UI update
             setVeiling((prev) =>
-                prev ? { ...prev, isPauze: true, isGepauzeerd: true, status: "Gepauzeerd" } : prev
+                prev
+                    ? { ...prev, isPauze: true, isGepauzeerd: true, status: "Gepauzeerd" }
+                    : prev
             );
+
             await refreshActiveVeiling();
         } catch (e) {
-            setError(e.message || "Pauzeren mislukt.");
+            setError(e?.message || "Pauzeren mislukt.");
         }
     }
 
     async function handleResume() {
         if (!veiling?.id) return;
+
         try {
             await resumeVeiling(token, veiling.id);
+
             setVeiling((prev) =>
-                prev ? { ...prev, isPauze: false, isGepauzeerd: false, status: "Gestart" } : prev
+                prev
+                    ? { ...prev, isPauze: false, isGepauzeerd: false, status: "Gestart" }
+                    : prev
             );
+
             await refreshActiveVeiling();
-        } catch {
-            setError("Hervatten mislukt.");
+        } catch (e) {
+            setError(e?.message || "Hervatten mislukt.");
         }
     }
 
     async function handleStop() {
         if (!veiling?.id) return;
+
         try {
             await stopVeiling(token, veiling.id);
             setVeiling(null);
 
             const next = await fetchVolgendeVeiling(token).catch(() => null);
             setVolgende(next);
-        } catch {
-            setError("Stoppen mislukt.");
+        } catch (e) {
+            setError(e?.message || "Stoppen mislukt.");
         }
     }
 
     return (
         <div className="vm-shell">
-            <Sidebar logout={logout} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+            <Sidebar
+                logout={logout}
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
+            />
 
             <div className="vm-content">
-                <Topbar title="Veilingmeester" veiling={veiling} onMenuClick={() => setSidebarOpen(true)} />
+                <Topbar
+                    title="Veilingmeester"
+                    veiling={veiling}
+                    onMenuClick={() => setSidebarOpen(true)}
+                />
 
                 <main className="vm-page">
                     {error && <div className="vm-alert vm-alert-danger">{error}</div>}
@@ -147,6 +179,11 @@ export default function VeilingmeesterDashboard() {
                         <h2>Overzicht</h2>
                         <p className="vm-muted">
                             Monitor de veiling, bekijk biedingen en beheer de klok.
+                            {liveLoading ? (
+                                <span className="ms-2 badge bg-light text-dark">
+                                    Live verbinden…
+                                </span>
+                            ) : null}
                         </p>
 
                         <div className="vm-hero-row">
@@ -182,19 +219,24 @@ export default function VeilingmeesterDashboard() {
                     <section className="vm-metrics">
                         <div className="vm-metric">
                             <div className="vm-muted">In wachtrij</div>
-                            <div className="vm-metric-value">{queue?.length ?? 0}</div>
+                            <div className="vm-metric-value">{wachtrij?.length ?? 0}</div>
                         </div>
+
                         <div className="vm-metric">
                             <div className="vm-muted">Biedingen</div>
-                            <div className="vm-metric-value">{bids?.length ?? 0}</div>
+                            <div className="vm-metric-value">{bids.length}</div>
                         </div>
+
                         <div className="vm-metric">
                             <div className="vm-muted">Log events</div>
                             <div className="vm-metric-value">{audit?.length ?? 0}</div>
                         </div>
+
                         <div className="vm-metric">
                             <div className="vm-muted">Status</div>
-                            <div className="vm-metric-value">{isBusy ? "Bezig" : veiling ? "Actief" : "Inactief"}</div>
+                            <div className="vm-metric-value">
+                                {loading ? "Bezig" : veiling ? "Actief" : "Inactief"}
+                            </div>
                         </div>
                     </section>
 
@@ -202,7 +244,9 @@ export default function VeilingmeesterDashboard() {
                         <header className="vm-panel-header vm-panel-header-split">
                             <div>
                                 <h3>Klokbediening</h3>
-                                <p className="vm-muted">Start, pauzeer, hervat of stop de veiling.</p>
+                                <p className="vm-muted">
+                                    Start, pauzeer, hervat of stop de veiling.
+                                </p>
                             </div>
                         </header>
 
@@ -215,7 +259,9 @@ export default function VeilingmeesterDashboard() {
                         />
                     </section>
 
-                    {veiling && !isBusy && (
+                    {/* Laat dashboard tonen zodra REST veiling er is.
+              SignalR kan later binnenkomen; UI blijft gewoon staan. */}
+                    {veiling && (
                         <>
                             <section className="vm-grid-2">
                                 <VeilingInformatie gegevens={veiling} />
@@ -223,7 +269,7 @@ export default function VeilingmeesterDashboard() {
                             </section>
 
                             <section className="vm-grid-2">
-                                <WachtrijLijst wachtrij={queue} />
+                                <WachtrijLijst wachtrij={wachtrij} />
                                 <div className="vm-stack">
                                     <BiedingenLijst biedingen={bids} />
                                     <AuditLijst audit={audit} />

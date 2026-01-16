@@ -8,10 +8,7 @@ import useLiveVeiling from "./veilingmeesterDashboard/hooks/useLiveVeiling";
 import { getPublicActieveVeiling } from "./veiling/api/veilingPublicApi";
 import PrijsHistorieModal from "../shared/components/PrijsHistorieModal";
 import flowerbanner1 from "../Images/flowerbanner1.jpg";
-
-
 import { API_BASE_URL } from "../config/apiBaseUrl";
-
 
 export default function ActueelBod() {
     const { token, role } = useContext(AuthContext);
@@ -23,14 +20,14 @@ export default function ActueelBod() {
     const [error, setError] = useState("");
 
     const [status, setStatus] = useState(null);
-    const isPaused = status === 2; // VeilingStatus.Gepauzeerd
+    const isPaused = status === 2;
 
     const [aantal, setAantal] = useState(0);
     const [showHistorie, setShowHistorie] = useState(false);
 
-    //  Smooth prijs
     const [displayPrice, setDisplayPrice] = useState(0);
     const displayPriceRef = useRef(0);
+
     useEffect(() => {
         displayPriceRef.current = Number(displayPrice ?? 0);
     }, [displayPrice]);
@@ -44,6 +41,7 @@ export default function ActueelBod() {
 
     const wasPausedRef = useRef(false);
 
+    // INIT via publieke REST endpoint (altijd leidend bij eerste render)
     useEffect(() => {
         let alive = true;
 
@@ -58,7 +56,6 @@ export default function ActueelBod() {
                 setInitLot(actief?.huidigProduct ?? null);
                 setWachtrij(actief?.wachtrij ?? []);
 
-                //  Backend stuurt VeilingOverzichtDto: IsPauze/IsGestart/IsAfgesloten (geen status)
                 const derivedStatus =
                     actief?.isPauze ? 2 :
                         actief?.isGestart ? 1 :
@@ -84,7 +81,7 @@ export default function ActueelBod() {
         };
     }, []);
 
-    //  laat live updates altijd lopen; alleen UI-teller pauzeren
+    // SignalR live updates (mag falen zonder de hele pagina te blokkeren)
     const { lot: liveLot, loading: liveLoading } = useLiveVeiling(token, veilingId);
     const lot = liveLot ?? initLot;
 
@@ -92,7 +89,6 @@ export default function ActueelBod() {
         setAantal(0);
     }, [lot?.veilingProductId]);
 
-    //  Nieuwe lot: start altijd vanaf serverprijs (bij nieuw product is dat correct)
     useEffect(() => {
         if (!lot) return;
 
@@ -104,7 +100,6 @@ export default function ActueelBod() {
         setDisplayPrice(serverPrice);
     }, [lot?.veilingProductId]);
 
-    //  Bij pauze: bevries exact op schermprijs en zet daling 0
     useEffect(() => {
         if (!isPaused) return;
 
@@ -118,7 +113,6 @@ export default function ActueelBod() {
         setDisplayPrice(frozen);
     }, [isPaused]);
 
-    //  Bij resume: GA VERDER VANAF BEVROREN PRIJS (niet van lot.huidigePrijs, die is vaak maximum)
     useEffect(() => {
         if (!lot) return;
 
@@ -135,7 +129,6 @@ export default function ActueelBod() {
         wasPausedRef.current = isPaused;
     }, [isPaused, lot?.veilingProductId]);
 
-    //  Smooth daling: alleen lopen als veiling live
     useEffect(() => {
         if (!lot || isPaused) return;
 
@@ -158,6 +151,7 @@ export default function ActueelBod() {
     async function koop() {
         if (!token || role !== "Koper") return;
         if (!veilingId || !lot?.veilingProductId) return;
+
         if (isPaused) {
             alert("Veiling is momenteel gepauzeerd.");
             return;
@@ -201,7 +195,8 @@ export default function ActueelBod() {
         }
     }
 
-    if (loadingInit || liveLoading) {
+    // ✅ FIX: syntaxis correct + blokkeer alleen op init-load
+    if (loadingInit) {
         return (
             <>
                 <Navbar />
@@ -211,7 +206,9 @@ export default function ActueelBod() {
                             <div className="spinner-border" role="status" aria-hidden="true" />
                             <div>
                                 <div className="fw-bold">Veiling laden...</div>
-                                <div className="text-muted small">Even geduld, we halen de live status op.</div>
+                                <div className="text-muted small">
+                                    Even geduld, we halen de status op.
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -274,7 +271,12 @@ export default function ActueelBod() {
                 <div className="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4">
                     <div>
                         <h2 className="fw-bold mb-1">Actueel bod</h2>
-                        <div className="text-muted">Live product + volgende items in wachtrij.</div>
+                        <div className="text-muted">
+                            Live product + volgende items in wachtrij.
+                            {liveLoading ? (
+                                <span className="ms-2 badge bg-light text-dark">Live verbinden…</span>
+                            ) : null}
+                        </div>
                     </div>
                     <div className="text-muted small">Veiling #{veilingId}</div>
                 </div>
@@ -286,7 +288,7 @@ export default function ActueelBod() {
                 )}
 
                 <div className="row g-4">
-                    {/* LINKS: huidig product card */}
+                    {/* LINKS: huidig product */}
                     <div className="col-lg-7">
                         <div className="card shadow-sm border-0 overflow-hidden h-100">
                             <div className="row g-0 h-100">
@@ -307,7 +309,9 @@ export default function ActueelBod() {
                                                 Resterend: {lot.resterendeHoeveelheid} stuks
                                             </div>
                                             {!!lot.aanvoerderNaam && (
-                                                <div className="text-muted small">Aanvoerder: {lot.aanvoerderNaam}</div>
+                                                <div className="text-muted small">
+                                                    Aanvoerder: {lot.aanvoerderNaam}
+                                                </div>
                                             )}
                                         </div>
                                         <span className={`badge ${isPaused ? "bg-warning text-dark" : "bg-success"}`}>
@@ -361,7 +365,7 @@ export default function ActueelBod() {
                         </div>
                     </div>
 
-                    {/* RECHTS: volgende card */}
+                    {/* RECHTS: volgende */}
                     <div className="col-lg-5">
                         <div className="card shadow-sm border-0 p-4 h-100">
                             <div className="d-flex justify-content-between align-items-center mb-3">
@@ -408,7 +412,9 @@ export default function ActueelBod() {
                                     </div>
 
                                     {wachtrij.length > 4 && (
-                                        <div className="text-muted small mt-2">+{wachtrij.length - 4} meer in wachtrij</div>
+                                        <div className="text-muted small mt-2">
+                                            +{wachtrij.length - 4} meer in wachtrij
+                                        </div>
                                     )}
                                 </>
                             )}
@@ -423,7 +429,6 @@ export default function ActueelBod() {
                 token={token}
                 soort={lot?.soort || ""}
             />
-
 
             <Footer />
         </>
