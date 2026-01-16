@@ -428,10 +428,14 @@ export default function AanvoerderDashboard() {
                                         <tr key={item.id}>
                                             <td>
                                                 <img
-                                                    className="av-img"
-                                                    src={item.fotoUrl || placeholderImg}
-                                                    alt={item.soort}
-                                                />
+                                                className="av-img"
+                                                src={item.fotoUrl || placeholderImg}
+                                                alt={item.soort}
+                                                onError={(e) => {
+                                                    e.currentTarget.src = placeholderImg;
+                                                }}
+                                            />
+
 
                                             </td>
 
