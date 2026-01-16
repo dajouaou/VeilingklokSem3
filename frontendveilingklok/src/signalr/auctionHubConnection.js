@@ -1,10 +1,9 @@
 import * as signalR from "@microsoft/signalr";
-
-const API_BASE = "https://localhost:56418";
+import { API_BASE_URL } from "../config/api";
 
 export function createAuctionHubConnection(token) {
     return new signalR.HubConnectionBuilder()
-        .withUrl(`${API_BASE}/hub/veiling`, {
+        .withUrl(`${API_BASE_URL}/hub/veiling`, {
             accessTokenFactory: () => token,
         })
         .withAutomaticReconnect()
