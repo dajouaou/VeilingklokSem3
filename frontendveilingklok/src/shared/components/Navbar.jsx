@@ -1,8 +1,6 @@
 ﻿import { Link, useNavigate } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../../features/auth/AuthContext";
-
-// als je logo in src/Images staat:
 import logo from "../../Images/royal floraholland logo new.png";
 
 export default function Navbar() {

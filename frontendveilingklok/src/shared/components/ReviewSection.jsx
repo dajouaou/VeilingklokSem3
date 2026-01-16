@@ -1,4 +1,7 @@
-﻿export default function ReviewSection() {
+﻿import icon from "../../Images/icon.jpg";
+
+
+export default function ReviewSection() {
     return (
         <section id="reviews" className="py-5">
             <div className="container">
@@ -9,21 +12,22 @@
                         {
                             naam: "Doa",
                             rol: "Bloemenliefhebber",
-                            img: "/src/images/icon.jpg",
+                            img: {icon},
                             text: "Geweldige service en mooie kwaliteit bloemen. Elke veiling is spannend en overzichtelijk!",
                             stars: 5
                         },
                         {
                             naam: "Shriya",
                             rol: "Tuinier",
-                            img: "/src/images/icon.jpg",
+                            img: {icon},
                             text: "De digitale veiling is super makkelijk te gebruiken en de producten zijn altijd topkwaliteit.",
                             stars: 4
                         },
                         {
                             naam: "Sofia",
                             rol: "Plantenhandelaar",
-                            img: "/src/images/icon.jpg",
+                            img: {icon}
+,
                             text: "Ik kan de veiling elke week volgen en vind altijd de bloemen die ik nodig heb. Top ervaring!",
                             stars: 5
                         }
