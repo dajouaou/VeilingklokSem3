@@ -34,7 +34,7 @@ export default function HeroBanner() {
                 const actief = await getPublicActieveVeiling();
                 if (!alive) return;
 
-                // ✅ Actieve veiling + huidig product
+                //  Actieve veiling + huidig product
                 if (actief?.huidigProduct) {
                     const p = actief.huidigProduct;
                     setVolgendeVeiling(null);
@@ -48,7 +48,7 @@ export default function HeroBanner() {
                     return;
                 }
 
-                // ✅ Geen actieve: check volgende veiling
+                //  Geen actieve: check volgende veiling
                 const volgende = await getPublicVolgendeVeiling();
                 if (!alive) return;
 
@@ -65,7 +65,7 @@ export default function HeroBanner() {
                     return;
                 }
 
-                // ✅ Geen actieve en geen volgende
+                //  Geen actieve en geen volgende
                 setVolgendeVeiling(null);
                 setData({
                     titel: "Geen actieve veiling",
