@@ -1,5 +1,5 @@
-const API_BASE = "https://localhost:56418";
+import { API_BASE_URL } from "../../config/apiBaseUrl";
 
 export function iconUrl(path) {
-    return `${API_BASE}/icons/${path}`;
+    return `${API_BASE_URL}/icons/${path}`;
 }

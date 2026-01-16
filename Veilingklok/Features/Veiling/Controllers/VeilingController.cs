@@ -2,51 +2,72 @@
 using Microsoft.AspNetCore.Mvc;
 using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.Veiling.Dtos;
+using Veilingklok.Infrastructure.Time;
 
 namespace Veilingklok.Features.Veiling.Controllers
 {
     [ApiController]
     [Route("api/veiling")]
     [Authorize(Roles = "Veilingmeester")]
-    // Alleen gebruikers met rol "Veilingmeester" mogen deze endpoints gebruiken
     public class VeilingController : ControllerBase
     {
         private readonly IVeilingService _service;
 
         public VeilingController(IVeilingService service)
         {
-            _service = service; // businesslogica zit in de service, controller blijft dun
+            _service = service;
         }
 
-        // Start een nieuwe veiling op basis van datum en starttijd
+        // Maak/plande een nieuwe veiling (status: gepland)
+        // Endpoint: POST /api/veiling/start
         [HttpPost("start")]
         public async Task<IActionResult> Start([FromBody] StartVeilingDto dto)
         {
+            // Basic validatie (voorkomt null/lege requests)
+            if (dto == null)
+                return BadRequest(new { message = "Request body ontbreekt." });
+
+            // Default starttijd als die niet meegegeven is
+            var startTijd = dto.StartTijd ?? new TimeSpan(9, 0, 0);
+
+            // NL tijd "nu"
+            var nowNl = NlTime.Now();
+
+            // Geplande startmoment in NL tijd (Datum + StartTijd)
+            var geplandeStartNl = dto.Veildatum.Date + startTijd;
+
+            // Optioneel: blokkeer plannen in het verleden (of te dichtbij)
+            if (geplandeStartNl < nowNl.AddMinutes(1))
+            {
+                return BadRequest(new
+                {
+                    message = $"Starttijd ligt te vroeg. Kies een starttijd na {nowNl.AddMinutes(1):yyyy-MM-dd HH:mm}."
+                });
+            }
+
+            // Service uitvoeren
             var overzicht = await _service.StartVeilingAsync(
                 dto.Veildatum,
                 dto.LeverDatum,
-                dto.StartTijd
+                startTijd
             );
 
-            return Ok(overzicht); // geeft direct het veilingoverzicht terug
+            return Ok(overzicht);
         }
 
-        // Haalt details van een specifieke veiling op
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDetails(int id)
         {
             return Ok(await _service.GetDetailsAsync(id));
         }
 
-        // Pauzeert een lopende veiling
         [HttpPost("{id}/pause")]
         public async Task<IActionResult> Pause(int id)
         {
             await _service.PauseAsync(id);
-            return NoContent(); // geen response-body nodig
+            return NoContent();
         }
 
-        // Hervat een gepauzeerde veiling
         [HttpPost("{id}/resume")]
         public async Task<IActionResult> Resume(int id)
         {
@@ -54,7 +75,6 @@ namespace Veilingklok.Features.Veiling.Controllers
             return NoContent();
         }
 
-        // Stopt en sluit een veiling definitief af
         [HttpPost("{id}/stop")]
         public async Task<IActionResult> Stop(int id)
         {
@@ -62,7 +82,6 @@ namespace Veilingklok.Features.Veiling.Controllers
             return NoContent();
         }
 
-        // Geeft alle veildagen terug waarvoor een veiling bestaat
         [HttpGet("dagen")]
         public async Task<ActionResult<List<string>>> GetVeilingDagen()
         {

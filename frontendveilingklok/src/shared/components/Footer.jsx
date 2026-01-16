@@ -1,3 +1,4 @@
+import logo from "../../Images/royal floraholland logo new.png";
 export default function Footer() {
     return (
         <footer className="footer mt-5">
@@ -8,7 +9,7 @@ export default function Footer() {
                     <div className="col-lg-7 p-5 footer-dark">
                         <div className="row">
                             <div className="col-md-4 mb-4 mb-md-0">
-                                <img src="src/images/royal floraholland logo new.png" alt="Logo" className="footer-logo mb-3" />
+                                <img src={logo} alt="Logo" className="footer-logo mb-3" />
                             </div>
 
                             <div className="col-md-4 mb-3">
