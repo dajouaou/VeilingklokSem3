@@ -17,9 +17,6 @@ export default function CTASection() {
                             <Link to="/actueelbod" className="btn btn-outline-dark rounded-pill px-4">
                                 Actueel Bod
                             </Link>
-                            <Link to="/login" className="btn btn-dark rounded-pill px-4">
-                                Uitloggen
-                            </Link>
                         </div>
                     </div>
                 </div>
