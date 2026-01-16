@@ -12,21 +12,21 @@ export default function ReviewSection() {
                         {
                             naam: "Doa",
                             rol: "Bloemenliefhebber",
-                            img: {icon},
+                            img: icon,
                             text: "Geweldige service en mooie kwaliteit bloemen. Elke veiling is spannend en overzichtelijk!",
                             stars: 5
                         },
                         {
                             naam: "Shriya",
                             rol: "Tuinier",
-                            img: {icon},
+                            img: icon,
                             text: "De digitale veiling is super makkelijk te gebruiken en de producten zijn altijd topkwaliteit.",
                             stars: 4
                         },
                         {
                             naam: "Sofia",
                             rol: "Plantenhandelaar",
-                            img: {icon}
+                            img: icon
 ,
                             text: "Ik kan de veiling elke week volgen en vind altijd de bloemen die ik nodig heb. Top ervaring!",
                             stars: 5
