@@ -51,7 +51,7 @@ export default function Veiling() {
                                 <tr key={b.VeilingProductId}>
                                     <td>{b.Soort}</td>
                                     <td>{b.AanvoerderNaam}</td>
-                                    <td>{b.HuidigePrijs.toFixed(2)} €</td>
+                                    <td>{b.HuidigePrijs.toFixed(2)} EUR</td>
                                     <td>{b.ResterendeHoeveelheid}</td>
                                 </tr>
                             ))}

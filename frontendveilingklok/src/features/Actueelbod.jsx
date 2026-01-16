@@ -317,7 +317,7 @@ export default function ActueelBod() {
 
                                     <div className="mt-4">
                                         <div className="text-muted small">Huidige prijs</div>
-                                        <div className="display-6 fw-bold">€{Number(currentPrice).toFixed(2)}</div>
+                                        <div className="display-6 fw-bold">{Number(currentPrice).toFixed(2)}</div>
 
                                         <button
                                             type="button"
@@ -386,7 +386,7 @@ export default function ActueelBod() {
                                                 #{next.volgorde} - {next.soort}
                                             </div>
                                             <div className="text-muted small">
-                                                Startprijs: €{Number(next.maximumPrijs ?? 0).toFixed(2)} - Resterend:{" "}
+                                                Startprijs: {Number(next.maximumPrijs ?? 0).toFixed(2)} - Resterend:{" "}
                                                 {next.resterendeHoeveelheid}
                                             </div>
                                         </div>
@@ -400,7 +400,7 @@ export default function ActueelBod() {
                                                     <span className="text-muted small">#{x.volgorde}</span>
                                                 </div>
                                                 <div className="text-muted small">
-                                                    Start: €{Number(x.maximumPrijs ?? 0).toFixed(2)} - Resterend:{" "}
+                                                    Start: {Number(x.maximumPrijs ?? 0).toFixed(2)} - Resterend:{" "}
                                                     {x.resterendeHoeveelheid}
                                                 </div>
                                             </div>

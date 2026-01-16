@@ -17,7 +17,7 @@ namespace Veilingklok.Core.Entities
         public decimal MinimumPrijs { get; set; }          // uit aanmelding (kopie)
         public decimal HuidigePrijs { get; set; }          // live prijs
 
-        public decimal DalingPerSeconde { get; set; }      // € per seconde
+        public decimal DalingPerSeconde { get; set; }      // eur per seconde
         public int ResterendeHoeveelheid { get; set; }     // voor deelverkoop
 
         public bool IsActief { get; set; }
