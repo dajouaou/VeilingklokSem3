@@ -1,5 +1,5 @@
 import * as signalR from "@microsoft/signalr";
-import { API_BASE_URL } from "../config/api";
+import { API_BASE_URL } from "../config/apiBaseUrl.js";
 
 export function createAuctionHubConnection(token) {
     return new signalR.HubConnectionBuilder()
