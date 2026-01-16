@@ -1,6 +1,5 @@
-// /src/shared/components/PrijsHistorieModal.jsx
 import { useEffect, useState } from "react";
-import { fetchPrijsHistorie } from "/src/features/veiling/api/prijsHistorieApi";
+import { fetchPrijsHistorie } from "../../features/veiling/api/prijsHistorieApi.js";
 
 export default function PrijsHistorieModal({ open, onClose, token, soort, aanvoerderId }) {
     const [loading, setLoading] = useState(false);
@@ -10,12 +9,20 @@ export default function PrijsHistorieModal({ open, onClose, token, soort, aanvoe
     useEffect(() => {
         if (!open) return;
 
+        const soortStr = String(soort ?? "").trim();
+        if (!soortStr) {
+            setError("Soort ontbreekt.");
+            setData(null);
+            setLoading(false);
+            return;
+        }
+
         let alive = true;
         setLoading(true);
         setError("");
         setData(null);
 
-        fetchPrijsHistorie({ token, soort, aanvoerderId })
+        fetchPrijsHistorie({ token, soort: soortStr, aanvoerderId })
             .then((d) => {
                 if (!alive) return;
                 setData(d);
@@ -47,7 +54,7 @@ export default function PrijsHistorieModal({ open, onClose, token, soort, aanvoe
             <div className="modal-dialog modal-lg" role="document" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-content">
                     <div className="modal-header">
-                        <h5 className="modal-title">Prijshistorie - {soort || "-"}</h5>
+                        <h5 className="modal-title">Prijshistorie - {String(soort ?? "-")}</h5>
                         <button className="btn-close" onClick={onClose} aria-label="Sluiten" />
                     </div>
 
@@ -57,8 +64,7 @@ export default function PrijsHistorieModal({ open, onClose, token, soort, aanvoe
 
                         {!loading && !error && data && (
                             <div className="row g-3">
-                                {/* Alle aanvoerders */}
-                                <div className="col-md-6">
+                                <div className="col-md-12">
                                     <div className="card p-3">
                                         <h6 className="mb-2">Alle aanvoerders</h6>
 
@@ -82,14 +88,16 @@ export default function PrijsHistorieModal({ open, onClose, token, soort, aanvoe
                                                     {data.laatste10AlleAanvoerders?.length ? (
                                                         data.laatste10AlleAanvoerders.map((p, i) => (
                                                             <tr key={i}>
-                                                                <td>{Number(p.prijs).toFixed(2)} EUR</td>
+                                                                <td>{Number(p.prijs ?? 0).toFixed(2)} EUR</td>
                                                                 <td>{p.tijdstip ? new Date(p.tijdstip).toLocaleString("nl-NL") : "-"}</td>
                                                                 <td>{p.aanvoerderNaam ?? "-"}</td>
                                                             </tr>
                                                         ))
                                                     ) : (
                                                         <tr>
-                                                            <td colSpan="3" className="text-muted">Geen data</td>
+                                                            <td colSpan="3" className="text-muted">
+                                                                Geen data
+                                                            </td>
                                                         </tr>
                                                     )}
                                                 </tbody>
@@ -97,17 +105,16 @@ export default function PrijsHistorieModal({ open, onClose, token, soort, aanvoe
                                         </div>
                                     </div>
                                 </div>
-                         
                             </div>
                         )}
 
-                        {!loading && !error && !data && (
-                            <div className="text-muted">Geen data ontvangen.</div>
-                        )}
+                        {!loading && !error && !data && <div className="text-muted">Geen data ontvangen.</div>}
                     </div>
 
                     <div className="modal-footer">
-                        <button className="btn btn-secondary" onClick={onClose}>Sluiten</button>
+                        <button className="btn btn-secondary" onClick={onClose}>
+                            Sluiten
+                        </button>
                     </div>
                 </div>
             </div>

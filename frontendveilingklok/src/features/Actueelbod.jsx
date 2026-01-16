@@ -427,7 +427,7 @@ export default function ActueelBod() {
                 open={showHistorie}
                 onClose={() => setShowHistorie(false)}
                 token={token}
-                soort={lot?.soort || ""}
+                soort={String(lot?.soort ?? "").trim()}
             />
 
             <Footer />
