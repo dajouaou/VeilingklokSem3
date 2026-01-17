@@ -29,10 +29,19 @@ export default function AanvoerderDashboard() {
     }
     function resolveFotoUrl(fotoUrl) {
         if (!fotoUrl) return null;
+
+        // al absolute url
         if (fotoUrl.startsWith("http://") || fotoUrl.startsWith("https://")) return fotoUrl;
+
+        // alleen filename (geen /)
+        if (!fotoUrl.startsWith("/")) {
+            return `${API_BASE_URL}/uploads/${fotoUrl}`;
+        }
+
         // relatieve /uploads/...
         return `${API_BASE_URL}${fotoUrl}`;
     }
+
 
         const [items, setItems] = useState([]);
         const [stats, setStats] = useState(null);
