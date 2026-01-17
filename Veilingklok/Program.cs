@@ -17,6 +17,9 @@ using Veilingklok.Infrastructure.Repositories;
 using Veilingklok.Infrastructure.SignalR.Broadcasters;
 using Veilingklok.Infrastructure.SignalR.Hubs;
 using Veilingklok.Features.PrijsHistorie.Services;
+using Veilingklok.Features.AanvoerderDashboard;
+
+
 
 
 
@@ -132,7 +135,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-
+builder.Services.AddSingleton<BlobImageService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>

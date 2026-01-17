@@ -5,6 +5,8 @@ using Veilingklok.Core.Interfaces;
 using Veilingklok.Features.AanvoerderDashboard.Dtos;
 using Veilingklok.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
+using Veilingklok.Features.AanvoerderDashboard.Services;
+
 
 namespace Veilingklok.Features.AanvoerderDashboard.Controllers;
 
@@ -17,16 +19,19 @@ public class AanvoerderDashboardController : ControllerBase
     private readonly MyContext _db;
     private readonly IAanvoerderDashboardService _service;
     private readonly IWebHostEnvironment _env;
+    private readonly BlobImageService _blob;
 
     // Injecteert service, database en hosting info
     public AanvoerderDashboardController(
         IAanvoerderDashboardService service,
         MyContext db,
-        IWebHostEnvironment env)
+        IWebHostEnvironment env,
+        BlobImageService blob)
     {
         _service = service;
         _db = db;
         _env = env;
+        _blob = blob;
     }
 
     // Haalt gebruiker-id uit de JWT token
@@ -65,7 +70,6 @@ public class AanvoerderDashboardController : ControllerBase
     }
 
     [HttpPost("aanmeldingen")]
-    // Maakt een nieuwe aanmelding aan
     public async Task<ActionResult<AanmeldingListItemDto>> CreateAanmelding([FromForm] AanmeldingCreateDto dto)
     {
         if (!TryGetGebruikerId(out var gebruikerId))
@@ -73,26 +77,14 @@ public class AanvoerderDashboardController : ControllerBase
 
         try
         {
-            string? fotoPad = null;
+            string? fotoUrl = null;
 
-            // Slaat een geüploade foto op en bouwt de URL
             if (dto.Foto != null && dto.Foto.Length > 0)
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                await using var stream = new FileStream(filePath, FileMode.Create);
-                await dto.Foto.CopyToAsync(stream);
-
-                fotoPad = $"/uploads/{fileName}";
-
+                fotoUrl = await _blob.UploadAsync(dto.Foto, HttpContext.RequestAborted);
             }
 
-            var result = await _service.CreateAanmeldingAsync(gebruikerId, dto, fotoPad);
+            var result = await _service.CreateAanmeldingAsync(gebruikerId, dto, fotoUrl);
             return Ok(result);
         }
         catch (ArgumentException ex)
@@ -101,8 +93,8 @@ public class AanvoerderDashboardController : ControllerBase
         }
     }
 
+
     [HttpPut("aanmeldingen/{id}")]
-    // Werkt een bestaande aanmelding bij
     public async Task<ActionResult<AanmeldingListItemDto>> UpdateAanmelding(int id, [FromForm] AanmeldingUpdateDto dto)
     {
         if (!TryGetGebruikerId(out var gebruikerId))
@@ -110,25 +102,14 @@ public class AanvoerderDashboardController : ControllerBase
 
         try
         {
-            string? fotoPad = null;
+            string? fotoUrl = null;
 
-            // Slaat een nieuwe foto op en bouwt de URL
             if (dto.Foto != null && dto.Foto.Length > 0)
             {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "uploads");
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(dto.Foto.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                await using var stream = new FileStream(filePath, FileMode.Create);
-                await dto.Foto.CopyToAsync(stream);
-
-                fotoPad = $"/uploads/{fileName}";
+                fotoUrl = await _blob.UploadAsync(dto.Foto, HttpContext.RequestAborted);
             }
 
-            var updated = await _service.UpdateAanmeldingAsync(gebruikerId, id, dto, fotoPad);
+            var updated = await _service.UpdateAanmeldingAsync(gebruikerId, id, dto, fotoUrl);
             return Ok(updated);
         }
         catch (ArgumentException ex)
@@ -139,6 +120,7 @@ public class AanvoerderDashboardController : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+
 
     [HttpDelete("aanmeldingen/{id}")]
     // Verwijdert een aanmelding

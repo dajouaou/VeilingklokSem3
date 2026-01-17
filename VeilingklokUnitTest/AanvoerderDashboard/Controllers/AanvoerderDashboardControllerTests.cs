@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using Veilingklok.Core.Interfaces;
+using Veilingklok.Features.AanvoerderDashboard;
 using Veilingklok.Features.AanvoerderDashboard.Controllers;
 using Veilingklok.Features.AanvoerderDashboard.Dtos;
 using VeilingklokUnitTest.AanvoerderDashboard.TestHelpers;
@@ -28,7 +31,21 @@ namespace VeilingklokUnitTest.AanvoerderDashboard.Controllers
             var envMock = new Mock<IWebHostEnvironment>();
             envMock.Setup(e => e.WebRootPath).Returns("C:\\temp");
 
-            var controller = new AanvoerderDashboardController(serviceMock.Object, db, envMock.Object);
+            // BlobImageService mock (controller ctor verwacht deze nu ook)
+            var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
+            var blobMock = new Mock<BlobImageService>(config);
+
+            // UploadAsync wordt in deze tests niet echt gebruikt, maar moet bestaan
+            blobMock
+                .Setup(b => b.UploadAsync(It.IsAny<IFormFile>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync("https://test.blob.core.windows.net/uploads/test.jpg");
+
+            var controller = new AanvoerderDashboardController(
+                serviceMock.Object,
+                db,
+                envMock.Object,
+                blobMock.Object
+            );
 
             // HttpContext zetten zodat User beschikbaar is
             controller.ControllerContext = new ControllerContext
@@ -48,7 +65,7 @@ namespace VeilingklokUnitTest.AanvoerderDashboard.Controllers
             return new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
         }
 
-        //GET aanmeldingen 
+        // GET aanmeldingen 
 
         [Fact]
         public async Task GetAanmeldingen_ZonderUserId_IsUnauthorized()
@@ -96,7 +113,7 @@ namespace VeilingklokUnitTest.AanvoerderDashboard.Controllers
             Assert.IsType<NotFoundObjectResult>(result.Result);
         }
 
-        //  DELETE aanmelding 
+        // DELETE aanmelding 
 
         [Fact]
         public async Task DeleteAanmelding_ServiceOk_GeeftNoContent()
