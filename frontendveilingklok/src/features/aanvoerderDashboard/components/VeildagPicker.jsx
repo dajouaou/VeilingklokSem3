@@ -20,11 +20,15 @@ export default function VeildagPicker({ value, onChange, highlightedDates = [] }
     const isDayBlocked = (date) => {
         const iso = date.toISOString().split("T")[0];
 
-        if (date.getDay() === 0 || date.getDay() === 6) return false;
+        // Alleen zondag blokkeren (zaterdag mag nu wél)
+        if (date.getDay() === 0) return false;
+
+        // Feestdagen blokkeren blijft hetzelfde
         if (FEESTDAGEN.includes(iso)) return false;
 
         return true;
     };
+
 
     const highlight = highlightedDates
         .filter(d => d)
