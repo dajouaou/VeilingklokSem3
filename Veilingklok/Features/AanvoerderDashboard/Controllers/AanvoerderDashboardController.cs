@@ -88,7 +88,8 @@ public class AanvoerderDashboardController : ControllerBase
                 await using var stream = new FileStream(filePath, FileMode.Create);
                 await dto.Foto.CopyToAsync(stream);
 
-                fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+                fotoPad = $"/uploads/{fileName}";
+
             }
 
             var result = await _service.CreateAanmeldingAsync(gebruikerId, dto, fotoPad);
@@ -124,7 +125,7 @@ public class AanvoerderDashboardController : ControllerBase
                 await using var stream = new FileStream(filePath, FileMode.Create);
                 await dto.Foto.CopyToAsync(stream);
 
-                fotoPad = $"{Request.Scheme}://{Request.Host}/uploads/{fileName}";
+                fotoPad = $"/uploads/{fileName}";
             }
 
             var updated = await _service.UpdateAanmeldingAsync(gebruikerId, id, dto, fotoPad);
