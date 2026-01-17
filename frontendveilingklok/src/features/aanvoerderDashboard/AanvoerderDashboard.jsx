@@ -32,6 +32,7 @@ export default function AanvoerderDashboard() {
         if (fotoUrl.startsWith("http://") || fotoUrl.startsWith("https://")) return fotoUrl;
         // relatieve /uploads/...
         return `${API_BASE_URL}${fotoUrl}`;
+    }
 
         const [items, setItems] = useState([]);
         const [stats, setStats] = useState(null);
@@ -487,4 +488,3 @@ export default function AanvoerderDashboard() {
             </>
         );
     }
-}
