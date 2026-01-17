@@ -144,7 +144,7 @@ public class VeilingBeheerController : ControllerBase
                         KoperNaam = t.Koper != null ? $"{t.Koper.Voornaam} {t.Koper.Achternaam}" : "",
                         Aantal = t.Aantal,
                         Prijs = t.Prijs,
-                        Tijdstip = t.Tijdstip
+                        Tijdstip = t.Tijdstip.ToLocalTime()
                     })
                     .ToList()
             };
