@@ -6,13 +6,20 @@ import Topbar from "./Topbar";
 import "../VeilingmeesterDashboard.css";
 
 export default function GeplandeVeilingen() {
+
+    // Token voor API-calls + logout functie uit context
     const { token, logout } = useContext(AuthContext);
 
+    // State voor data en errors
     const [veilingen, setVeilingen] = useState([]);
     const [error, setError] = useState("");
+
+    // UI-state voor sidebar (open/dicht)
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
+        // Bij mount of token wijziging: geplande veilingen ophalen
+        fetchPlannedVeilingen(token)
         fetchPlannedVeilingen(token)
             .then(setVeilingen)
             .catch(() => setError("Kon geplande veilingen niet laden"));

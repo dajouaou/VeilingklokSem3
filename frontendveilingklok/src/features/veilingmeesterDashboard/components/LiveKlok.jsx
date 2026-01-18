@@ -1,4 +1,5 @@
 export default function LiveKlok({ lot }) {
+    // Als er geen actief product is: toon "geen actief product"
     if (!lot) {
         return (
             <section className="vm-panel">
@@ -10,11 +11,16 @@ export default function LiveKlok({ lot }) {
         );
     }
 
+    // Waarden veilig omzetten naar numbers (null/undefined = 0)
     const max = Number(lot.maximumPrijs ?? 0);
     const min = Number(lot.minimumPrijs ?? 0);
     const cur = Number(lot.huidigePrijs ?? 0);
 
+    // Bereken progress percentage tussen min en max (voor de bar)
+    // Als max < min dan kan je niet delen dus percentage = 0
     const pctRaw = max <= min ? 0 : ((cur - min) / (max - min)) * 100;
+
+    // Clamp zodat het altijd tussen 0 en 100 blijft
     const pct = Math.max(0, Math.min(100, pctRaw));
 
     return (
@@ -31,6 +37,7 @@ export default function LiveKlok({ lot }) {
 
             <div className="vm-live-price">
                 <div className="vm-muted">Huidige prijs</div>
+
                 <div className="vm-price">{cur.toFixed(2)} EUR</div>
                 <div className="vm-muted">Update elke 5 sec</div>
             </div>
@@ -41,6 +48,7 @@ export default function LiveKlok({ lot }) {
                     <span className="vm-muted">Max: {max.toFixed(2)} EUR</span>
                 </div>
 
+                {/* Bar breedte is percentage */}
                 <div className="vm-bar">
                     <div className="vm-bar-fill" style={{ width: `${pct}%` }} />
                 </div>

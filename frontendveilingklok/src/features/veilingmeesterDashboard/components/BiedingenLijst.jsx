@@ -1,4 +1,5 @@
 export default function BiedingenLijst({ biedingen }) {
+    // Als er nog geen biedingen zijn: toon een boodschap
     if (!biedingen || biedingen.length === 0) {
         return <p className="vm-muted">Er zijn nog geen biedingen geplaatst.</p>;
     }

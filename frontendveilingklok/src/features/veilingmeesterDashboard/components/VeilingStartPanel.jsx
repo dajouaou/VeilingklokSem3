@@ -18,13 +18,18 @@ export default function VeilingStartPanel({
                     <label className="vm-label" htmlFor="veildatum">
                         Veildatum
                     </label>
+
+                    {/* Select is "controlled": value komt uit state gekozenDatum */}
                     <select
                         id="veildatum"
                         className="vm-input"
                         value={gekozenDatum}
+                        // Bij wijziging: update state in parent component
                         onChange={(e) => setGekozenDatum(e.target.value)}
                     >
                         <option value="">Kies een dag</option>
+
+                        {/* veildagen is een lijst strings */}
                         {veildagen.map((d) => (
                             <option key={d} value={d}>
                                 {d}
@@ -37,6 +42,8 @@ export default function VeilingStartPanel({
                     <label className="vm-label" htmlFor="starttijd">
                         Starttijd
                     </label>
+
+                    {/* Controlled input: value komt uit state startTijd */}
                     <input
                         id="starttijd"
                         type="time"
@@ -48,6 +55,7 @@ export default function VeilingStartPanel({
             </div>
 
             <div className="vm-form-actions">
+                {/* Parent bepaalt wat er gebeurt bij start (API-call) */}
                 <button type="button" className="vm-btn vm-btn-primary" onClick={onStart}>
                     Start veiling
                 </button>

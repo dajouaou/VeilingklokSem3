@@ -3,12 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../auth/AuthContext";
 
 export default function Topbar({ title, veiling, onMenuClick }) {
+    // Informatie uit auth context
     const { logout, naam, role, token } = useContext(AuthContext);
     const navigate = useNavigate();
 
+    // Dropdown open/dicht
     const [open, setOpen] = useState(false);
+
+    // Ref om te detecteren of je buiten de dropdown klikt
     const dropdownRef = useRef(null);
 
+    // Alleen veilingmeester ziet profiel dropdown (extra check)
     const isVeilingmeester = token && role === "Veilingmeester";
 
     function handleLogout() {
@@ -16,14 +21,18 @@ export default function Topbar({ title, veiling, onMenuClick }) {
         navigate("/login", { replace: true });
     }
 
-    // sluit dropdown als je buiten klikt
+    // Sluit dropdown als gebruiker buiten het dropdown element klikt
     useEffect(() => {
         function handleClickOutside(e) {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 setOpen(false);
             }
         }
+
+        // Event listener toevoegen
         document.addEventListener("mousedown", handleClickOutside);
+
+        // Cleanup: event listener verwijderen bij unmount
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
@@ -50,6 +59,7 @@ export default function Topbar({ title, veiling, onMenuClick }) {
                 </div>
 
                 <div className="vm-top-right">
+                    {/* Als er een actieve veiling is: laat ID zien */}
                     {veiling && (
                         <div className="vm-pill">
                             <span className="vm-pill-dot" />
@@ -57,6 +67,7 @@ export default function Topbar({ title, veiling, onMenuClick }) {
                         </div>
                     )}
 
+                    {/* Alleen voor veilingmeester: profiel dropdown */}
                     {isVeilingmeester && (
                         <div className="vm-profile" ref={dropdownRef}>
                             <button
@@ -66,12 +77,14 @@ export default function Topbar({ title, veiling, onMenuClick }) {
                                 aria-haspopup="menu"
                                 aria-expanded={open}
                             >
+                                {/* Avatar: eerste letter van naam, fallback "V" */}
                                 <div className="vm-user-avatar">
                                     {naam?.charAt(0)?.toUpperCase() || "V"}
                                 </div>
                                 <span className="vm-user-name">{naam}</span>
                             </button>
 
+                            {/* Dropdown alleen renderen als open=true */}
                             {open && (
                                 <div className="vm-profile-dropdown">
                                     <div className="vm-profile-info">

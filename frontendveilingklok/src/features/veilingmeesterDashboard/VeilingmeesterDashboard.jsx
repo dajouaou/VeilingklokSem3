@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useContext, useCallback, useMemo } from "react";
 import { AuthContext } from "../auth/AuthContext";
 
+// API-calls voor het ophalen en beheren van veilingen
 import {
     getActiveVeiling,
     startVeiling,
@@ -10,30 +11,35 @@ import {
     fetchVolgendeVeiling,
 } from "../veiling/api/veilingApi";
 
+// Hook voor realtime updates via SignalR
 import useLiveVeiling from "./hooks/useLiveVeiling";
+
+// UI-componenten
 import LiveKlok from "./components/LiveKlok";
 import WachtrijLijst from "./components/WachtrijLijst";
 import VeilingControls from "./components/VeilingControls";
 import BiedingenLijst from "./components/BiedingenLijst";
 import AuditLijst from "./components/AuditLijst";
 import VeilingInformatie from "./components/VeilingInformatie";
-
 import Sidebar from "./components/Sidebar";
 import Topbar from "./components/Topbar";
 
 import "./VeilingmeesterDashboard.css";
 
 export default function VeilingmeesterDashboard() {
+    // Auth-gegevens van de ingelogde gebruiker
     const { token, role, logout } = useContext(AuthContext);
 
+    // State voor actieve veiling en eerstvolgende geplande veiling
     const [veiling, setVeiling] = useState(null);
     const [volgende, setVolgende] = useState(null);
+
+    // State voor laden, foutmeldingen en sidebar
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    // ✅ Hook-output zoals jij eerder stuurde:
-    // { lot, wachtrij, lastBid, audit, onlineBieders, loading }
+    // Realtime data van de veiling via SignalR
     const {
         lot,
         wachtrij,
@@ -42,12 +48,13 @@ export default function VeilingmeesterDashboard() {
         loading: liveLoading,
     } = useLiveVeiling(token, veiling?.id);
 
-    // ✅ Maak van lastBid een array zodat je bestaande BiedingenLijst werkt
+    // Zet het laatste bod om naar een array zodat de lijstcomponent werkt
     const bids = useMemo(() => (lastBid ? [lastBid] : []), [lastBid]);
 
-    // ✅ API-loading mag UI blokkeren, SignalR niet (die mag falen/reconnecten)
-    const isBusy = loading; // i.p.v. loading || liveLoading
+    // Alleen REST-calls blokkeren de UI, realtime updates niet
+    const isBusy = loading;
 
+    // Haalt actieve veiling op of anders de volgende geplande veiling
     const loadInit = useCallback(async () => {
         if (!token || role !== "Veilingmeester") return;
 
@@ -72,6 +79,7 @@ export default function VeilingmeesterDashboard() {
         }
     }, [token, role]);
 
+    // Laadt veilinggegevens bij start en elke 5 seconden opnieuw
     useEffect(() => {
         if (!token || role !== "Veilingmeester") return;
 
@@ -80,6 +88,7 @@ export default function VeilingmeesterDashboard() {
         return () => clearInterval(interval);
     }, [token, role, loadInit]);
 
+    // Start de eerstvolgende geplande veiling
     async function handleStart() {
         setError("");
 
@@ -101,18 +110,20 @@ export default function VeilingmeesterDashboard() {
         }
     }
 
+    // Haalt de actieve veiling opnieuw op
     async function refreshActiveVeiling() {
         const actief = await getActiveVeiling(token).catch(() => null);
         setVeiling(actief);
     }
 
+    // Pauzeert de veiling
     async function handlePause() {
         if (!veiling?.id) return;
 
         try {
             await pauseVeiling(token, veiling.id);
 
-            // Optimistische UI update
+            // UI alvast aanpassen voordat backend terugkomt
             setVeiling((prev) =>
                 prev
                     ? { ...prev, isPauze: true, isGepauzeerd: true, status: "Gepauzeerd" }
@@ -125,6 +136,7 @@ export default function VeilingmeesterDashboard() {
         }
     }
 
+    // Hervat een gepauzeerde veiling
     async function handleResume() {
         if (!veiling?.id) return;
 
@@ -143,6 +155,7 @@ export default function VeilingmeesterDashboard() {
         }
     }
 
+    // Stopt de veiling definitief
     async function handleStop() {
         if (!veiling?.id) return;
 
@@ -179,11 +192,11 @@ export default function VeilingmeesterDashboard() {
                         <h2>Overzicht</h2>
                         <p className="vm-muted">
                             Monitor de veiling, bekijk biedingen en beheer de klok.
-                            {liveLoading ? (
+                            {liveLoading && (
                                 <span className="ms-2 badge bg-light text-dark">
                                     Live verbinden…
                                 </span>
-                            ) : null}
+                            )}
                         </p>
 
                         <div className="vm-hero-row">
@@ -259,8 +272,6 @@ export default function VeilingmeesterDashboard() {
                         />
                     </section>
 
-                    {/* Laat dashboard tonen zodra REST veiling er is.
-              SignalR kan later binnenkomen; UI blijft gewoon staan. */}
                     {veiling && (
                         <>
                             <section className="vm-grid-2">

@@ -5,12 +5,16 @@ export default function Sidebar({ logout, sidebarOpen, setSidebarOpen }) {
     const navigate = useNavigate();
 
     function handleLogout() {
+        // Logout verwijdert token/role uit context
         logout();
+
+        // Daarna redirect naar login, replace voorkomt "terug-knop" naar protected pagina
         navigate("/login", { replace: true });
     }
 
     return (
         <aside className={`vm-sidebar ${sidebarOpen ? "open" : ""}`} aria-label="Navigatie">
+            {/* Sluit-knop: zet sidebar state dicht */}
             <button
                 type="button"
                 className="vm-sidebar-close"
@@ -29,6 +33,7 @@ export default function Sidebar({ logout, sidebarOpen, setSidebarOpen }) {
             </div>
 
             <nav className="vm-nav">
+                {/* NavLink: actief linkje krijgt automatisch "active" class van react-router */}
                 <NavLink to="/veilingmeester" end onClick={() => setSidebarOpen(false)}>
                     <img src={iconUrl("nav/dashboard.svg")} alt="" width="18" height="18" />
                     <span>Dashboard</span>

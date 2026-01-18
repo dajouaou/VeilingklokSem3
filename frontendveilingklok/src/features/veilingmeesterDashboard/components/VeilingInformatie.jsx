@@ -1,6 +1,8 @@
 export default function VeilingInformatie({ gegevens }) {
+    // Als gegevens ontbreekt: toon fallback tekst
     if (!gegevens) return <p className="vm-muted">Geen informatie over de veiling beschikbaar.</p>;
 
+    // Status tekst opbouwen uit boolean flags
     const statusParts = [];
     if (gegevens.isGestart) statusParts.push("Gestart");
     else statusParts.push("Niet gestart");
@@ -27,6 +29,7 @@ export default function VeilingInformatie({ gegevens }) {
                     <strong>{statusText}</strong>
                 </div>
 
+                {/* Alleen tonen als er een huidig product is */}
                 {gegevens.huidigProduct && (
                     <div className="vm-kv-row">
                         <span className="vm-muted">Huidig product</span>
@@ -38,6 +41,7 @@ export default function VeilingInformatie({ gegevens }) {
 
                 <div className="vm-kv-row">
                     <span className="vm-muted">In wachtrij</span>
+                    {/* Wachtrij kan null/undefined zijn dus check met Array.isArray */}
                     <strong>{Array.isArray(gegevens.wachtrij) ? gegevens.wachtrij.length : 0}</strong>
                 </div>
             </div>

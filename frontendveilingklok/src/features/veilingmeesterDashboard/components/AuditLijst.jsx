@@ -1,4 +1,6 @@
 export default function AuditLijst({ audit }) {
+
+    // Als audit ontbreekt of leeg is: toon een nette tekst i.p.v. een lege lijst
     if (!audit || audit.length === 0) {
         return <p className="vm-muted">Er zijn nog geen logboekmeldingen.</p>;
     }

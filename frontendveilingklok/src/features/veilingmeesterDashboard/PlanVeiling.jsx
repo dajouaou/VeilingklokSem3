@@ -8,40 +8,52 @@ import "./VeilingmeesterDashboard.css";
 export default function PlanVeiling() {
     const { token, logout } = useContext(AuthContext);
 
+    // Lijst met leverdagen (days waarop aanmeldingen bestaan)
     const [leverdagen, setLeverdagen] = useState([]);
+
+    // Form states
     const [leverdatum, setLeverdatum] = useState("");
     const [veildatum, setVeildatum] = useState("");
     const [startTijd, setStartTijd] = useState("09:00");
 
+    // available = aanmeldingen die nog niet ingepland zijn
+    // selected = aanmeldingen die je toevoegt aan deze veiling
     const [available, setAvailable] = useState([]);
     const [selected, setSelected] = useState([]);
 
+    // Feedback states
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
+
+        // Bij start: haal mogelijke leverdagen op
         fetchVeilingDagen(token)
             .then(setLeverdagen)
             .catch(() => setError("Kon leverdatums niet ophalen"));
     }, [token]);
 
     useEffect(() => {
+
+        // Als leverdatum niet gekozen is: reset lijsten
         if (!leverdatum) {
             setAvailable([]);
             setSelected([]);
             return;
         }
 
+        // Als leverdatum gekozen is: haal aanmeldingen voor die dag op
         fetchAanmeldingenVoorDatum(token, leverdatum)
             .then((items) => {
                 setAvailable(items);
-                setSelected([]);
+                setSelected([]); // als je datum wisselt, selectie resetten
             })
             .catch(() => setError("Kon producten niet ophalen"));
     }, [leverdatum, token]);
 
     function addToSelected(item) {
+        // Verplaats item van available naar selected
         setAvailable((prev) => prev.filter((x) => x.id !== item.id));
         setSelected((prev) => [...prev, item]);
     }
@@ -52,14 +64,17 @@ export default function PlanVeiling() {
     }
 
     async function handlePlan() {
+        // Reset feedback
         setError("");
         setSuccess("");
 
+        // Basic client-side validatie
         if (!leverdatum || !veildatum || selected.length === 0) {
             setError("Vul alle velden in.");
             return;
         }
 
+        // Payload die backend verwacht
         const payload = {
             leverdatum,
             veildatum,
@@ -68,13 +83,18 @@ export default function PlanVeiling() {
         };
 
         try {
+            // POST naar backend: plan veiling + koppel veilingproducten
             await planVeiling(token, payload);
+
+            // Succes melding en selectie leegmaken
             setSuccess("Producten zijn toegevoegd aan de geplande veiling.");
             setSelected([]);
 
+            // Daarna refresh van available (want die selectie is nu ingepland)
             const items = await fetchAanmeldingenVoorDatum(token, leverdatum);
             setAvailable(items);
         } catch (err) {
+            // Backend error message doorgeven aan UI
             setError(err.message);
         }
     }

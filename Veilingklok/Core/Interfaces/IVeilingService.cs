@@ -2,34 +2,30 @@ using Veilingklok.Features.Veiling.Dtos;
 
 namespace Veilingklok.Core.Interfaces
 {
-    // Interface die vastlegt welke veiling-acties de service moet ondersteunen
+    // Interface = contract: welke veiling-acties elke implementatie moet aanbieden
     public interface IVeilingService
     {
-        // Haalt de actieve veiling op (gestart of gepauzeerd)
+        // Actieve veiling = gestart of gepauzeerd. Kan null zijn als er niks actief is.
         Task<VeilingOverzichtDto?> GetActieveVeilingAsync();
 
-        // Start een bestaande geplande veiling
+        // Start een bestaande geplande veiling (id komt uit planning)
         Task<VeilingOverzichtDto> StartGeplandeVeilingAsync(int veilingId);
 
-        // Maakt en plant een nieuwe veiling op basis van aanmeldingen
+        // Start (en maakt) een veiling op basis van datums (wordt minder gebruikt in jouw flow)
         Task<VeilingOverzichtDto> StartVeilingAsync(DateTime veildatum, DateTime leverdatum, TimeSpan? startTijd = null);
 
-        // Haalt alle details van één veiling op
+        // Details van 1 veiling (incl huidig product + wachtrij etc)
         Task<VeilingOverzichtDto> GetDetailsAsync(int veilingId);
 
-        // Zet een veiling op pauze
+        // Statuswijzigingen
         Task PauseAsync(int veilingId);
-
-        // Haalt een veiling van pauze en start hem weer
         Task ResumeAsync(int veilingId);
-
-        // Stopt en sluit een veiling definitief af
         Task StopAsync(int veilingId);
 
-        // Plaatst een bod op het huidige product in een veiling
+        // Bod plaatsen: koperGebruikerId komt uit JWT/claims (auth)
         Task<BodDto> PlaatsBodAsync(int veilingId, BodPlaatsenDto dto, int koperGebruikerId);
 
-        // Haalt alle veilingdagen op waar veilingen bestaan
+        // Lever-/veildagen ophalen (voor planning in frontend)
         Task<List<string>> GetVeilingDagenAsync();
     }
 }
