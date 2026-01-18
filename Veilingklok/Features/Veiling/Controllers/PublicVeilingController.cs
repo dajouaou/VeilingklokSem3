@@ -8,41 +8,46 @@ using Veilingklok.Infrastructure.Database;
 
 namespace Veilingklok.Features.Veiling.Controllers
 {
+    // Deze controller bevat publieke endpoints
+    // Iedereen mag deze endpoints aanroepen (geen login vereist)
     [ApiController]
-    [AllowAnonymous] // alles in deze controller is publiek toegankelijk
+    [AllowAnonymous]
     [Route("api/veiling-public")]
     [Produces("application/json")]
-    // Public controller voor openbare veilinginformatie
     public class VeilingPublicController : ControllerBase
     {
+        // Database context voor het ophalen van veilingdata
         private readonly MyContext _db;
 
-        // Injecteert database context
+        // Constructor: DbContext wordt via dependency injection meegegeven
         public VeilingPublicController(MyContext db)
         {
-            _db = db; // DbContext via dependency injection
+            _db = db;
         }
 
-        // ✅ blijft handig (maar filter ook op niet-geplande producten)
+        // Geeft alle beschikbare veildagen terug
+        // Dit zijn dagen waarvoor nog aanmeldingen bestaan
         [HttpGet("dagen")]
         public async Task<ActionResult<List<string>>> GetPublicVeildagen()
         {
+            // Haal alle leverdata op van aanmeldingen die nog niet ingepland zijn
             var dagen = await _db.Aanmeldingen
                 .Where(a => a.VeilingProductId == null) // alleen nog niet ingeplande aanmeldingen
-                .Select(a => a.LeverDatum.Date)         // alleen de datum, zonder tijd
-                .Distinct()                             // dubbele dagen voorkomen
-                .OrderBy(d => d)                        // chronologisch sorteren
+                .Select(a => a.LeverDatum.Date)         // alleen datum, geen tijd
+                .Distinct()                             // dubbele datums verwijderen
+                .OrderBy(d => d)                        // sorteren op datum
                 .ToListAsync();
 
+            // Datums omzetten naar string-formaat voor de frontend
             return dagen.Select(d => d.ToString("yyyy-MM-dd")).ToList();
         }
 
-        // Haalt de actieve (gestarte of gepauzeerde) veiling op
+        // Haalt de huidige actieve of gepauzeerde veiling op
         [HttpGet("actief")]
         [Produces("application/json")]
-        // Haalt de huidige actieve of gepauzeerde veiling op
         public async Task<IActionResult> GetActief()
         {
+            // Zoek een veiling die gestart of gepauzeerd is
             var v = await _db.Veilingen
                 .Include(x => x.Producten)
                     .ThenInclude(p => p.Aanmelding)
@@ -51,6 +56,7 @@ namespace Veilingklok.Features.Veiling.Controllers
                     x.Status == VeilingStatus.Gestart ||
                     x.Status == VeilingStatus.Gepauzeerd);
 
+            // Als er geen actieve veiling is, geef een leeg overzicht terug
             if (v == null)
             {
                 return Ok(new VeilingOverzichtDto
@@ -64,6 +70,7 @@ namespace Veilingklok.Features.Veiling.Controllers
                 });
             }
 
+            // Basisinformatie van de veiling
             var dto = new VeilingOverzichtDto
             {
                 Id = v.Id,
@@ -72,8 +79,10 @@ namespace Veilingklok.Features.Veiling.Controllers
                 IsAfgesloten = v.Status == VeilingStatus.Afgesloten
             };
 
+            // Huidig actief product bepalen
             var hp = v.Producten.SingleOrDefault(p => p.Id == v.HuidigProductId);
 
+            // Als er een huidig product is, vul deze in het DTO
             if (hp != null && hp.Aanmelding != null)
             {
                 dto.HuidigProduct = new HuidigProductDto
@@ -93,6 +102,8 @@ namespace Veilingklok.Features.Veiling.Controllers
                     AanvoerderNaam = hp.Aanmelding.Aanvoerder?.Naam ?? ""
                 };
             }
+
+            // Wachtrij vullen met producten die nog moeten komen
             dto.Wachtrij = v.Producten
                 .Where(p => !p.IsActief && !p.IsVerkocht && !p.IsDoorgedraaid)
                 .OrderBy(p => p.Volgorde)
@@ -112,23 +123,23 @@ namespace Veilingklok.Features.Veiling.Controllers
                 })
                 .ToList();
 
+            // Volledig veilingoverzicht teruggeven
             return Ok(dto);
         }
 
         // Geeft de eerstvolgende geplande veiling terug
         [HttpGet("volgende")]
-        // Haalt de eerstvolgende geplande veiling op
         public async Task<ActionResult<GeplandeVeilingListItemDto?>> GetVolgende()
         {
             var today = DateTime.Today;
             var nowTime = DateTime.Now.TimeOfDay;
 
-            // zelfde “cutoff/grace” logica als planning controller (5 min)
+            // Kleine marge van 5 minuten om randgevallen te voorkomen
             var grace = TimeSpan.FromMinutes(5);
             var cutoff = nowTime - grace;
             if (cutoff < TimeSpan.Zero) cutoff = TimeSpan.Zero;
 
-            // Zoekt de eerstvolgende geplande veiling
+            // Zoek de eerstvolgende geplande veiling
             var volgende = await _db.Veilingen
                 .Where(v => v.Status == VeilingStatus.Gepland &&
                             (v.Datum > today ||
@@ -137,11 +148,15 @@ namespace Veilingklok.Features.Veiling.Controllers
                 .ThenBy(v => v.StartTijd)
                 .FirstOrDefaultAsync();
 
-            if (volgende == null) return Ok(null);
+            // Geen geplande veiling gevonden
+            if (volgende == null)
+                return Ok(null);
 
-            var aantal = await _db.VeilingProducten.CountAsync(p => p.VeilingId == volgende.Id);
+            // Aantal producten in de geplande veiling bepalen
+            var aantal = await _db.VeilingProducten
+                .CountAsync(p => p.VeilingId == volgende.Id);
 
-            // Geeft geplande veiling-info terug
+            // DTO met geplande veilinginformatie teruggeven
             return Ok(new GeplandeVeilingListItemDto
             {
                 Id = volgende.Id,
