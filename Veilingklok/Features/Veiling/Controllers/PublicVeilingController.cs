@@ -23,7 +23,7 @@ namespace Veilingklok.Features.Veiling.Controllers
             _db = db; // DbContext via dependency injection
         }
 
-        // ✅ blijft handig (maar filter ook op niet-geplande producten)
+        // blijft handig (maar filter ook op niet-geplande producten)
         [HttpGet("dagen")]
         public async Task<ActionResult<List<string>>> GetPublicVeildagen()
         {
