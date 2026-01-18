@@ -19,8 +19,8 @@ export default function VeildagPicker({ value, onChange, highlightedDates = [] }
 
     const isDayBlocked = (date) => {
         const iso = date.toISOString().split("T")[0];
-
-
+        // bij zaterdag of zondag kun je geen product aanmelden
+        if (date.getDay() === 0 || date.getDay() === 6) return false;
         // Feestdagen blokkeren blijft hetzelfde
         if (FEESTDAGEN.includes(iso)) return false;
 
