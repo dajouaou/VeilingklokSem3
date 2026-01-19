@@ -13,7 +13,7 @@ namespace Veilingklok.Features.AanvoerderDashboard.Services
     {
         private readonly MyContext _db;
 
-        // Injecteert de database context
+        // insert de database context
         public AanvoerderDashboardService(MyContext db)
         {
             _db = db;
