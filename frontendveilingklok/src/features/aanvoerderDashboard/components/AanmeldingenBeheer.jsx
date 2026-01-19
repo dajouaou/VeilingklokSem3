@@ -14,7 +14,7 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
     hoeveelheid: "",
     minimumPrijs: "",
     klokLocatie: "Naaldwijk",
-    leverdatum: "", // ✅ FIX
+    leverdatum: "", 
     fotoFile: null,
     beschrijving: "",
   });
@@ -32,7 +32,7 @@ export default function AanmeldingenBeheer({ items, onClose, token, onUpdated })
       hoeveelheid: item.hoeveelheid,
       minimumPrijs: item.minimumPrijs,
       klokLocatie: item.klokLocatie,
-      leverdatum: leverdatumYmd, // ✅ FIX
+      leverdatum: leverdatumYmd, 
       beschrijving: item.beschrijving || "",
       fotoFile: null,
     });
