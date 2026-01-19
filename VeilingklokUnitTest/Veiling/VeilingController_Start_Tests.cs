@@ -20,12 +20,16 @@ namespace VeilingklokUnitTest.Veiling
             var service = new Mock<IVeilingService>(MockBehavior.Strict);
 
             // Input voor het starten van een veiling
+            var veildatum = DateTime.Today.AddDays(7);
+            var leverdatum = DateTime.Today.AddDays(8);
+
             var dto = new StartVeilingDto
             {
-                Veildatum = new DateTime(2026, 1, 1),
-                LeverDatum = new DateTime(2026, 1, 2),
+                Veildatum = veildatum,
+                LeverDatum = leverdatum,
                 StartTijd = new TimeSpan(9, 0, 0)
             };
+
 
             // Verwachte response van de service na succesvol starten
             var expected = new VeilingOverzichtDto
@@ -58,15 +62,21 @@ namespace VeilingklokUnitTest.Veiling
             // Arrange: service gooit een fout (bijv. ongeldige datum)
             var service = new Mock<IVeilingService>(MockBehavior.Strict);
 
+            // Gebruik een datum die altijd in de toekomst ligt, anders returnt de controller BadRequest
+            // door de tijdvalidatie (NlTime.Now()) en wordt de service nooit aangeroepen.
+            var veildatum = DateTime.Today.AddDays(7);
+            var leverdatum = DateTime.Today.AddDays(7); // bewust gelijk kan; service bepaalt of dit ongeldig is
+            var startTijd = new TimeSpan(9, 0, 0);
+
             var dto = new StartVeilingDto
             {
-                Veildatum = new DateTime(2026, 1, 1),
-                LeverDatum = new DateTime(2026, 1, 1),
-                StartTijd = new TimeSpan(9, 0, 0)
+                Veildatum = veildatum,
+                LeverDatum = leverdatum,
+                StartTijd = startTijd
             };
 
             service
-                .Setup(s => s.StartVeilingAsync(dto.Veildatum, dto.LeverDatum, dto.StartTijd))
+                .Setup(s => s.StartVeilingAsync(dto.Veildatum, dto.LeverDatum, startTijd))
                 .ThrowsAsync(new InvalidOperationException("Leverdatum ongeldig"));
 
             var controller = new VeilingController(service.Object);
@@ -77,7 +87,6 @@ namespace VeilingklokUnitTest.Veiling
 
             service.VerifyAll();
         }
-
         [Fact]
         public async Task GetDetails_ReturnsOk_FromService()
         {

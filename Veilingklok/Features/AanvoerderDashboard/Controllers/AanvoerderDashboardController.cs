@@ -19,14 +19,14 @@ public class AanvoerderDashboardController : ControllerBase
     private readonly MyContext _db;
     private readonly IAanvoerderDashboardService _service;
     private readonly IWebHostEnvironment _env;
-    private readonly BlobImageService _blob;
+    private readonly IBlobImageService _blob;
 
     // Injecteert service, database en hosting info
     public AanvoerderDashboardController(
         IAanvoerderDashboardService service,
         MyContext db,
         IWebHostEnvironment env,
-        BlobImageService blob)
+        IBlobImageService blob)
     {
         _service = service;
         _db = db;

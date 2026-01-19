@@ -18,5 +18,6 @@ namespace Veilingklok.Core.Interfaces
 
         // Haalt dashboard statistieken op, eventueel gefilterd op veildatum
         Task<AanvoerderStatsDto> GetStatsAsync(int gebruikerId, DateTime? veildatum);
+    
     }
 }

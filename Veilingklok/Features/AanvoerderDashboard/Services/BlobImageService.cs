@@ -1,13 +1,14 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Veilingklok.Core.Interfaces;
 
 namespace Veilingklok.Features.AanvoerderDashboard
 {
-    public class BlobImageService
+    public class BlobImageService :IBlobImageService
     {
         private readonly BlobContainerClient _container;
 
-        public BlobImageService(IConfiguration config)
+        public BlobImageService(IConfiguration config) 
         {
             var conn = config["BlobStorage:ConnectionString"];
             var containerName = config["BlobStorage:ContainerName"] ?? "uploads";

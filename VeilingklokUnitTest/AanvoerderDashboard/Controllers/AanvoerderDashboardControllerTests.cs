@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -9,7 +8,6 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using Veilingklok.Core.Interfaces;
-using Veilingklok.Features.AanvoerderDashboard;
 using Veilingklok.Features.AanvoerderDashboard.Controllers;
 using Veilingklok.Features.AanvoerderDashboard.Dtos;
 using VeilingklokUnitTest.AanvoerderDashboard.TestHelpers;
@@ -31,11 +29,9 @@ namespace VeilingklokUnitTest.AanvoerderDashboard.Controllers
             var envMock = new Mock<IWebHostEnvironment>();
             envMock.Setup(e => e.WebRootPath).Returns("C:\\temp");
 
-            // BlobImageService mock (controller ctor verwacht deze nu ook)
-            var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
-            var blobMock = new Mock<BlobImageService>(config);
+            // Blob service mock (controller ctor verwacht deze nu ook)
+            var blobMock = new Mock<IBlobImageService>();
 
-            // UploadAsync wordt in deze tests niet echt gebruikt, maar moet bestaan
             blobMock
                 .Setup(b => b.UploadAsync(It.IsAny<IFormFile>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync("https://test.blob.core.windows.net/uploads/test.jpg");
