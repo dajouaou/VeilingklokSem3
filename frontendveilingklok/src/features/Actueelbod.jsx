@@ -195,7 +195,7 @@ export default function ActueelBod() {
         }
     }
 
-    // ✅ FIX: syntaxis correct + blokkeer alleen op init-load
+    //  FIX: syntaxis correct + blokkeer alleen op init-load
     if (loadingInit) {
         return (
             <>
